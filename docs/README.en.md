@@ -40,22 +40,6 @@ A Claude Code / Codex / OpenClaw Skill. Once installed in an agent, it lets you 
 | Organize study notes | Good | Can generate Markdown notes that can be appended to `references`. |
 | Make real-world medication decisions | Not suitable | This skill does not provide personal diagnosis, prescriptions, dosage, or self-medication advice. |
 
-## Repository structure
-
-| File | Purpose |
-| --- | --- |
-| [`SKILL.md`](../SKILL.md) | Agent trigger description, workflow, and safety rules. |
-| [`references/index.md`](../references/index.md) | Master index that tells the agent which module to read for each topic. |
-| [`references/learning-entry.md`](../references/learning-entry.md) | Study entry points organized by "what am I learning this for?". |
-| [`references/beginner-questions.md`](../references/beginner-questions.md) | Plain-language question router that maps everyday descriptions to pattern-identification questions. |
-| [`references/six-channel.md`](../references/six-channel.md) | Detailed six-channel pattern-identification module. |
-| [`references/formula-patterns.md`](../references/formula-patterns.md) | Formula patterns and related-formula comparisons. |
-| [`references/symptom-index.md`](../references/symptom-index.md) | Symptom-based entry index. |
-| [`references/lesson-map.md`](../references/lesson-map.md) | Lesson-by-lesson study map for 15 lectures. |
-| [`references/shanghanlun.md`](../references/shanghanlun.md) | Legacy integrated overview of the Shang Han Lun course. |
-| [`scripts/search_screenshots.py`](../scripts/search_screenshots.py) | Cross-module screenshot evidence ranking and search script. |
-| [`assets/screenshots`](../assets/screenshots) | Compressed course screenshots, grouped by course module. |
-
 ## Course modules
 
 | Module | Text material | Screenshot evidence |
