@@ -25,7 +25,7 @@ The course distillation method used in this project comes from the author's [lin
 
 ### 2026-06-25
 
-- Based on course proofreading materials organized and provided by Qihuang Shengxian Zhihui, this update corrects a set of terminology, formula-name, acupoint-name, and classical-citation errors that came from earlier video/audio transcription.
+- Based on course proofreading materials organized by Qihuang Shengxian Zhihui, this update corrects a set of terminology, formula-name, acupoint-name, and classical-citation errors that came from earlier video/audio transcription.
 - Added page-level PDF evidence under [`references/pdf-evidence/`](../references/pdf-evidence/) so course-text corrections can be traced by source, page, and keyword.
 - Added a classical-source, formula-pattern, and terminology index entry at [`references/ebooks.md`](../references/ebooks.md) for checking classical references mentioned in the courses.
 - Term indexes are split by module, including Shang Han Lun, Jingui, Zhongjing Xinfa, acupuncture, Huangdi Neijing, and Shennong Bencao, so learners can search by topic.
