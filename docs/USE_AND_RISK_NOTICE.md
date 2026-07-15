@@ -21,7 +21,7 @@
 
 ## 内容观点与资料属性
 
-本项目整理的课程、文章、视频、讲稿、截图、PDF 摘录和古籍索引，主要用于学习和查证。原课程、文章或视频中的观点、经验和医案表述，属于相应讲授者、作者或原资料来源，不代表本项目提供医学判断、治疗建议或价值引导。
+本项目整理的课程、文章、视频、讲稿、截图、PDF 页级文本和古籍索引，主要用于学习和查证。原课程、文章或视频中的观点、经验和医案表述，属于相应讲授者、作者或原资料来源，不代表本项目提供医学判断、治疗建议或价值引导。
 
 课程或文章中出现的治疗方式、方药、针灸操作、剂量、加减和医案处理，往往是在具体病人、具体时点、专业医师辨证和现场判断之后使用的，不具备普遍适用性。学习者不应脱离病人实际情况自行模仿；如确需参考，应在线下合格医师指导下进行。如出现任何不适或病情变化，应及时就医。
 
@@ -43,9 +43,9 @@
 
 ## 资料来源与版权
 
-本项目包含课程名称、课程转写整理、学习笔记、截图证据、PDF 证据摘要和相关索引。相关课程、图像、文字资料和古籍整理的版权或权利归原权利人所有。
+本项目包含课程名称、课程转写整理、学习笔记、截图证据、PDF 页级文本和相关索引。相关课程、图像、文字资料和古籍整理的版权或权利归原权利人所有。
 
-本项目仅在学习、研究、资料整理和技术交流范围内做结构化索引与有限摘录，不主张对原始课程或原始资料拥有版权。若资料来源、出处、署名、图片引用或其他内容存在错误，或侵犯权利人的合法权益，请联系维护者说明情况；确认后将尽快更正或删除。
+本项目仅在学习、研究、资料整理和技术交流范围内做结构化索引、课程蒸馏与 PDF 页级文本整理，不主张对原始课程或原始资料拥有版权。若资料来源、出处、署名、图片引用或其他内容存在错误，或侵犯权利人的合法权益，请联系维护者说明情况；确认后将尽快更正或删除。
 
 ## 非商业使用
 
@@ -85,7 +85,7 @@ This project is not intended for:
 
 ## Views and Source Material
 
-The courses, articles, videos, handouts, screenshots, PDF excerpts, and classical-source indexes organized here are for learning and verification. Opinions, experiences, and case descriptions in the original courses, articles, or videos belong to their lecturers, authors, or source materials. They do not mean that this project provides medical judgment, treatment advice, or endorsement of those views.
+The courses, articles, videos, handouts, screenshots, PDF page text, and classical-source indexes organized here are for learning and verification. Opinions, experiences, and case descriptions in the original courses, articles, or videos belong to their lecturers, authors, or source materials. They do not mean that this project provides medical judgment, treatment advice, or endorsement of those views.
 
 Treatment methods, formulas, acupuncture procedures, dosages, modifications, and case handling mentioned in courses or articles usually depend on a specific patient, specific timing, professional pattern identification, and on-site clinical judgment. They are not generally applicable instructions. Learners should not imitate them outside the original clinical context. If any material is to be referenced for real health issues, it should be done under the guidance of a qualified offline clinician. Seek timely medical care if discomfort or condition changes occur.
 
@@ -107,9 +107,9 @@ Strong claims in source material such as "cure," "non-toxic," "can replace treat
 
 ## Sources and Copyright
 
-This project includes course names, course transcription distillation, study notes, screenshot evidence, PDF evidence summaries, and related indexes. The rights to the underlying courses, images, text materials, and classical-source collation belong to their respective rights holders.
+This project includes course names, course transcription distillation, study notes, screenshot evidence, page-level PDF text, and related indexes. The rights to the underlying courses, images, text materials, and classical-source collation belong to their respective rights holders.
 
-This project only provides structured indexing and limited excerpts for learning, research, material organization, and technical exchange. It does not claim ownership of the original courses or source materials. If source attribution, authorship, image citation, or other content is incorrect, or if any material infringes a rights holder's lawful rights, please contact the maintainer with details. After verification, the content will be corrected or removed as soon as practical.
+This project only provides structured indexing, course distillation, and page-level PDF text organization for learning, research, material organization, and technical exchange. It does not claim ownership of the original courses or source materials. If source attribution, authorship, image citation, or other content is incorrect, or if any material infringes a rights holder's lawful rights, please contact the maintainer with details. After verification, the content will be corrected or removed as soon as practical.
 
 ## Non-Commercial Use
 

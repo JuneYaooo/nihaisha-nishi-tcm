@@ -17,10 +17,10 @@
 | 入口 | 用途 |
 | --- | --- |
 | `pdf-evidence/index.md` | PDF 证据层说明、引用格式、文件结构和证据政策 |
-| `pdf-evidence/sources.md` | 公开安全的 PDF 来源清单，只包含 doc_id、模块、PDF 名、页数和字数 |
-| `pdf-evidence/evidence-cards.jsonl` | 页级短摘录、术语和 `pdf-evidence:<doc_id>#p<page>` 引用 |
+| `pdf-evidence/sources.md` | PDF 来源与页级覆盖清单，包含 doc_id、模块、PDF 名、页数和字数 |
+| `pdf-evidence/evidence-cards.jsonl` | 每个物理页的完整文本、页面类型、术语和 `pdf-evidence:<doc_id>#p<page>` 引用 |
 | `pdf-evidence/term-index/<module>.json` | 按模块拆分的术语索引，避免加载单个巨大索引 |
-| `pdf-evidence/modules/*.md` | 模块级来源摘要和代表证据 |
+| `pdf-evidence/modules/*.md` | 按模块、来源和物理页组织的完整页级文本 |
 | `pdf-evidence/correction-decisions.md` | 高置信勘误记录与证据状态 |
 
 检索示例：
@@ -32,6 +32,10 @@ python scripts/search_pdf_evidence.py 旋覆花 代赭石 --module shanghan --li
 ```
 
 引用格式固定为 `pdf-evidence:<doc_id>#p<page>`，不得写入机器相关路径或分析目录。
+
+完整页级文件体积较大。日常检索应通过 `scripts/search_pdf_evidence.py` 限定模块和结果数，
+不要整份加载 `pdf-evidence/modules/*.md` 或 `evidence-cards.jsonl`；只有人工核页时才使用
+`--show-full-page`，需要列出全部命中页时才使用 `--limit 0`。
 
 ## 课程与古籍索引入口
 

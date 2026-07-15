@@ -43,7 +43,7 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - Jingui notes / 金匮要略笔记 / 金匮讲稿 questions: `references/notes-jingui.md`; use after `references/jingui.md` when the user asks specifically for written notes or handouts.
    - Course PDF / 古籍方证溯源 / 文案校对 questions: `references/ebooks.md` and `references/pdf-evidence/index.md`; use only the course-distillation, PDF evidence, and course-related classical-source indexes. Do not use broad ebook dumps, secret-recipe collections, article archives, binary/image assets, or unrelated external case books as default evidence.
    - Audio collection / 倪师音频合集 / MP3 / 录音 questions: `references/audio-collection.md`; use to map local audio files to already-distilled course modules.
-   - PDF source evidence / PDF 蒸馏证据 / 古籍引用反查 / 准确可溯源 questions: `references/pdf-evidence/index.md`; use `python scripts/search_pdf_evidence.py <term...>` or `rg` against `references/pdf-evidence/evidence-cards.jsonl` / `references/pdf-evidence/term-index/<module>.json` to find page-level evidence cards, resolve document IDs through `references/pdf-evidence/source-manifest.json`, and cite as `pdf-evidence:<doc_id>#p<page>`. These public evidence files use stable document IDs rather than machine-specific paths.
+   - PDF source evidence / PDF 蒸馏证据 / 古籍引用反查 / 准确可溯源 questions: `references/pdf-evidence/index.md`; use `python scripts/search_pdf_evidence.py <term...> --module <module>` to find complete page-level evidence, add `--show-full-page` only when the whole page is needed, resolve document IDs through `references/pdf-evidence/source-manifest.json`, and cite as `pdf-evidence:<doc_id>#p<page>`. Do not open `references/pdf-evidence/modules/*.md` or `evidence-cards.jsonl` wholesale: they now contain the complete text of 3,080 physical pages. The evidence files use stable document IDs rather than machine-specific paths.
    - Course overview or integrated lookup: `references/shanghanlun.md`.
    - Board/PPT/source evidence: use `python scripts/search_screenshots.py <query or terms...>` for ranked results across all screenshot evidence files. The script normalizes natural-language queries and compound terms; use `--show-terms` when checking how a query was split.
 3. Answer in the structure that matches the task:
@@ -53,6 +53,8 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - Evidence request: return course, timestamp/page, brief note, relative screenshot path or `pdf-evidence:<doc_id>#p<page>` citation. Prefer results that match all important query terms.
    - Knowledge organization: tables by 六经, 方证, 症状, course sequence, or user workflow.
 4. Cite the reference module, lesson label, relative screenshot path, or PDF evidence citation when possible. Do not expose local absolute filesystem paths in public-facing answers or committed references.
+
+Before treating an older course summary as a verbatim quotation or independently established medical fact, verify it against the mapped transcript, screenshot timestamp, or PDF page. Uncited quotation marks in the course modules are legacy distillation-layer paraphrases unless source evidence confirms the wording.
 
 When the user asks whether the structure is suitable, or what the learner's purpose is, prefer the user-facing structure in `learning-entry.md` over the course sequence. Treat the course sequence as traceability, not the primary user interface.
 

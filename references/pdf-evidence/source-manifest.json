@@ -4,109 +4,142 @@
     "source_name": "人纪01针灸视频同步文稿 2024新版.pdf",
     "source_type": "pdf",
     "module": "acupuncture",
+    "physical_pages": 277,
     "pages_with_text": 277,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 277,
-    "characters": 431780
+    "characters": 428301
   },
   {
     "doc_id": "1ae6e7523f17",
     "source_name": "人纪02内经视频同步文稿 2024新版.pdf",
     "source_type": "pdf",
     "module": "huangdi",
+    "physical_pages": 311,
     "pages_with_text": 311,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 311,
-    "characters": 508192
+    "characters": 505453
   },
   {
     "doc_id": "57bd28cae94e",
     "source_name": "人纪03本草视频同步文稿 2024新版.pdf",
     "source_type": "pdf",
     "module": "bencao",
+    "physical_pages": 329,
     "pages_with_text": 328,
+    "pages_with_visual": 0,
+    "blank_pages": 1,
     "first_page": 1,
     "last_page": 329,
-    "characters": 469759
+    "characters": 462870
   },
   {
     "doc_id": "58423f817a06",
     "source_name": "人纪04伤寒视频同步文稿 2024新版.pdf",
     "source_type": "pdf",
     "module": "shanghan",
+    "physical_pages": 277,
     "pages_with_text": 277,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 277,
-    "characters": 443716
+    "characters": 439471
   },
   {
     "doc_id": "fcf026a0b4f9",
     "source_name": "人纪05金匮视频同步文稿 2024新版.pdf",
     "source_type": "pdf",
     "module": "jingui",
+    "physical_pages": 342,
     "pages_with_text": 342,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 342,
-    "characters": 561750
+    "characters": 556919
   },
   {
     "doc_id": "125053a536e3",
     "source_name": "倪海厦人纪系列之伤寒论.pdf",
     "source_type": "pdf",
     "module": "shanghan",
+    "physical_pages": 209,
     "pages_with_text": 209,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 209,
-    "characters": 257523
+    "characters": 267070
   },
   {
     "doc_id": "e993d4602e6f",
     "source_name": "倪海厦人纪系列之神农本草经.pdf",
     "source_type": "pdf",
     "module": "bencao",
+    "physical_pages": 154,
     "pages_with_text": 152,
+    "pages_with_visual": 1,
+    "blank_pages": 1,
     "first_page": 1,
     "last_page": 154,
-    "characters": 214394
+    "characters": 209937
   },
   {
     "doc_id": "ffec061c095e",
     "source_name": "倪海厦人纪系列之金匮要略.pdf",
     "source_type": "pdf",
     "module": "jingui",
+    "physical_pages": 419,
     "pages_with_text": 419,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 419,
-    "characters": 443932
+    "characters": 538019
   },
   {
     "doc_id": "cf77b3ca01e5",
     "source_name": "倪海厦人纪系列之针灸教程.pdf",
     "source_type": "pdf",
     "module": "acupuncture",
+    "physical_pages": 216,
     "pages_with_text": 216,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 216,
-    "characters": 340901
+    "characters": 341324
   },
   {
     "doc_id": "a47aeb66677d",
     "source_name": "倪海厦仲景心法传讲 同步文稿85页.pdf",
     "source_type": "pdf",
     "module": "zhongjing-xinfa",
+    "physical_pages": 85,
     "pages_with_text": 85,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 85,
-    "characters": 127935
+    "characters": 131301
   },
   {
     "doc_id": "d91c6e1e158c",
     "source_name": "黄帝内经原文和翻译.pdf",
     "source_type": "pdf",
     "module": "huangdi",
+    "physical_pages": 461,
     "pages_with_text": 461,
+    "pages_with_visual": 0,
+    "blank_pages": 0,
     "first_page": 1,
     "last_page": 461,
-    "characters": 204715
+    "characters": 213448
   }
 ]

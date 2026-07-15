@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Search public-safe PDF evidence cards."""
+"""Search complete page-level PDF evidence cards."""
 
 from __future__ import annotations
 
@@ -29,6 +29,11 @@ def iter_cards(path: Path):
         for line in handle:
             if line.strip():
                 yield json.loads(line)
+
+
+def card_text(card: dict) -> str:
+    """Read the complete page text while remaining compatible with legacy cards."""
+    return card.get("text", card.get("excerpt", ""))
 
 
 def load_module_indexes(path: Path, module: str | None) -> list[dict]:
@@ -64,9 +69,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Search references/pdf-evidence/evidence-cards.jsonl")
     parser.add_argument("terms", nargs="+", help="Chinese terms to search, e.g. 大青龙汤 荥穴")
     parser.add_argument("--evidence-dir", default="references/pdf-evidence", help="PDF evidence directory")
-    parser.add_argument("--limit", type=int, default=10, help="Maximum rows to print")
+    parser.add_argument("--limit", type=int, default=10, help="Maximum rows to print; use 0 for all matches")
     parser.add_argument("--module", help="Optional module index, e.g. shanghan, bencao, acupuncture")
-    parser.add_argument("--show-excerpt", action="store_true", help="Print raw source excerpts for manual scholarly verification.")
+    parser.add_argument(
+        "--show-excerpt",
+        "--show-full-page",
+        dest="show_full_page",
+        action="store_true",
+        help="Print the complete stored page text for manual scholarly verification.",
+    )
     args = parser.parse_args()
 
     evidence_dir = Path(args.evidence_dir)
@@ -76,19 +87,15 @@ def main() -> int:
     term_hits = load_term_hits(term_index_path, terms, args.module)
     print(SAFETY_NOTICE)
 
-    if len(terms) == 1 and term_hits.get(terms[0]):
-        for hit in term_hits[terms[0]][: args.limit]:
-            print(f"{hit['citation']} {hit['source_name']} page {hit['page']}")
-            print(safe_excerpt(hit.get("snippet", ""), args.show_excerpt))
-            print()
-        return 0
-
     shown = 0
     for card in iter_cards(cards_path):
+        if args.module and card.get("module") != args.module:
+            continue
+        full_page_text = card_text(card)
         haystack = "\n".join(
             [
                 card.get("source_name", ""),
-                card.get("excerpt", ""),
+                full_page_text,
                 " ".join(card.get("terms", [])),
             ]
         )
@@ -98,12 +105,18 @@ def main() -> int:
             for term in terms:
                 for hit in term_hits.get(term, []):
                     if hit.get("card_id") == card.get("card_id") and hit.get("snippet"):
-                        snippets.append(safe_excerpt(hit["snippet"], args.show_excerpt))
+                        snippets.append(safe_excerpt(hit["snippet"], args.show_full_page))
                         break
-            print(" / ".join(snippets) if snippets else safe_excerpt(card["excerpt"], args.show_excerpt))
+            if args.show_full_page:
+                result_text = safe_excerpt(full_page_text, True)
+            elif snippets:
+                result_text = " / ".join(snippets)
+            else:
+                result_text = safe_excerpt(full_page_text, False)
+            print(result_text)
             print()
             shown += 1
-            if shown >= args.limit:
+            if args.limit > 0 and shown >= args.limit:
                 break
     return 0
 
