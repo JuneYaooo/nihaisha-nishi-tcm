@@ -148,9 +148,9 @@
 - 神农本草问题：先 `bencao.md`；需要药性、药物分类、性味归经、剂型剂量或配伍证据时查 `bencao-screenshot-evidence.md`。
 - 针灸问题：先 `acupuncture.md`；需要穴位图、经络图、手法或实操证据时查 `acupuncture-screenshot-evidence.md`。
 - 文字笔记问题：按课程先看对应视频课程引用，再打开 `notes-acupuncture-dacheng.md`、`notes-huangdi.md`、`notes-bencao.md`、`notes-shanghan.md` 或 `notes-jingui.md` 做补充。
-- PDF/古籍溯源问题：先打开 `ebooks.md` 和 `pdf-evidence/index.md`。先检索课程蒸馏、课程 PDF 与截图；只有正文命中同一话题后，才用 `--include-supplements` 调用倪师推荐补充资料，并单独标注其书名与来源层级。《四圣心源》使用 `classics` 模块，《医宗金鉴·伤寒论三阴病篇》使用 `shanghan` 模块，《针灸大成》使用 `acupuncture` 模块；不得把原书观点写成倪师原话或倪师本人资料。
+- PDF/古籍溯源问题：先打开 `ebooks.md` 和 `pdf-evidence/index.md`。默认先检索课程蒸馏、课程 PDF 与截图；正文命中同一话题且补充层有结果时，自动执行倪师推荐资料二次检索，并单独标注书名与来源层级，无需用户再次要求。`--primary-only` 可关闭二次检索，直接查推荐书时用 `--include-supplements`；不得把原书观点写成倪师原话或倪师本人资料。
 - 音频合集问题：打开 `audio-collection.md`，按目录映射回已蒸馏课程引用。
-- PDF 溯源问题：打开 `pdf-evidence/index.md`；优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>` 定位页证据，需要整页时再加 `--show-full-page`，并用 `pdf-evidence/source-manifest.json` 解析 PDF 文档 ID。`pdf-evidence/modules/*.md` 与 `evidence-cards.jsonl` 已包含 5755 个物理页记录，不应整份载入上下文；引用格式为 `pdf-evidence:<doc_id>#p<page>`。
+- PDF 溯源问题：打开 `pdf-evidence/index.md`；优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>` 定位页证据，默认自动执行主资料与补充资料两阶段检索；需要整页时再加 `--show-full-page`，并用 `pdf-evidence/source-manifest.json` 解析 PDF 文档 ID。`pdf-evidence/modules/*.md` 与 `evidence-cards.jsonl` 已包含 10538 个物理页记录，不应整份载入上下文；引用格式为 `pdf-evidence:<doc_id>#p<page>`。
 - 截图问题：用 `python scripts/search_screenshots.py <自然语言问题或关键词...>`，脚本会归一化组合查询；关键词可以是方名、病机、六经名、课次或时间点。
 - 结构设计问题：先看 `learning-entry.md`，优先按用户任务组织，而不是按课程目录组织。
 - 医疗安全：真实症状只做课程学习分析，不直接给个人处方；高风险方药和急危重症必须提醒面诊或急诊。

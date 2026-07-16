@@ -33,6 +33,7 @@ RESOURCE_WATERMARK_LINE_RE = re.compile(
     r"更多相关资源|相关资源请访问|hbtmxy|[kK][l1]rs999"
 )
 LABELED_PHONE_RE = re.compile(r"((?:电话|手机|联系电话)\s*[:：]?\s*)[\d\- ]{7,}")
+URL_TOKEN_RE = re.compile(r"https?://\S+|www\.\S+", re.IGNORECASE)
 EXCLUDED_PRIVACY_TEXT = (
     "[非正文页已排除] OCR 检测到资料推广或联系方式；"
     "为保护隐私且避免无关内容进入检索，公开证据不保存原文。"
@@ -102,7 +103,8 @@ def clean_ocr_text(text: str) -> str:
         if not RESOURCE_WATERMARK_LINE_RE.search(line)
     ]
     cleaned = "\n".join(lines).strip()
-    return LABELED_PHONE_RE.sub(r"\1[已隐去]", cleaned)
+    cleaned = LABELED_PHONE_RE.sub(r"\1[已隐去]", cleaned)
+    return URL_TOKEN_RE.sub("[链接已移除]", cleaned)
 
 
 def should_exclude_for_privacy(flags: list[str]) -> bool:

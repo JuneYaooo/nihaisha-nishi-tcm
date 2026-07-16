@@ -14,7 +14,13 @@
 | `a47aeb66677d` | `zhongjing-xinfa` | `-` | `native` | `倪海厦仲景心法传讲 同步文稿85页.pdf` | 85 | 85 | 0 | 0 | 0 | 131301 |
 | `d91c6e1e158c` | `huangdi` | `-` | `native` | `黄帝内经原文和翻译.pdf` | 461 | 461 | 0 | 0 | 0 | 213448 |
 | `90a0473d9b3b` | `classics` | `ni-recommended-supplement` | `native` | `四圣心源.pdf` | 146 | 136 | 0 | 2 | 8 | 98067 |
-| `da46832bcbe0` | `shanghan` | `ni-recommended-supplement` | `native` | `醫宗金鑑傷寒論三陰病篇.pdf` | 364 | 364 | 0 | 0 | 0 | 283052 |
-| `0fd559f91c46` | `acupuncture` | `ni-recommended-supplement` | `native` | `针灸大成 明.杨继洲569页A-1.pdf` | 569 | 568 | 0 | 0 | 1 | 361579 |
+| `da46832bcbe0` | `shanghan` | `ni-recommended-supplement` | `native` | `醫宗金鑑傷寒論三陰病篇.pdf` | 364 | 364 | 0 | 0 | 0 | 277968 |
+| `0fd559f91c46` | `acupuncture` | `ni-recommended-supplement` | `native` | `针灸大成 明.杨继洲569页A-1.pdf` | 569 | 568 | 0 | 0 | 1 | 353850 |
 | `77e0693e8795` | `classics` | `ni-recommended-supplement` | `paddleocr` | `世补斋医书全集-陆懋修.pdf` | 300 | 279 | 21 | 0 | 0 | 287693 |
 | `d2b093656655` | `classics` | `ni-recommended-supplement` | `paddleocr` | `徐灵胎医书全集.pdf` | 1296 | 1259 | 37 | 0 | 0 | 661391 |
+| `a60ecf5c4021` | `classics` | `ni-recommended-supplement` | `paddleocr` | `石室秘录.pdf` | 366 | 362 | 0 | 4 | 0 | 207526 |
+| `4fd1b745d42f` | `classics` | `ni-recommended-supplement` | `native` | `血證論_1.1_B5.pdf` | 185 | 184 | 0 | 0 | 1 | 133574 |
+| `f988e5bb830a` | `classics` | `ni-recommended-supplement` | `native` | `证因方论集要.pdf` | 166 | 166 | 0 | 0 | 0 | 83766 |
+| `a3551879ed76` | `classics` | `ni-recommended-supplement` | `native` | `醫學衷中參西錄直書_1.0_B5.pdf` | 2150 | 2150 | 0 | 0 | 0 | 1283384 |
+| `64bc78fc08a4` | `jingui` | `ni-recommended-supplement` | `native` | `醫宗金鑑金匱要略直書B5版本.pdf` | 1831 | 1831 | 0 | 0 | 0 | 1274667 |
+| `942ab5422229` | `classics` | `ni-recommended-supplement` | `paddleocr` | `黄帝外经.pdf` | 85 | 85 | 0 | 0 | 0 | 58415 |

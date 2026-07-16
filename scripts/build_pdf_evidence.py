@@ -32,12 +32,13 @@ WATERMARK_RE = re.compile(
 )
 MULTIPLE_BLANK_LINES_RE = re.compile(r"\n{3,}")
 CJK_INTERCHAR_SPACE_RE = re.compile(
-    r"(?<=[\u3400-\u4dbf\u4e00-\u9fff])[ \t\u3000]+(?=[\u3400-\u4dbf\u4e00-\u9fff])"
+    r"(?<=[\u3400-\u4dbf\u4e00-\u9fff])[ \t\u3000\r\n]+(?=[\u3400-\u4dbf\u4e00-\u9fff])"
 )
 RESOURCE_WATERMARK_LINE_RE = re.compile(
     r"更多相关资源|相关资源请访问|hbtmxy|[kK][l1]rs999"
 )
 LABELED_PHONE_RE = re.compile(r"((?:电话|手机|联系电话)\s*[:：]?\s*)[\d\- ]{7,}")
+URL_TOKEN_RE = re.compile(r"https?://\S+|www\.\S+", re.IGNORECASE)
 OCR_EMPTY_PAGE_TEXT = (
     "[OCR 未识别到正文] 源页为扫描图像，可能是空白页、隔页、图像或少量标题；"
     "需要版式或图像信息时请查看原 PDF。"
@@ -148,7 +149,8 @@ def clean_page_text(raw_text: str, *, normalize_cjk_spacing: bool = False) -> st
 
 
 def redact_ocr_privacy(text: str) -> str:
-    return LABELED_PHONE_RE.sub(r"\1[已隐去]", text)
+    text = LABELED_PHONE_RE.sub(r"\1[已隐去]", text)
+    return URL_TOKEN_RE.sub("[链接已移除]", text)
 
 
 def resolve_source(source_root: Path, source_name: str) -> Path:
