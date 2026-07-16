@@ -14,14 +14,17 @@ SAFETY_NOTICE = (
     "急症或毒烈药内容时，不得作为个人医疗建议或自行操作依据。"
 )
 HIGH_RISK_RE = re.compile(
-    r"剂量|煎|服|内服|外敷|处方|抓药|下针|针刺|刺破|放血|火罐|艾灸|灸|"
-    r"附子|乌头|细辛|硫磺|巴豆|甘遂|大戟|芫花|水蛭|虻虫|朱砂|雄黄|铅丹|砒|"
-    r"癌|肿瘤|急救|中毒|毒蛇|破伤风"
+    r"剂量|劑量|煎|服|内服|內服|外敷|处方|處方|抓药|抓藥|汤|湯|"
+    r"下针|下針|针刺|針刺|刺破|放血|火罐|艾灸|灸|"
+    r"附子|乌头|烏頭|细辛|細辛|硫磺|巴豆|甘遂|大戟|芫花|水蛭|虻虫|虻蟲|"
+    r"朱砂|雄黄|雄黃|铅丹|鉛丹|砒|癌|肿瘤|腫瘤|急救|中毒|毒蛇|破伤风|破傷風"
 )
 FOLDED_NOTICE = (
     "[高风险内容已折叠：原摘录涉及可执行医疗、方药、针灸或急重症细节；"
     "默认只用于定位证据，不展开为操作说明。]"
 )
+SUPPLEMENT_ROLE = "ni-recommended-supplement"
+SUPPLEMENT_LABEL = "倪师推荐补充资料（非倪师本人资料）"
 
 
 def iter_cards(path: Path):
@@ -65,12 +68,22 @@ def safe_excerpt(text: str, show_excerpt: bool) -> str:
     return FOLDED_NOTICE
 
 
+def is_supplement(card: dict) -> bool:
+    return card.get("source_role") == SUPPLEMENT_ROLE
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Search references/pdf-evidence/evidence-cards.jsonl")
     parser.add_argument("terms", nargs="+", help="Chinese terms to search, e.g. 大青龙汤 荥穴")
     parser.add_argument("--evidence-dir", default="references/pdf-evidence", help="PDF evidence directory")
     parser.add_argument("--limit", type=int, default=10, help="Maximum rows to print; use 0 for all matches")
     parser.add_argument("--module", help="Optional module index, e.g. shanghan, bencao, acupuncture")
+    parser.add_argument("--doc-id", help="Optional stable document ID from source-manifest.json")
+    parser.add_argument(
+        "--include-supplements",
+        action="store_true",
+        help="Include Ni-recommended supplemental books after the primary course material matches the topic.",
+    )
     parser.add_argument(
         "--show-excerpt",
         "--show-full-page",
@@ -91,6 +104,10 @@ def main() -> int:
     for card in iter_cards(cards_path):
         if args.module and card.get("module") != args.module:
             continue
+        if args.doc_id and card.get("doc_id") != args.doc_id:
+            continue
+        if is_supplement(card) and not args.include_supplements:
+            continue
         full_page_text = card_text(card)
         haystack = "\n".join(
             [
@@ -100,6 +117,8 @@ def main() -> int:
             ]
         )
         if all(term in haystack for term in terms):
+            if is_supplement(card):
+                print(f"来源层级：{SUPPLEMENT_LABEL}")
             print(f"{card['citation']} {card['source_name']} {card['locator']}")
             snippets = []
             for term in terms:

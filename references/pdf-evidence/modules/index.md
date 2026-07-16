@@ -11,3 +11,4 @@
 | 伤寒论 | `shanghan.md` |
 | 金匮要略 | `jingui.md` |
 | 仲景心法 | `zhongjing-xinfa.md` |
+| 倪师推荐补充资料（古籍） | `classics.md` |

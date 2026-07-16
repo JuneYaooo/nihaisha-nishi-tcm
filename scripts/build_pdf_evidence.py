@@ -19,6 +19,11 @@ MODULE_TITLES = {
     "shanghan": "伤寒论",
     "jingui": "金匮要略",
     "zhongjing-xinfa": "仲景心法",
+    "classics": "倪师推荐补充资料（古籍）",
+}
+
+SOURCE_ROLE_LABELS = {
+    "ni-recommended-supplement": "倪师推荐补充资料（非倪师本人资料）",
 }
 
 WATERMARK_RE = re.compile(
@@ -26,6 +31,9 @@ WATERMARK_RE = re.compile(
     r"微信公众号\s*[:：]?\s*岐黄圣贤智慧\s*[、,，]?\s*岐黄传承道法自然"
 )
 MULTIPLE_BLANK_LINES_RE = re.compile(r"\n{3,}")
+CJK_INTERCHAR_SPACE_RE = re.compile(
+    r"(?<=[\u3400-\u4dbf\u4e00-\u9fff])[ \t\u3000]+(?=[\u3400-\u4dbf\u4e00-\u9fff])"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -71,9 +79,11 @@ def load_existing_terms(cards_path: Path) -> dict[str, list[str]]:
     return terms
 
 
-def clean_page_text(raw_text: str) -> str:
+def clean_page_text(raw_text: str, *, normalize_cjk_spacing: bool = False) -> str:
     text = raw_text.replace("\r\n", "\n").replace("\r", "\n").replace("\x00", "")
     text = WATERMARK_RE.sub("", text)
+    if normalize_cjk_spacing:
+        text = CJK_INTERCHAR_SPACE_RE.sub("", text)
     lines = [line.rstrip() for line in text.splitlines()]
     text = "\n".join(lines).strip()
     return MULTIPLE_BLANK_LINES_RE.sub("\n\n", text)
@@ -103,28 +113,31 @@ def build_module_markdown(
     total_pages = sum(document["physical_pages"] for document in documents)
     text_pages = sum(document["pages_with_text"] for document in documents)
     visual_pages = sum(document["pages_with_visual"] for document in documents)
+    excluded_pages = sum(document["excluded_pages"] for document in documents)
     blank_pages = sum(document["blank_pages"] for document in documents)
     lines = [
         f"# {title} PDF 完整页级证据",
         "",
         "> 每个源 PDF 物理页均有记录；文本页保存完整文本层，不做字符截断。",
-        "> 重复流通水印会被移除；纯图片页使用人工校阅说明；真正空白页明确标记。",
+        "> 重复流通水印会被移除；纯图片页使用人工校阅说明；非正文推广/隐私页和真正空白页明确标记。",
         "",
         "## 覆盖统计",
         "",
-        "| PDF | Doc ID | 物理页 | 完整文本页 | 纯图片页 | 空白页 |",
-        "| --- | --- | ---: | ---: | ---: | ---: |",
+        "| PDF | Doc ID | 来源层级 | 物理页 | 完整文本页 | 纯图片页 | 已排除页 | 空白页 |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     for document in documents:
         lines.append(
             f"| `{document['source_name']}` | `{document['doc_id']}` | "
+            f"{SOURCE_ROLE_LABELS.get(document.get('source_role'), '-')} | "
             f"{document['physical_pages']} | {document['pages_with_text']} | "
-            f"{document['pages_with_visual']} | {document['blank_pages']} |"
+            f"{document['pages_with_visual']} | {document['excluded_pages']} | "
+            f"{document['blank_pages']} |"
         )
     lines.extend(
         [
-            f"| **合计** |  | **{total_pages}** | **{text_pages}** | "
-            f"**{visual_pages}** | **{blank_pages}** |",
+            f"| **合计** |  |  | **{total_pages}** | **{text_pages}** | "
+            f"**{visual_pages}** | **{excluded_pages}** | **{blank_pages}** |",
             "",
             "## 完整页面",
             "",
@@ -137,6 +150,11 @@ def build_module_markdown(
                 f"## {document['source_name']}",
                 "",
                 f"- Doc ID: `{doc_id}`",
+                *(
+                    [f"- 来源层级: {SOURCE_ROLE_LABELS[document['source_role']]}"]
+                    if document.get("source_role") in SOURCE_ROLE_LABELS
+                    else []
+                ),
                 f"- 物理页数: {document['physical_pages']}",
                 "",
             ]
@@ -166,14 +184,16 @@ def build_sources_markdown(documents: list[dict[str, Any]]) -> str:
     lines = [
         "# PDF Evidence Sources",
         "",
-        "| Doc ID | Module | PDF | Physical pages | Full-text pages | Visual pages | Blank pages | Characters |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Doc ID | Module | Role | PDF | Physical pages | Full-text pages | Visual pages | Excluded pages | Blank pages | Characters |",
+        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for document in documents:
         lines.append(
-            f"| `{document['doc_id']}` | `{document['module']}` | `{document['source_name']}` | "
+            f"| `{document['doc_id']}` | `{document['module']}` | "
+            f"`{document.get('source_role', '-')}` | `{document['source_name']}` | "
             f"{document['physical_pages']} | {document['pages_with_text']} | "
-            f"{document['pages_with_visual']} | {document['blank_pages']} | {document['characters']} |"
+            f"{document['pages_with_visual']} | {document['excluded_pages']} | "
+            f"{document['blank_pages']} | {document['characters']} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -225,24 +245,38 @@ def main() -> int:
         source_name = source_document["source_name"]
         source_path = resolve_source(args.source_root, source_name)
         pdf = fitz.open(source_path)
+        normalize_cjk_spacing = source_document.get("normalize_cjk_spacing", False)
+        source_role = source_document.get("source_role")
+        recommended_by = source_document.get("recommended_by")
         text_page_numbers: list[int] = []
         visual_page_numbers: list[int] = []
+        excluded_page_numbers: list[int] = []
         blank_page_numbers: list[int] = []
         characters = 0
 
         for page_index, page in enumerate(pdf):
             page_number = page_index + 1
             card_id = f"{doc_id}-p{page_number:04d}"
-            text = clean_page_text(page.get_text("text"))
+            text = clean_page_text(
+                page.get_text("text"),
+                normalize_cjk_spacing=normalize_cjk_spacing,
+            )
             override = page_overrides.get(card_id)
-            if text:
+            if override:
+                page_kind = override["page_kind"]
+                text = override["text"]
+                if page_kind == "visual":
+                    visual_page_numbers.append(page_number)
+                elif page_kind == "excluded":
+                    excluded_page_numbers.append(page_number)
+                elif page_kind == "blank":
+                    blank_page_numbers.append(page_number)
+                else:
+                    raise ValueError(f"Unsupported page override kind: {page_kind}")
+            elif text:
                 page_kind = "text"
                 text_page_numbers.append(page_number)
                 characters += len(text)
-            elif override:
-                page_kind = override["page_kind"]
-                text = override["text"]
-                visual_page_numbers.append(page_number)
             else:
                 page_kind = "blank"
                 blank_page_numbers.append(page_number)
@@ -257,6 +291,8 @@ def main() -> int:
                 "page_kind": page_kind,
                 "source_name": source_name,
                 "source_type": "pdf",
+                **({"source_role": source_role} if source_role else {}),
+                **({"recommended_by": recommended_by} if recommended_by else {}),
                 "text": text,
                 "terms": existing_terms.get(card_id, []),
             }
@@ -268,9 +304,17 @@ def main() -> int:
             "source_name": source_name,
             "source_type": "pdf",
             "module": source_document["module"],
+            **({"source_role": source_role} if source_role else {}),
+            **({"recommended_by": recommended_by} if recommended_by else {}),
+            **(
+                {"normalize_cjk_spacing": True}
+                if normalize_cjk_spacing
+                else {}
+            ),
             "physical_pages": pdf.page_count,
             "pages_with_text": len(text_page_numbers),
             "pages_with_visual": len(visual_page_numbers),
+            "excluded_pages": len(excluded_page_numbers),
             "blank_pages": len(blank_page_numbers),
             "first_page": text_page_numbers[0] if text_page_numbers else None,
             "last_page": text_page_numbers[-1] if text_page_numbers else None,
@@ -303,6 +347,7 @@ def main() -> int:
                 "physical_page_records": len(cards),
                 "full_text_pages": sum(document["pages_with_text"] for document in documents),
                 "visual_pages": sum(document["pages_with_visual"] for document in documents),
+                "excluded_pages": sum(document["excluded_pages"] for document in documents),
                 "blank_pages": sum(document["blank_pages"] for document in documents),
             },
             ensure_ascii=False,

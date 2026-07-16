@@ -29,6 +29,7 @@
 python scripts/search_pdf_evidence.py 大青龙汤 --module shanghan --limit 3
 python scripts/search_pdf_evidence.py 行间 荥穴 --module acupuncture --limit 3
 python scripts/search_pdf_evidence.py 旋覆花 代赭石 --module shanghan --limit 3
+python scripts/search_pdf_evidence.py 足三里 --doc-id 0fd559f91c46 --include-supplements --limit 3
 ```
 
 引用格式固定为 `pdf-evidence:<doc_id>#p<page>`，不得写入机器相关路径或分析目录。
@@ -36,6 +37,29 @@ python scripts/search_pdf_evidence.py 旋覆花 代赭石 --module shanghan --li
 完整页级文件体积较大。日常检索应通过 `scripts/search_pdf_evidence.py` 限定模块和结果数，
 不要整份加载 `pdf-evidence/modules/*.md` 或 `evidence-cards.jsonl`；只有人工核页时才使用
 `--show-full-page`，需要列出全部命中页时才使用 `--limit 0`。
+
+## 已接入的倪师推荐补充资料
+
+| PDF | Doc ID | 来源层级 | PDF 模块 | 页数 | 用途与版本边界 |
+| --- | --- | --- | --- | ---: | --- |
+| 《四圣心源》 | `90a0473d9b3b` | 倪师推荐补充资料 | `classics` | 146 | 用于黄元御理论、伤寒金匮相关术语与古籍出处反查。PDF 正文和内题可确认书名，但文件元数据误写为其他书名，不采用元数据题名；2 个重复推广页因含个人联系方式与外链，仅保留排除标记。 |
+| 《医宗金鉴·伤寒论三阴病篇》 | `da46832bcbe0` | 倪师推荐补充资料 | `shanghan` | 364 | 用于太阴、少阴、厥阴条文及注释线索。该文件混合原文、集注、翻译与后加“讲解”，不能把整页都当作清代原典逐字文本或倪海厦课程原话。 |
+| 《针灸大成》 | `0fd559f91c46` | 倪师推荐补充资料 | `acupuncture` | 569 | 用于经络、穴名、针灸歌赋和原典出处反查。该横排本已做字符间距归一化；其中操作性内容只作页码定位，不转写为自行针灸说明。 |
+
+这三本是倪师相关推荐资料，不是倪师本人撰写或讲授资料。课程问答必须先回到课程蒸馏正文、转写、同步文稿、截图或课程 PDF；只有正文已出现同一话题时，才可用 `--include-supplements` 调用这些书作延伸，并单列“倪师推荐资料补充”。原书作者、注者、译者或后加讲解的观点不得归到倪师名下。
+
+## 倪师推荐资料候选（暂未接入）
+
+| 候选 | 状态 | 原因 |
+| --- | --- | --- |
+| 《世补斋医书全集》 | 待 OCR | 300 页扫描件，PaddleOCR 抽样可识别，但需整批 OCR 与页级校验。 |
+| 《徐灵胎医书全集》 | 待 OCR | 1296 页纯扫描件，抽样识别质量高，但批处理体量较大。 |
+| 《石室秘录》 | 待 OCR | 主要为 360 页扫描正文，现有文本层只覆盖少量导读/目录页。 |
+| 《血证论》《证因方论集要》 | 待筛选 | 文本层完整，但属于更宽泛的外部医籍；需先明确与课程勘误、方证索引的具体连接点。 |
+| 《医学衷中参西录直书》 | 暂缓 | 2150 页、约 195 万字，体量大且不是当前课程模块的直接证据。 |
+| 《医宗金鉴·金匮要略直书》 | 暂缓 | 1831 页，混有翻译/讲解层；关联度高，但需先拆分来源层级并控制证据体量。 |
+| 《黄帝外经》 | 暂缓 | 当前 PDF 文本层存在成段重复，需先清洗并核对版本可靠性。 |
+| 《大塚敬节伤寒论解说》 | 未处理 | 来源为旧 `.doc`，不属于本轮 PDF 页级证据接入。 |
 
 ## 课程与古籍索引入口
 
@@ -47,6 +71,7 @@ python scripts/search_pdf_evidence.py 旋覆花 代赭石 --module shanghan --li
 | 针灸 | `acupuncture.md`、`notes-acupuncture-dacheng.md` | `acupuncture` |
 | 黄帝内经 | `huangdi.md`、`notes-huangdi.md` | `huangdi` |
 | 神农本草 | `bencao.md`、`notes-bencao.md` | `bencao` |
+| 倪师推荐补充资料 | 本文件的来源边界与版本说明 | `classics`（另有映射到课程模块的补充书） |
 
 ## 勘误原则
 

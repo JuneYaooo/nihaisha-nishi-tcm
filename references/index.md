@@ -125,7 +125,7 @@
 | `notes-shanghan.md` | 伤寒论讲稿、图文笔记、学习笔记抽取式蒸馏 | 用户问伤寒论笔记、讲稿或文字版学习资料时 |
 | `notes-shanghan-scan-essence.md` | 伤寒论扫描版 PDF 要点补充 | 用户问伤寒论扫描版图文笔记或补抽取资料中的要点内容时 |
 | `notes-jingui.md` | 金匮要略教程整理稿与学习笔记抽取式蒸馏 | 用户问金匮笔记、讲稿或文字版学习资料时 |
-| `ebooks.md` | 古籍与课程 PDF 溯源索引，限定课程蒸馏、PDF 校对证据和课程相关古籍方证索引 | 用户问课程文案校对、PDF 溯源、古籍引用反查或方证术语证据时 |
+| `ebooks.md` | 古籍与课程 PDF 溯源索引，区分倪师课程正文证据与倪师推荐补充资料 | 用户问课程文案校对、PDF 溯源、古籍引用反查、方证术语证据或推荐书补充时 |
 | `audio-collection.md` | 倪师音频合集索引和已蒸馏课程映射 | 用户问 MP3、录音、音频合集或音频条目定位时 |
 | `pdf-evidence/index.md` | PDF 完整页级文本证据入口，含 doc_id、每个物理页、完整文本和术语索引 | 需要为正文勘误、古籍引用或课程讲义内容提供可溯源 PDF 证据时 |
 
@@ -148,9 +148,9 @@
 - 神农本草问题：先 `bencao.md`；需要药性、药物分类、性味归经、剂型剂量或配伍证据时查 `bencao-screenshot-evidence.md`。
 - 针灸问题：先 `acupuncture.md`；需要穴位图、经络图、手法或实操证据时查 `acupuncture-screenshot-evidence.md`。
 - 文字笔记问题：按课程先看对应视频课程引用，再打开 `notes-acupuncture-dacheng.md`、`notes-huangdi.md`、`notes-bencao.md`、`notes-shanghan.md` 或 `notes-jingui.md` 做补充。
-- PDF/古籍溯源问题：先打开 `ebooks.md` 和 `pdf-evidence/index.md`，限定使用课程蒸馏、课程 PDF 证据和课程相关古籍方证索引；旧杂集不作为默认依据。
+- PDF/古籍溯源问题：先打开 `ebooks.md` 和 `pdf-evidence/index.md`。先检索课程蒸馏、课程 PDF 与截图；只有正文命中同一话题后，才用 `--include-supplements` 调用倪师推荐补充资料，并单独标注其书名与来源层级。《四圣心源》使用 `classics` 模块，《医宗金鉴·伤寒论三阴病篇》使用 `shanghan` 模块，《针灸大成》使用 `acupuncture` 模块；不得把原书观点写成倪师原话或倪师本人资料。
 - 音频合集问题：打开 `audio-collection.md`，按目录映射回已蒸馏课程引用。
-- PDF 溯源问题：打开 `pdf-evidence/index.md`；优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>` 定位页证据，需要整页时再加 `--show-full-page`，并用 `pdf-evidence/source-manifest.json` 解析 PDF 文档 ID。`pdf-evidence/modules/*.md` 与 `evidence-cards.jsonl` 已包含 3080 个物理页的完整文本，不应整份载入上下文；引用格式为 `pdf-evidence:<doc_id>#p<page>`。
+- PDF 溯源问题：打开 `pdf-evidence/index.md`；优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>` 定位页证据，需要整页时再加 `--show-full-page`，并用 `pdf-evidence/source-manifest.json` 解析 PDF 文档 ID。`pdf-evidence/modules/*.md` 与 `evidence-cards.jsonl` 已包含 4159 个物理页的完整文本，不应整份载入上下文；引用格式为 `pdf-evidence:<doc_id>#p<page>`。
 - 截图问题：用 `python scripts/search_screenshots.py <自然语言问题或关键词...>`，脚本会归一化组合查询；关键词可以是方名、病机、六经名、课次或时间点。
 - 结构设计问题：先看 `learning-entry.md`，优先按用户任务组织，而不是按课程目录组织。
 - 医疗安全：真实症状只做课程学习分析，不直接给个人处方；高风险方药和急危重症必须提醒面诊或急诊。
