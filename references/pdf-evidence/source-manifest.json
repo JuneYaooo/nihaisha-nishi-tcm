@@ -202,5 +202,41 @@
     "first_page": 2,
     "last_page": 569,
     "characters": 361579
+  },
+  {
+    "doc_id": "77e0693e8795",
+    "source_name": "世补斋医书全集-陆懋修.pdf",
+    "source_type": "pdf",
+    "module": "classics",
+    "source_role": "ni-recommended-supplement",
+    "recommended_by": "倪海厦",
+    "text_extraction": "paddleocr",
+    "ocr_model": "v6-tiny",
+    "physical_pages": 300,
+    "pages_with_text": 279,
+    "pages_with_visual": 21,
+    "excluded_pages": 0,
+    "blank_pages": 0,
+    "first_page": 1,
+    "last_page": 300,
+    "characters": 287693
+  },
+  {
+    "doc_id": "d2b093656655",
+    "source_name": "徐灵胎医书全集.pdf",
+    "source_type": "pdf",
+    "module": "classics",
+    "source_role": "ni-recommended-supplement",
+    "recommended_by": "倪海厦",
+    "text_extraction": "paddleocr",
+    "ocr_model": "v6-tiny",
+    "physical_pages": 1296,
+    "pages_with_text": 1259,
+    "pages_with_visual": 37,
+    "excluded_pages": 0,
+    "blank_pages": 0,
+    "first_page": 1,
+    "last_page": 1296,
+    "characters": 661391
   }
 ]

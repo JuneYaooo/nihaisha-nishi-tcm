@@ -40,7 +40,7 @@ The course distillation method used in this project comes from the author's [lin
 - **Acupoint and herb study**: searches acupuncture channels and points, point-combination ideas, and Shennong Bencao course material on herb properties, dosage forms, compatibility, and single-herb clues.
 - **Lesson-by-lesson review**: builds topic maps, keywords, and review questions by course module and lesson.
 - **Screenshot evidence**: includes 2,986 screenshot evidence entries, with compressed WebP images stored in the repo. Search by formula name, acupoint, lesson, pathomechanism, Tianji keyword, or timestamp.
-- **PDF source evidence**: includes 14 PDF sources, 4,159 physical-page records (4,145 complete text pages, 1 reviewed visual page, 2 excluded non-content pages, and 11 blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. Supplemental books are searched and cited separately from Ni Haixia's own course material.
+- **PDF source evidence**: includes 16 PDF sources, 5,755 physical-page records (5,683 complete text pages, 59 scanned visual/low-confidence pages without searchable OCR body text, 2 excluded non-content pages, and 11 native blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. Supplemental books are searched and cited separately from Ni Haixia's own course material.
 - **Safety boundary**: defaults to course study and TCM theory organization. It does not provide personal diagnosis, prescriptions, or dosage guidance.
 
 ## Best-fit use cases
@@ -92,7 +92,7 @@ The course distillation method used in this project comes from the author's [lin
 
 - Screenshot images have been organized and integrated for: `01.针灸课程`, `03.黄帝内经课程`, `05.神农本草课程`, `07.伤寒论课程`, `09.金匮要略课程`, `11.仲景心法传讲`, `13.人纪之临床案例`, `14.人纪之八纲辨证`, `15.扶阳论坛`, `18.倪师易筋经`, `22.倪海厦天纪`.
 - Text materials have been organized for: `02.针灸大成笔记`, `04.黄帝内经笔记`, `06.神农本草笔记`, `08.伤寒论笔记`, `10.金匮要略笔记`, `12.倪师音频合集`, `19.梁冬对话倪师`, `20.倪师斯坦福大学演讲`.
-- PDF evidence layer: 14 PDF sources, 4,159 physical-page records (4,145 complete text pages, 1 reviewed visual page, 2 excluded non-content pages, and 11 blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. Recommended books are included only after primary course material matches the same topic, unless the user asks about a book directly.
+- PDF evidence layer: 16 PDF sources, 5,755 physical-page records (5,683 complete text pages, 59 scanned visual/low-confidence pages without searchable OCR body text, 2 excluded non-content pages, and 11 native blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. Recommended books are included only after primary course material matches the same topic, unless the user asks about a book directly.
 - Ongoing maintenance focuses on source-traceable corrections across course distillation text, course handouts/notes, page-level PDF evidence, and classical formula-source indexes.
 
 ## Install

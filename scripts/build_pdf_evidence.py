@@ -34,6 +34,18 @@ MULTIPLE_BLANK_LINES_RE = re.compile(r"\n{3,}")
 CJK_INTERCHAR_SPACE_RE = re.compile(
     r"(?<=[\u3400-\u4dbf\u4e00-\u9fff])[ \t\u3000]+(?=[\u3400-\u4dbf\u4e00-\u9fff])"
 )
+RESOURCE_WATERMARK_LINE_RE = re.compile(
+    r"更多相关资源|相关资源请访问|hbtmxy|[kK][l1]rs999"
+)
+LABELED_PHONE_RE = re.compile(r"((?:电话|手机|联系电话)\s*[:：]?\s*)[\d\- ]{7,}")
+OCR_EMPTY_PAGE_TEXT = (
+    "[OCR 未识别到正文] 源页为扫描图像，可能是空白页、隔页、图像或少量标题；"
+    "需要版式或图像信息时请查看原 PDF。"
+)
+OCR_LOW_CONFIDENCE_PAGE_TEXT = (
+    "[OCR 低置信页] 本页只识别到极少量低置信字符，未作为可检索正文收录；"
+    "需要核对时请查看原 PDF。"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,6 +64,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="Evidence output directory.",
     )
+    parser.add_argument(
+        "--ocr-cache-root",
+        default=Path("output/pdf-ocr-cache"),
+        type=Path,
+        help="Directory containing resumable <doc_id>.jsonl PaddleOCR output.",
+    )
     return parser.parse_args()
 
 
@@ -66,17 +84,53 @@ def atomic_write_text(path: Path, content: str) -> None:
     temporary.replace(path)
 
 
-def load_existing_terms(cards_path: Path) -> dict[str, list[str]]:
-    terms: dict[str, list[str]] = {}
+def load_existing_cards(cards_path: Path) -> dict[str, dict[str, Any]]:
+    cards: dict[str, dict[str, Any]] = {}
     if not cards_path.exists():
-        return terms
+        return cards
     with cards_path.open(encoding="utf-8") as handle:
         for line in handle:
             if not line.strip():
                 continue
             card = json.loads(line)
-            terms[card["card_id"]] = card.get("terms", [])
-    return terms
+            cards[card["card_id"]] = card
+    return cards
+
+
+def load_ocr_records(
+    cache_path: Path,
+    doc_id: str,
+    existing_cards: dict[str, dict[str, Any]],
+) -> dict[int, dict[str, Any]]:
+    records: dict[int, dict[str, Any]] = {}
+    for card in existing_cards.values():
+        if card.get("doc_id") != doc_id or not card.get("text_method", "").startswith("paddleocr"):
+            continue
+        page_kind = card.get("ocr_status") or {
+            "text": "ocr",
+            "visual": "ocr-empty",
+            "excluded": "excluded",
+        }.get(card.get("page_kind"))
+        if page_kind:
+            records[int(card["page"])] = {
+                "doc_id": doc_id,
+                "page": int(card["page"]),
+                "page_kind": page_kind,
+                "text": card.get("text", ""),
+                "ocr_model": card.get("text_method", "paddleocr").removeprefix("paddleocr-"),
+                "mean_confidence": card.get("ocr_mean_confidence"),
+            }
+
+    if cache_path.exists():
+        with cache_path.open(encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                if record.get("doc_id") != doc_id:
+                    raise ValueError(f"Unexpected OCR doc_id at {cache_path}:{line_number}")
+                records[int(record["page"])] = record
+    return records
 
 
 def clean_page_text(raw_text: str, *, normalize_cjk_spacing: bool = False) -> str:
@@ -84,9 +138,17 @@ def clean_page_text(raw_text: str, *, normalize_cjk_spacing: bool = False) -> st
     text = WATERMARK_RE.sub("", text)
     if normalize_cjk_spacing:
         text = CJK_INTERCHAR_SPACE_RE.sub("", text)
-    lines = [line.rstrip() for line in text.splitlines()]
+    lines = [
+        line.rstrip()
+        for line in text.splitlines()
+        if not RESOURCE_WATERMARK_LINE_RE.search(line)
+    ]
     text = "\n".join(lines).strip()
     return MULTIPLE_BLANK_LINES_RE.sub("\n\n", text)
+
+
+def redact_ocr_privacy(text: str) -> str:
+    return LABELED_PHONE_RE.sub(r"\1[已隐去]", text)
 
 
 def resolve_source(source_root: Path, source_name: str) -> Path:
@@ -123,20 +185,21 @@ def build_module_markdown(
         "",
         "## 覆盖统计",
         "",
-        "| PDF | Doc ID | 来源层级 | 物理页 | 完整文本页 | 纯图片页 | 已排除页 | 空白页 |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        "| PDF | Doc ID | 来源层级 | 文本提取 | 物理页 | 完整文本页 | 纯图片页 | 已排除页 | 空白页 |",
+        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     for document in documents:
         lines.append(
             f"| `{document['source_name']}` | `{document['doc_id']}` | "
             f"{SOURCE_ROLE_LABELS.get(document.get('source_role'), '-')} | "
+            f"{document.get('text_extraction', 'native')} | "
             f"{document['physical_pages']} | {document['pages_with_text']} | "
             f"{document['pages_with_visual']} | {document['excluded_pages']} | "
             f"{document['blank_pages']} |"
         )
     lines.extend(
         [
-            f"| **合计** |  |  | **{total_pages}** | **{text_pages}** | "
+            f"| **合计** |  |  |  | **{total_pages}** | **{text_pages}** | "
             f"**{visual_pages}** | **{excluded_pages}** | **{blank_pages}** |",
             "",
             "## 完整页面",
@@ -155,6 +218,7 @@ def build_module_markdown(
                     if document.get("source_role") in SOURCE_ROLE_LABELS
                     else []
                 ),
+                f"- 文本提取: {document.get('text_extraction', 'native')}",
                 f"- 物理页数: {document['physical_pages']}",
                 "",
             ]
@@ -184,13 +248,14 @@ def build_sources_markdown(documents: list[dict[str, Any]]) -> str:
     lines = [
         "# PDF Evidence Sources",
         "",
-        "| Doc ID | Module | Role | PDF | Physical pages | Full-text pages | Visual pages | Excluded pages | Blank pages | Characters |",
-        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Doc ID | Module | Role | Extraction | PDF | Physical pages | Full-text pages | Visual pages | Excluded pages | Blank pages | Characters |",
+        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for document in documents:
         lines.append(
             f"| `{document['doc_id']}` | `{document['module']}` | "
-            f"`{document.get('source_role', '-')}` | `{document['source_name']}` | "
+            f"`{document.get('source_role', '-')}` | `{document.get('text_extraction', 'native')}` | "
+            f"`{document['source_name']}` | "
             f"{document['physical_pages']} | {document['pages_with_text']} | "
             f"{document['pages_with_visual']} | {document['excluded_pages']} | "
             f"{document['blank_pages']} | {document['characters']} |"
@@ -235,7 +300,7 @@ def main() -> int:
 
     source_documents = load_json(manifest_path)
     page_overrides = load_json(overrides_path) if overrides_path.exists() else {}
-    existing_terms = load_existing_terms(cards_path)
+    existing_cards = load_existing_cards(cards_path)
     documents: list[dict[str, Any]] = []
     cards: list[dict[str, Any]] = []
     cards_by_doc: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -248,6 +313,17 @@ def main() -> int:
         normalize_cjk_spacing = source_document.get("normalize_cjk_spacing", False)
         source_role = source_document.get("source_role")
         recommended_by = source_document.get("recommended_by")
+        text_extraction = source_document.get("text_extraction", "native")
+        ocr_model = source_document.get("ocr_model")
+        ocr_records = (
+            load_ocr_records(
+                args.ocr_cache_root / f"{doc_id}.jsonl",
+                doc_id,
+                existing_cards,
+            )
+            if text_extraction == "paddleocr"
+            else {}
+        )
         text_page_numbers: list[int] = []
         visual_page_numbers: list[int] = []
         excluded_page_numbers: list[int] = []
@@ -257,10 +333,9 @@ def main() -> int:
         for page_index, page in enumerate(pdf):
             page_number = page_index + 1
             card_id = f"{doc_id}-p{page_number:04d}"
-            text = clean_page_text(
-                page.get_text("text"),
-                normalize_cjk_spacing=normalize_cjk_spacing,
-            )
+            text = ""
+            ocr_status = None
+            ocr_mean_confidence = None
             override = page_overrides.get(card_id)
             if override:
                 page_kind = override["page_kind"]
@@ -273,13 +348,62 @@ def main() -> int:
                     blank_page_numbers.append(page_number)
                 else:
                     raise ValueError(f"Unsupported page override kind: {page_kind}")
-            elif text:
-                page_kind = "text"
-                text_page_numbers.append(page_number)
-                characters += len(text)
+            elif text_extraction == "paddleocr":
+                ocr_record = ocr_records.get(page_number)
+                if not ocr_record:
+                    raise RuntimeError(
+                        f"Missing OCR page {page_number} for {doc_id}; "
+                        f"expected cache {args.ocr_cache_root / f'{doc_id}.jsonl'}"
+                    )
+                text = clean_page_text(
+                    ocr_record.get("text", ""),
+                    normalize_cjk_spacing=normalize_cjk_spacing,
+                )
+                text = redact_ocr_privacy(text)
+                ocr_page_kind = ocr_record.get("page_kind")
+                ocr_mean_confidence = ocr_record.get("mean_confidence")
+                if ocr_page_kind == "ocr":
+                    if (
+                        ocr_mean_confidence is not None
+                        and ocr_mean_confidence < 0.75
+                        and len(text) < 20
+                    ):
+                        page_kind = "visual"
+                        ocr_status = "ocr-low-confidence"
+                        text = OCR_LOW_CONFIDENCE_PAGE_TEXT
+                        visual_page_numbers.append(page_number)
+                    else:
+                        page_kind = "text"
+                        ocr_status = "ocr"
+                        text_page_numbers.append(page_number)
+                        characters += len(text)
+                elif ocr_page_kind == "excluded":
+                    page_kind = "excluded"
+                    ocr_status = "excluded"
+                    excluded_page_numbers.append(page_number)
+                elif ocr_page_kind in {"ocr-empty", "ocr-low-confidence"}:
+                    page_kind = "visual"
+                    ocr_status = ocr_page_kind
+                    text = (
+                        OCR_LOW_CONFIDENCE_PAGE_TEXT
+                        if ocr_page_kind == "ocr-low-confidence"
+                        else OCR_EMPTY_PAGE_TEXT
+                    )
+                    visual_page_numbers.append(page_number)
+                else:
+                    raise ValueError(f"Unsupported OCR page kind: {ocr_page_kind}")
             else:
-                page_kind = "blank"
-                blank_page_numbers.append(page_number)
+                text = clean_page_text(
+                    page.get_text("text"),
+                    normalize_cjk_spacing=normalize_cjk_spacing,
+                )
+                if text:
+                    page_kind = "text"
+                    text_page_numbers.append(page_number)
+                    characters += len(text)
+                else:
+                    page_kind = "blank"
+                    blank_page_numbers.append(page_number)
 
             card = {
                 "card_id": card_id,
@@ -293,8 +417,19 @@ def main() -> int:
                 "source_type": "pdf",
                 **({"source_role": source_role} if source_role else {}),
                 **({"recommended_by": recommended_by} if recommended_by else {}),
+                **(
+                    {"text_method": f"paddleocr-{ocr_model or 'unknown'}"}
+                    if text_extraction == "paddleocr"
+                    else {}
+                ),
+                **({"ocr_status": ocr_status} if ocr_status else {}),
+                **(
+                    {"ocr_mean_confidence": ocr_mean_confidence}
+                    if ocr_mean_confidence is not None
+                    else {}
+                ),
                 "text": text,
-                "terms": existing_terms.get(card_id, []),
+                "terms": existing_cards.get(card_id, {}).get("terms", []),
             }
             cards.append(card)
             cards_by_doc[doc_id].append(card)
@@ -306,6 +441,11 @@ def main() -> int:
             "module": source_document["module"],
             **({"source_role": source_role} if source_role else {}),
             **({"recommended_by": recommended_by} if recommended_by else {}),
+            **(
+                {"text_extraction": text_extraction, "ocr_model": ocr_model}
+                if text_extraction == "paddleocr"
+                else {}
+            ),
             **(
                 {"normalize_cjk_spacing": True}
                 if normalize_cjk_spacing

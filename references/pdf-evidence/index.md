@@ -37,10 +37,10 @@ Example: `pdf-evidence:58423f817a06#p52` means page 52 of the PDF whose `doc_id`
 
 ## Coverage
 
-- PDF sources with extractable text: 14
-- Physical page records: 4159
-- Complete text pages: 4145
-- Human-reviewed visual pages: 1
+- PDF sources with extractable text: 16
+- Physical page records: 5755
+- Complete text pages: 5683
+- Visual/scanned low-confidence pages without searchable text: 59
 - Excluded non-content/privacy pages: 2
 - Explicit blank pages: 11
 - Course-module term indexes: 6
@@ -51,3 +51,14 @@ Example: `pdf-evidence:58423f817a06#p52` means page 52 of the PDF whose `doc_id`
 ```bash
 python scripts/build_pdf_evidence.py --source-root /path/to/nihaisha-pdfs
 ```
+
+For scanned supplemental books, create or resume local OCR caches first:
+
+```bash
+python scripts/ocr_pdf_text.py --input /path/to/book.pdf --doc-id <doc_id> \
+  --output output/pdf-ocr-cache/<doc_id>.jsonl --model v6-tiny
+python scripts/build_pdf_evidence.py --source-root /path/to/nihaisha-pdfs \
+  --ocr-cache-root output/pdf-ocr-cache
+```
+
+The committed page cards retain `text_method: paddleocr-v6-tiny`, so a normal rebuild can reuse existing OCR text when the ignored local cache is unavailable.
