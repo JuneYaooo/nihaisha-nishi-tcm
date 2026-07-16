@@ -45,6 +45,7 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - Ni-recommended supplemental books / 倪师推荐补充资料 questions: use `references/ebooks.md` to check source role and edition/OCR/extraction caveats. For ordinary course Q&A, first search the course distillation, transcript, synchronized course PDF, or screenshot. Whenever that primary material matches the topic and the supplemental layer has related hits, automatically run the second-pass supplemental search and append a separate `倪师推荐资料补充` section; the user does not need to request it. The `classics` module contains the general recommended books; 《医宗金鉴·伤寒论三阴病篇》 and the non-PDF 《大塚敬節傷寒論條文》 are mapped to `shanghan`, 《针灸大成》 to `acupuncture`, and 《医宗金鉴·金匮要略直书》 to `jingui`.
    - Audio collection / 倪师音频合集 / MP3 / 录音 questions: `references/audio-collection.md`; use to map local audio files to already-distilled course modules.
    - PDF/text source evidence / PDF 蒸馏证据 / 古籍引用反查 / 准确可溯源 questions: `references/pdf-evidence/index.md` and, for non-PDF supplements, `references/text-evidence/index.md`; use `python scripts/search_pdf_evidence.py <term...> --module <module>`. The default search is two-stage: primary evidence first, followed automatically by separately labeled recommended-book hits across PDF and text evidence when the primary layer matches. Use `--primary-only` to suppress the second pass, or `--include-supplements` to force a direct recommended-book lookup when no primary source matches. Add `--show-full-page` only when the whole page/section is needed. Cite PDFs as `pdf-evidence:<doc_id>#p<page>` and non-PDF text as `text-evidence:<doc_id>#s<section>`; never invent PDF pages for a DOC. Do not open large evidence-card files wholesale. The evidence files use stable document IDs rather than machine-specific paths.
+   - Full-corpus RAG / original paragraph / page traceback / formula-pattern comparison / related-reference lookup: use the local `nihaisha_kg` runtime described in **RAG Runtime Assets** below. Prefer `text` for exact wording and `hybrid` for semantic questions. Keep `reference_secondary` results separate and label them `关联参考资料（非倪海厦著作）`.
    - Course overview or integrated lookup: `references/shanghanlun.md`.
    - Board/PPT/source evidence: use `python scripts/search_screenshots.py <query or terms...>` for ranked results across all screenshot evidence files. The script normalizes natural-language queries and compound terms; use `--show-terms` when checking how a query was split.
 3. Answer in the structure that matches the task:
@@ -61,6 +62,44 @@ Before treating an older course summary as a verbatim quotation or independently
 When the user asks whether the structure is suitable, or what the learner's purpose is, prefer the user-facing structure in `learning-entry.md` over the course sequence. Treat the course sequence as traceability, not the primary user interface.
 
 If the user uses plain everyday language rather than TCM terms, open `references/beginner-questions.md` first. Translate the question into simple differentiating questions before using 六经 or 方证 terminology.
+
+## RAG Runtime Assets
+
+The five production runtime files are published separately as the public Hugging Face Dataset
+`JuneYao/nihaisha-rag-assets`, pinned to `production-2026-07-15` (3,679,424,241 bytes, about
+3.68 GB). They are intentionally not committed to GitHub.
+
+Before the first RAG lookup, check for `data/pdf_rag_bge_m3/rag.sqlite`. If the asset set is
+missing or incomplete, tell the user that about 3.68 GB will be downloaded, then run from this
+Skill directory:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[runtime]"
+python3 -m nihaisha_kg download-assets
+python3 -m nihaisha_kg doctor
+```
+
+The downloader needs no Hugging Face account, token, CLI, or Git LFS. It resumes `.part` files,
+replaces final files only after a complete download, and verifies the expected byte count and
+SHA256 for all five assets. Re-running it verifies and skips intact files. Retrieve only after
+`doctor` reports `status: ok`.
+
+Useful commands:
+
+```bash
+python3 -m nihaisha_kg search "原词" --mode text --limit 5
+python3 -m nihaisha_kg search "麻黄汤对应什么方证" --mode graph --limit 5
+python3 -m nihaisha_kg answer "桂枝汤和麻黄汤的方证如何鉴别？" --mode hybrid --limit 8
+python3 -m nihaisha_kg answer "关联资料中的相关原文" --mode text --limit 8 --include-references
+```
+
+`text`, `knowledge`, and `graph` need no API key. `vector` and `hybrid` require FAISS plus a
+query embedding backend. Every visible answer citation must point to an original paragraph with
+portable source, page, paragraph ID, evidence ID, and previous/next context. Graph relations,
+guide nodes, linked-reference cards, and other derived records are navigation only. They cannot
+replace original evidence or enter the primary conclusion on their own.
 
 ## Safety Requirements
 

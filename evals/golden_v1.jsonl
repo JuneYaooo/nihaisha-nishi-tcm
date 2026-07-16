@@ -1,0 +1,7 @@
+{"case_id":"dose-one-qian","query":"古时候的一钱，是现代的多少克？","task_type":"dosage","relevant_paragraph_ids":["9e061d6932a26775","929e53c511a408c8","f3eebf353ec1ee28"],"forbidden_paragraph_ids":[]}
+{"case_id":"source-muxiang","query":"木香饼热熨法来自哪一本书哪一段？","task_type":"source_lookup","relevant_paragraph_ids":["4f29767e17dfa956"],"forbidden_paragraph_ids":[]}
+{"case_id":"compare-guizhi-mahuang","query":"桂枝汤和麻黄汤的方证如何鉴别？","task_type":"comparison","relevant_paragraph_ids":["a56d3146d7453891"],"forbidden_paragraph_ids":[]}
+{"case_id":"formula-huangqin-banxia","query":"黄芩加半夏生姜汤对应哪些原文证候？","task_type":"entity_fact","relevant_paragraph_ids":["8d8dce6bfeae1f8b"],"forbidden_paragraph_ids":[]}
+{"case_id":"acupuncture-four-gates","query":"针灸课程里合谷和太冲合称什么？","task_type":"entity_fact","relevant_paragraph_ids":["fb1cc40bb9bbb8be"],"forbidden_paragraph_ids":[]}
+{"case_id":"formula-danggui-sini","query":"手足厥寒、脉细欲绝对应哪段原文？","task_type":"source_lookup","relevant_paragraph_ids":["30c26f1fd51a4ff8"],"forbidden_paragraph_ids":[]}
+{"case_id":"source-guizhi-not-muxiang","query":"桂枝汤的出处在哪本书哪一页？","task_type":"source_lookup","relevant_paragraph_ids":["a56d3146d7453891"],"forbidden_paragraph_ids":["4f29767e17dfa956"]}

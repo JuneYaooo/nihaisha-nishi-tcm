@@ -1,0 +1,29 @@
+[project]
+name = "nihaisha-rag-prototype"
+version = "0.1.0"
+description = "A local source-grounded RAG prototype for Nihaisha PDF course materials."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "requests",
+]
+
+[project.optional-dependencies]
+faiss = [
+  "faiss-cpu>=1.8.0",
+]
+runtime = [
+  "faiss-cpu>=1.8.0",
+]
+local = [
+  "FlagEmbedding>=1.3.0",
+]
+
+[project.scripts]
+nihaisha-rag = "nihaisha_kg.cli:main"
+
+[tool.setuptools]
+packages = ["nihaisha_kg"]
+
+[tool.ruff]
+line-length = 100
