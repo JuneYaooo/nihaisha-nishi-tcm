@@ -1,8 +1,14 @@
+import json
+from pathlib import Path
+
 from scripts.build_pdf_evidence import clean_page_text, redact_ocr_privacy
+from scripts.build_text_evidence import normalize_text, parse_sections
 from scripts.ocr_pdf_text import clean_ocr_text
 from scripts.search_pdf_evidence import (
     FOLDED_NOTICE,
+    find_matches,
     is_supplement,
+    limit_matches,
     safe_excerpt,
     should_show_supplements,
 )
@@ -65,3 +71,60 @@ def test_supplement_second_pass_requires_primary_match_by_default() -> None:
         force_include=True,
         primary_only=False,
     )
+
+
+def test_recommended_doc_has_stable_section_citations() -> None:
+    path = Path("references/text-evidence/evidence-cards.jsonl")
+    cards = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+    assert len(cards) == 183
+    assert cards[0]["citation"] == "text-evidence:77af3a7c9960#s001"
+    assert cards[-1]["citation"] == "text-evidence:77af3a7c9960#s183"
+    assert [card["clause_number"] for card in cards[1:]] == list(range(1, 183))
+    assert all(card["source_role"] == "ni-recommended-supplement" for card in cards)
+
+
+def test_text_evidence_participates_in_forced_supplement_search() -> None:
+    primary, supplements = find_matches(
+        [Path("references/text-evidence/evidence-cards.jsonl")],
+        ["太陽病提綱"],
+        module="shanghan",
+        doc_id="77af3a7c9960",
+    )
+
+    assert primary == []
+    assert [card["citation"] for card in supplements] == [
+        "text-evidence:77af3a7c9960#s002"
+    ]
+
+    _, title_matches = find_matches(
+        [Path("references/text-evidence/evidence-cards.jsonl")],
+        ["大塚敬节伤寒论解说"],
+        doc_id="77af3a7c9960",
+    )
+    assert len(title_matches) == 183
+
+
+def test_doc_text_parser_keeps_wrapped_clause_as_one_section() -> None:
+    text = normalize_text(
+        "題名\n張仲景自序\n序文\n\n太陰病篇\n"
+        "1.本太陽病，桂枝加芍藥湯主\n之。\n"
+    )
+    title, sections = parse_sections(text)
+
+    assert title == "題名"
+    assert sections[-1]["locator"] == "太陰病篇 · 第1条"
+    assert sections[-1]["text"] == "1.本太陽病，桂枝加芍藥湯主之。"
+
+
+def test_supplement_limit_surfaces_distinct_sources_first() -> None:
+    cards = [
+        {"card_id": "a-1", "doc_id": "a"},
+        {"card_id": "a-2", "doc_id": "a"},
+        {"card_id": "b-1", "doc_id": "b"},
+    ]
+
+    assert [card["card_id"] for card in limit_matches(cards, 2, diversify_sources=True)] == [
+        "a-1",
+        "b-1",
+    ]

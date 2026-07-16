@@ -25,6 +25,12 @@ The course distillation method used in this project comes from the author's [lin
 
 ## Update Log
 
+### 2026-07-16
+
+- Integrated all 11 recommended PDFs and the remaining legacy DOC from the supplied archive as a separately labeled Ni-recommended supplemental layer.
+- The DOC archive name says *Otsuka Keisetsu Shanghan Commentary*, but its internal title and extracted content are *Otsuka Keisetsu Shanghan Clauses*: Zhang Zhongjing's preface plus 182 selected clauses/prompts. It is cited by 183 real sections, never by invented PDF pages.
+- Primary course matches now automatically trigger a separate second pass across both PDF and non-PDF recommended supplements.
+
 ### 2026-06-25
 
 - Based on course proofreading materials organized by Qihuang Shengxian Zhihui, this update corrects a set of terminology, formula-name, acupoint-name, and classical-citation errors that came from earlier video/audio transcription.
@@ -41,6 +47,7 @@ The course distillation method used in this project comes from the author's [lin
 - **Lesson-by-lesson review**: builds topic maps, keywords, and review questions by course module and lesson.
 - **Screenshot evidence**: includes 2,986 screenshot evidence entries, with compressed WebP images stored in the repo. Search by formula name, acupoint, lesson, pathomechanism, Tianji keyword, or timestamp.
 - **PDF source evidence**: includes 22 PDF sources, 10,538 physical-page records (10,461 complete text pages, 59 scanned visual/low-confidence pages without searchable OCR body text, 6 excluded non-content pages, and 12 native blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. A primary course match automatically triggers a separate second-pass search of recommended supplements.
+- **Non-PDF text evidence**: includes 1 recommended DOC split into 183 preface/clause sections, cited as `text-evidence:<doc_id>#s<section>` and always kept separate from Ni Haisha's own material.
 - **Safety boundary**: defaults to course study and TCM theory organization. It does not provide personal diagnosis, prescriptions, or dosage guidance.
 
 ## Best-fit use cases
@@ -84,8 +91,9 @@ The course distillation method used in this project comes from the author's [lin
 | Shennong Bencao notes | [`references/notes-bencao.md`](../references/notes-bencao.md) | Materia medica transcripts, color notes, and single-herb illustrated references. |
 | Shang Han Lun notes | [`references/notes-shanghan.md`](../references/notes-shanghan.md) | Shang Han Lun transcripts, illustrated notes, and study notes. |
 | Jingui Yaolue notes | [`references/notes-jingui.md`](../references/notes-jingui.md) | Jingui organized drafts, handouts, and study notes. |
-| Classical and course PDF source index | [`references/ebooks.md`](../references/ebooks.md) | Course proofreading PDFs, classical citations, formula-pattern references, and terminology checks. |
+| Classical and course source index | [`references/ebooks.md`](../references/ebooks.md) | Course proofreading PDFs, the recommended DOC, classical citations, formula-pattern references, and terminology checks. |
 | Page-level PDF evidence | [`references/pdf-evidence/index.md`](../references/pdf-evidence/index.md) | PDF source list, page evidence cards, module term indexes, and citation policy. |
+| Non-PDF text evidence | [`references/text-evidence/index.md`](../references/text-evidence/index.md) | Source boundary, section-level cards, and citation policy for the recommended DOC. |
 | Audio collection | [`references/audio-collection.md`](../references/audio-collection.md) | MP3/recording collection index and distilled course mappings. |
 
 ## Current coverage
@@ -93,6 +101,7 @@ The course distillation method used in this project comes from the author's [lin
 - Screenshot images have been organized and integrated for: `01.针灸课程`, `03.黄帝内经课程`, `05.神农本草课程`, `07.伤寒论课程`, `09.金匮要略课程`, `11.仲景心法传讲`, `13.人纪之临床案例`, `14.人纪之八纲辨证`, `15.扶阳论坛`, `18.倪师易筋经`, `22.倪海厦天纪`.
 - Text materials have been organized for: `02.针灸大成笔记`, `04.黄帝内经笔记`, `06.神农本草笔记`, `08.伤寒论笔记`, `10.金匮要略笔记`, `12.倪师音频合集`, `19.梁冬对话倪师`, `20.倪师斯坦福大学演讲`.
 - PDF evidence layer: 22 PDF sources, 10,538 physical-page records (10,461 complete text pages, 59 scanned visual/low-confidence pages without searchable OCR body text, 6 excluded non-content pages, and 12 native blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. Recommended books are automatically searched after primary course material matches the same topic, while remaining separately labeled and cited.
+- Non-PDF text evidence layer: 1 Ni-recommended DOC with 183 preface/clause sections. It participates in the same automatic second pass and is never represented as Ni-authored material.
 - Ongoing maintenance focuses on source-traceable corrections across course distillation text, course handouts/notes, page-level PDF evidence, and classical formula-source indexes.
 
 ## Install
@@ -138,7 +147,7 @@ Use nihaisha to summarize the acupuncture course material on the Ren/Du channels
 Use nihaisha to find Tianji board evidence related to ming gong and si hua.
 ```
 
-> The screenshot index prefers relative paths under `assets/screenshots/...`. PDF evidence citations use `pdf-evidence:<doc_id>#p<page>`. The Liang Dong interview and Stanford lecture are currently text-only modules.
+> The screenshot index prefers relative paths under `assets/screenshots/...`. PDF evidence citations use `pdf-evidence:<doc_id>#p<page>`; non-PDF text evidence uses `text-evidence:<doc_id>#s<section>`. The Liang Dong interview and Stanford lecture are currently text-only modules.
 
 ## Safety notice
 

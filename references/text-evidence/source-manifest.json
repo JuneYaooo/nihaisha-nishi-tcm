@@ -1,0 +1,19 @@
+[
+  {
+    "doc_id": "77af3a7c9960",
+    "source_name": "大塚敬節傷寒論條文",
+    "archive_name": "02.大塚敬節傷寒論解說.doc",
+    "source_type": "doc",
+    "source_role": "ni-recommended-supplement",
+    "recommended_by": "倪海厦",
+    "module": "shanghan",
+    "sections": 183,
+    "numbered_clauses": 182,
+    "characters": 9174,
+    "text_method": "libreoffice-text",
+    "source_text": "source-text/77af3a7c9960.txt",
+    "sha256": "77af3a7c99601881b47c4df09553c61833ecc68dd3398173827809c853307f0a",
+    "privacy_scan": "passed",
+    "content_note": "压缩包文件名作《大塚敬節傷寒論解說》，内题作《大塚敬節傷寒論條文》；实质内容为张仲景自序及182条伤寒条文节录/提示，未见系统解说正文。"
+  }
+]

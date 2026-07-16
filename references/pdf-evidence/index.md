@@ -7,7 +7,7 @@ This directory contains complete page-level text evidence extracted from the Nih
 - Use `pdf-evidence:<doc_id>#p<page>` for page-level citations.
 - Resolve `<doc_id>` in `source-manifest.json` or `sources.md`.
 - Use `evidence-cards.jsonl` for complete page text and detected terms.
-- Use `python scripts/search_pdf_evidence.py <term...>` or `rg` to search `evidence-cards.jsonl` / `term-index/<module>.json`; use `--doc-id <doc_id>` to limit a lookup to one source. The default CLI behavior is two-stage: print primary course evidence first, then automatically print separately labeled `ni-recommended-supplement` hits when the primary layer matched. Use `--primary-only` to suppress the second pass, or `--include-supplements` to force direct supplemental lookup without a primary match.
+- Use `python scripts/search_pdf_evidence.py <term...>` or `rg` to search `evidence-cards.jsonl` / `term-index/<module>.json`; use `--doc-id <doc_id>` to limit a lookup to one source. The default CLI behavior is two-stage: print primary course evidence first, then automatically print separately labeled `ni-recommended-supplement` hits when the primary layer matched. The CLI also includes `references/text-evidence/` in that supplemental pass. Use `--primary-only` to suppress the second pass, or `--include-supplements` to force direct supplemental lookup without a primary match.
 - Add `--show-full-page` to print complete stored page text and use `--limit 0` to return every matching page.
 
 Example: `pdf-evidence:58423f817a06#p52` means page 52 of the PDF whose `doc_id` is `58423f817a06`.

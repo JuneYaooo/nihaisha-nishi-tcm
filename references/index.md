@@ -125,9 +125,10 @@
 | `notes-shanghan.md` | 伤寒论讲稿、图文笔记、学习笔记抽取式蒸馏 | 用户问伤寒论笔记、讲稿或文字版学习资料时 |
 | `notes-shanghan-scan-essence.md` | 伤寒论扫描版 PDF 要点补充 | 用户问伤寒论扫描版图文笔记或补抽取资料中的要点内容时 |
 | `notes-jingui.md` | 金匮要略教程整理稿与学习笔记抽取式蒸馏 | 用户问金匮笔记、讲稿或文字版学习资料时 |
-| `ebooks.md` | 古籍与课程 PDF 溯源索引，区分倪师课程正文证据与倪师推荐补充资料 | 用户问课程文案校对、PDF 溯源、古籍引用反查、方证术语证据或推荐书补充时 |
+| `ebooks.md` | 古籍与课程文献溯源索引，区分倪师课程正文证据与倪师推荐补充资料 | 用户问课程文案校对、PDF/DOC 溯源、古籍引用反查、方证术语证据或推荐书补充时 |
 | `audio-collection.md` | 倪师音频合集索引和已蒸馏课程映射 | 用户问 MP3、录音、音频合集或音频条目定位时 |
 | `pdf-evidence/index.md` | PDF 完整页级文本证据入口，含 doc_id、每个物理页、完整文本和术语索引 | 需要为正文勘误、古籍引用或课程讲义内容提供可溯源 PDF 证据时 |
+| `text-evidence/index.md` | 非 PDF 推荐资料的章节/条文证据入口，含稳定 doc_id 与 section 引用 | 需要检索旧 DOC 推荐资料或引用非 PDF 补充来源时 |
 
 ## 检索建议
 
@@ -148,9 +149,9 @@
 - 神农本草问题：先 `bencao.md`；需要药性、药物分类、性味归经、剂型剂量或配伍证据时查 `bencao-screenshot-evidence.md`。
 - 针灸问题：先 `acupuncture.md`；需要穴位图、经络图、手法或实操证据时查 `acupuncture-screenshot-evidence.md`。
 - 文字笔记问题：按课程先看对应视频课程引用，再打开 `notes-acupuncture-dacheng.md`、`notes-huangdi.md`、`notes-bencao.md`、`notes-shanghan.md` 或 `notes-jingui.md` 做补充。
-- PDF/古籍溯源问题：先打开 `ebooks.md` 和 `pdf-evidence/index.md`。默认先检索课程蒸馏、课程 PDF 与截图；正文命中同一话题且补充层有结果时，自动执行倪师推荐资料二次检索，并单独标注书名与来源层级，无需用户再次要求。`--primary-only` 可关闭二次检索，直接查推荐书时用 `--include-supplements`；不得把原书观点写成倪师原话或倪师本人资料。
+- PDF/古籍溯源问题：先打开 `ebooks.md`、`pdf-evidence/index.md`，涉及非 PDF 推荐资料时再开 `text-evidence/index.md`。默认先检索课程蒸馏、课程 PDF 与截图；正文命中同一话题且补充层有结果时，自动执行倪师推荐资料二次检索，并单独标注书名与来源层级，无需用户再次要求。`--primary-only` 可关闭二次检索，直接查推荐书时用 `--include-supplements`；不得把原书观点写成倪师原话或倪师本人资料。
 - 音频合集问题：打开 `audio-collection.md`，按目录映射回已蒸馏课程引用。
-- PDF 溯源问题：打开 `pdf-evidence/index.md`；优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>` 定位页证据，默认自动执行主资料与补充资料两阶段检索；需要整页时再加 `--show-full-page`，并用 `pdf-evidence/source-manifest.json` 解析 PDF 文档 ID。`pdf-evidence/modules/*.md` 与 `evidence-cards.jsonl` 已包含 10538 个物理页记录，不应整份载入上下文；引用格式为 `pdf-evidence:<doc_id>#p<page>`。
+- 文献溯源问题：优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>`；该命令同时检索 PDF 页证据和非 PDF 推荐资料，默认自动执行主资料与补充资料两阶段检索。PDF 引用为 `pdf-evidence:<doc_id>#p<page>`，DOC 文本引用为 `text-evidence:<doc_id>#s<section>`；需要全文时再加 `--show-full-page`，不得为 DOC 虚构页码。
 - 截图问题：用 `python scripts/search_screenshots.py <自然语言问题或关键词...>`，脚本会归一化组合查询；关键词可以是方名、病机、六经名、课次或时间点。
 - 结构设计问题：先看 `learning-entry.md`，优先按用户任务组织，而不是按课程目录组织。
 - 医疗安全：真实症状只做课程学习分析，不直接给个人处方；高风险方药和急危重症必须提醒面诊或急诊。
@@ -171,4 +172,5 @@
 - 梁冬对话倪师: `19.梁冬对话倪师` 已整理为文字资料模块；第 1 集尾部音轨损坏。
 - 斯坦福大学演讲: `20.倪师斯坦福大学演讲` 已整理为文字资料模块。
 - 课程 PDF 溯源: `references/pdf-evidence/` 已建立页级证据、模块术语索引和高置信勘误记录。
+- 推荐 DOC 溯源: `references/text-evidence/` 已建立章节/条文证据与稳定 section 引用。
 - 天纪: `22.倪海厦天纪` 已整理，527 张截图证据已接入；第 1-3 课为 LLM 摘要，第 4-24 课为转写抽取式摘要。

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Search complete page-level PDF evidence cards."""
+"""Search complete PDF pages and supplemental text-evidence sections."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import re
 
 
 SAFETY_NOTICE = (
-    "安全提示：以下仅为PDF证据定位。涉及剂量、煎服、针灸、放血、外敷、"
+    "安全提示：以下仅为文献证据定位。涉及剂量、煎服、针灸、放血、外敷、"
     "急症或毒烈药内容时，不得作为个人医疗建议或自行操作依据。"
 )
 HIGH_RISK_RE = re.compile(
@@ -29,6 +29,8 @@ AUTO_SUPPLEMENT_NOTICE = "二次检索：课程主资料已命中，以下自动
 
 
 def iter_cards(path: Path):
+    if not path.exists():
+        return
     with path.open(encoding="utf-8") as handle:
         for line in handle:
             if line.strip():
@@ -85,10 +87,75 @@ def should_show_supplements(
     return force_include or primary_matches > 0
 
 
+def find_matches(
+    card_paths: list[Path],
+    terms: list[str],
+    *,
+    module: str | None = None,
+    doc_id: str | None = None,
+) -> tuple[list[dict], list[dict]]:
+    """Return primary and recommended-supplement hits across evidence formats."""
+    primary_matches = []
+    supplement_matches = []
+    for cards_path in card_paths:
+        for card in iter_cards(cards_path):
+            if module and card.get("module") != module:
+                continue
+            if doc_id and card.get("doc_id") != doc_id:
+                continue
+            full_text = card_text(card)
+            haystack = "\n".join(
+                [
+                    card.get("source_name", ""),
+                    card.get("archive_name", ""),
+                    " ".join(card.get("aliases", [])),
+                    card.get("locator", ""),
+                    full_text,
+                    " ".join(card.get("terms", [])),
+                ]
+            )
+            if all(term in haystack for term in terms):
+                (supplement_matches if is_supplement(card) else primary_matches).append(card)
+    return primary_matches, supplement_matches
+
+
+def limit_matches(cards: list[dict], limit: int, *, diversify_sources: bool = False) -> list[dict]:
+    """Apply a row limit, optionally surfacing one hit per source before repeats."""
+    if limit == 0 or len(cards) <= limit:
+        return cards
+    if not diversify_sources:
+        return cards[:limit]
+    selected = []
+    selected_ids = set()
+    seen_docs = set()
+    for card in cards:
+        doc_id = card.get("doc_id")
+        if doc_id in seen_docs:
+            continue
+        selected.append(card)
+        selected_ids.add(card.get("card_id", card.get("citation")))
+        seen_docs.add(doc_id)
+        if len(selected) == limit:
+            return selected
+    for card in cards:
+        card_id = card.get("card_id", card.get("citation"))
+        if card_id in selected_ids:
+            continue
+        selected.append(card)
+        if len(selected) == limit:
+            break
+    return selected
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Search references/pdf-evidence/evidence-cards.jsonl")
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("terms", nargs="+", help="Chinese terms to search, e.g. 大青龙汤 荥穴")
     parser.add_argument("--evidence-dir", default="references/pdf-evidence", help="PDF evidence directory")
+    parser.add_argument(
+        "--text-evidence-dir",
+        default="references/text-evidence",
+        help="Supplemental section-level text evidence directory",
+    )
     parser.add_argument(
         "--limit",
         type=int,
@@ -113,37 +180,24 @@ def main() -> int:
         "--show-full-page",
         dest="show_full_page",
         action="store_true",
-        help="Print the complete stored page text for manual scholarly verification.",
+        help="Print the complete stored page or section text for scholarly verification.",
     )
     args = parser.parse_args()
 
     evidence_dir = Path(args.evidence_dir)
     cards_path = evidence_dir / "evidence-cards.jsonl"
+    text_cards_path = Path(args.text_evidence_dir) / "evidence-cards.jsonl"
     term_index_path = evidence_dir / "term-index"
     terms = [term.strip() for term in args.terms if term.strip()]
     term_hits = load_term_hits(term_index_path, terms, args.module)
     print(SAFETY_NOTICE)
 
-    primary_matches = []
-    supplement_matches = []
-    for card in iter_cards(cards_path):
-        if args.module and card.get("module") != args.module:
-            continue
-        if args.doc_id and card.get("doc_id") != args.doc_id:
-            continue
-        full_page_text = card_text(card)
-        haystack = "\n".join(
-            [
-                card.get("source_name", ""),
-                full_page_text,
-                " ".join(card.get("terms", [])),
-            ]
-        )
-        if all(term in haystack for term in terms):
-            (supplement_matches if is_supplement(card) else primary_matches).append(card)
-
-    def limited(cards: list[dict]) -> list[dict]:
-        return cards if args.limit == 0 else cards[: args.limit]
+    primary_matches, supplement_matches = find_matches(
+        [cards_path, text_cards_path],
+        terms,
+        module=args.module,
+        doc_id=args.doc_id,
+    )
 
     def print_card(card: dict) -> None:
         full_page_text = card_text(card)
@@ -165,7 +219,7 @@ def main() -> int:
         print(result_text)
         print()
 
-    for card in limited(primary_matches):
+    for card in limit_matches(primary_matches, args.limit):
         print_card(card)
 
     show_supplements = should_show_supplements(
@@ -177,7 +231,7 @@ def main() -> int:
     if show_supplements:
         if not args.include_supplements:
             print(AUTO_SUPPLEMENT_NOTICE)
-        for card in limited(supplement_matches):
+        for card in limit_matches(supplement_matches, args.limit, diversify_sources=True):
             print_card(card)
     return 0
 
