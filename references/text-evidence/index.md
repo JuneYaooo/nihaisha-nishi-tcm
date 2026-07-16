@@ -17,7 +17,6 @@ Example: `text-evidence:77af3a7c9960#s002` identifies the first numbered clause 
 | --- | --- |
 | `source-manifest.json` | Machine-readable source identity, extraction method, content caveat, and hash. |
 | `evidence-cards.jsonl` | One complete record per preface or numbered clause. |
-| `source-text/<doc_id>.txt` | Normalized complete text used to rebuild and audit the cards. |
 
 ## Source boundary
 
@@ -32,11 +31,3 @@ This source is a recommended supplement, not a Ni Haisha-authored or Ni Haisha-s
 - Numbered clauses: 182
 - Normalized characters: 9,174
 - Privacy/promotional scan: passed
-
-## Rebuild
-
-```bash
-python scripts/build_text_evidence.py /path/to/02.大塚敬節傷寒論解說.doc
-```
-
-LibreOffice performs the legacy DOC extraction. The build verifies an ordered clause sequence from 1 through 182 and rejects text that matches deterministic privacy or promotional-data patterns.

@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from scripts.build_pdf_evidence import clean_page_text, redact_ocr_privacy
-from scripts.build_text_evidence import normalize_text, parse_sections
 from scripts.ocr_pdf_text import clean_ocr_text
 from scripts.search_pdf_evidence import (
     FOLDED_NOTICE,
@@ -103,18 +102,6 @@ def test_text_evidence_participates_in_forced_supplement_search() -> None:
         doc_id="77af3a7c9960",
     )
     assert len(title_matches) == 183
-
-
-def test_doc_text_parser_keeps_wrapped_clause_as_one_section() -> None:
-    text = normalize_text(
-        "題名\n張仲景自序\n序文\n\n太陰病篇\n"
-        "1.本太陽病，桂枝加芍藥湯主\n之。\n"
-    )
-    title, sections = parse_sections(text)
-
-    assert title == "題名"
-    assert sections[-1]["locator"] == "太陰病篇 · 第1条"
-    assert sections[-1]["text"] == "1.本太陽病，桂枝加芍藥湯主之。"
 
 
 def test_supplement_limit_surfaces_distinct_sources_first() -> None:
