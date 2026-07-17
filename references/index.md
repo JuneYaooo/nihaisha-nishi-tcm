@@ -151,7 +151,7 @@
 - 文字笔记问题：按课程先看对应视频课程引用，再打开 `notes-acupuncture-dacheng.md`、`notes-huangdi.md`、`notes-bencao.md`、`notes-shanghan.md` 或 `notes-jingui.md` 做补充。
 - PDF/古籍溯源问题：先打开 `ebooks.md`、`pdf-evidence/index.md`，涉及非 PDF 推荐资料时再开 `text-evidence/index.md`。默认先检索课程蒸馏、课程 PDF 与截图；正文命中同一话题且补充层有结果时，自动执行倪师推荐资料二次检索，并单独标注书名与来源层级，无需用户再次要求。`--primary-only` 可关闭二次检索，直接查推荐书时用 `--include-supplements`；不得把原书观点写成倪师原话或倪师本人资料。
 - 音频合集问题：打开 `audio-collection.md`，按目录映射回已蒸馏课程引用。
-- 文献溯源问题：优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>`；该命令同时检索 PDF 页证据和非 PDF 推荐资料，默认自动执行主资料与补充资料两阶段检索。PDF 引用为 `pdf-evidence:<doc_id>#p<page>`，DOC 文本引用为 `text-evidence:<doc_id>#s<section>`；需要全文时再加 `--show-full-page`，不得为 DOC 虚构页码。
+- 文献溯源问题：优先用 `python scripts/search_pdf_evidence.py <术语...> --module <模块>`；该命令同时检索 PDF 页证据和非 PDF 推荐资料，默认自动执行主资料与补充资料两阶段检索。PDF 引用为 `pdf-evidence:<doc_id>#p<page>`，DOC 文本引用为 `text-evidence:<doc_id>#s<section>`；需要全文时再加 `--show-full-page`。
 - 截图问题：用 `python scripts/search_screenshots.py <自然语言问题或关键词...>`，脚本会归一化组合查询；关键词可以是方名、病机、六经名、课次或时间点。
 - 结构设计问题：先看 `learning-entry.md`，优先按用户任务组织，而不是按课程目录组织。
 - 医疗安全：真实症状只做课程学习分析，不直接给个人处方；高风险方药和急危重症必须提醒面诊或急诊。

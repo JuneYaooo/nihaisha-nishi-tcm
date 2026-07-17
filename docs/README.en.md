@@ -27,9 +27,8 @@ The course distillation method used in this project comes from the author's [lin
 
 ### 2026-07-16
 
-- Integrated all 11 recommended PDFs and the remaining legacy DOC from the supplied archive as a separately labeled Ni-recommended supplemental layer.
-- The DOC archive name says *Otsuka Keisetsu Shanghan Commentary*, but its internal title and extracted content are *Otsuka Keisetsu Shanghan Clauses*: Zhang Zhongjing's preface plus 182 selected clauses/prompts. It is cited by 183 real sections, never by invented PDF pages.
-- Primary course matches now automatically trigger a separate second pass across both PDF and non-PDF recommended supplements.
+- Added a separately labeled search layer for books recommended by Ni Haisha; these sources are not presented as Ni-authored material.
+- Relevant primary course matches now automatically trigger a separate supplemental second pass.
 
 ### 2026-06-25
 
@@ -46,8 +45,8 @@ The course distillation method used in this project comes from the author's [lin
 - **Acupoint and herb study**: searches acupuncture channels and points, point-combination ideas, and Shennong Bencao course material on herb properties, dosage forms, compatibility, and single-herb clues.
 - **Lesson-by-lesson review**: builds topic maps, keywords, and review questions by course module and lesson.
 - **Screenshot evidence**: includes 2,986 screenshot evidence entries, with compressed WebP images stored in the repo. Search by formula name, acupoint, lesson, pathomechanism, Tianji keyword, or timestamp.
-- **PDF source evidence**: includes 22 PDF sources, 10,538 physical-page records (10,461 complete text pages, 59 scanned visual/low-confidence pages without searchable OCR body text, 6 excluded non-content pages, and 12 native blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. A primary course match automatically triggers a separate second-pass search of recommended supplements.
-- **Non-PDF text evidence**: includes 1 recommended DOC split into 183 preface/clause sections, cited as `text-evidence:<doc_id>#s<section>` and always kept separate from Ni Haisha's own material.
+- **PDF source evidence**: supports module-, keyword-, and page-based lookup across course handouts and related classical sources, with a separate supplemental second pass after relevant course matches.
+- **Non-PDF text evidence**: recommended text sections can be located independently and remain separate from Ni Haisha's own material.
 - **Safety boundary**: defaults to course study and TCM theory organization. It does not provide personal diagnosis, prescriptions, or dosage guidance.
 
 ## Best-fit use cases
@@ -100,8 +99,7 @@ The course distillation method used in this project comes from the author's [lin
 
 - Screenshot images have been organized and integrated for: `01.针灸课程`, `03.黄帝内经课程`, `05.神农本草课程`, `07.伤寒论课程`, `09.金匮要略课程`, `11.仲景心法传讲`, `13.人纪之临床案例`, `14.人纪之八纲辨证`, `15.扶阳论坛`, `18.倪师易筋经`, `22.倪海厦天纪`.
 - Text materials have been organized for: `02.针灸大成笔记`, `04.黄帝内经笔记`, `06.神农本草笔记`, `08.伤寒论笔记`, `10.金匮要略笔记`, `12.倪师音频合集`, `19.梁冬对话倪师`, `20.倪师斯坦福大学演讲`.
-- PDF evidence layer: 22 PDF sources, 10,538 physical-page records (10,461 complete text pages, 59 scanned visual/low-confidence pages without searchable OCR body text, 6 excluded non-content pages, and 12 native blank pages), plus 6 course-module term indexes and 1 full-text Ni-recommended supplemental module. Recommended books are automatically searched after primary course material matches the same topic, while remaining separately labeled and cited.
-- Non-PDF text evidence layer: 1 Ni-recommended DOC with 183 preface/clause sections. It participates in the same automatic second pass and is never represented as Ni-authored material.
+- PDF page evidence and non-PDF text evidence are both available. Recommended sources join the automatic second pass after relevant course matches while remaining separately labeled and cited.
 - Ongoing maintenance focuses on source-traceable corrections across course distillation text, course handouts/notes, page-level PDF evidence, and classical formula-source indexes.
 
 ## Install
