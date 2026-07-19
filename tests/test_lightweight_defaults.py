@@ -1,0 +1,55 @@
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_skill_defaults_to_lightweight_retrieval() -> None:
+    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "### Default Retrieval Policy" in skill
+    assert "The default path is the lightweight bundled Skill" in skill
+    assert "Full-corpus RAG is explicit opt-in only" in skill
+    assert "obtain explicit confirmation" in skill
+
+
+def test_ordinary_formula_and_source_queries_do_not_route_to_rag() -> None:
+    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    rag_route = next(
+        line for line in skill.splitlines() if line.startswith("   - Optional full-corpus RAG:")
+    )
+
+    assert "explicit user opt-in" in rag_route
+    assert "formula-pattern comparison" not in rag_route
+    assert "related-reference lookup" not in rag_route
+    assert "Formula queries: `references/formula-patterns.md`" in skill
+    assert "use `scripts/search_pdf_evidence.py` first" in skill
+
+
+def test_agent_default_prompt_forbids_automatic_rag_download() -> None:
+    agent_config = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
+
+    assert "默认只使用 references" in agent_config
+    assert "不自动安装、下载或调用 RAG" in agent_config
+    assert "明确同意时，才启用可选 RAG" in agent_config
+
+
+def test_skill_installer_excludes_heavy_and_local_artifacts() -> None:
+    installer = (ROOT / "install_as_skill.sh").read_text(encoding="utf-8")
+    excluded = set(re.findall(r"--exclude='([^']+)'", installer))
+
+    assert {
+        ".env",
+        ".venv",
+        "*.egg-info",
+        "LOCAL_USABILITY_REPORT.md",
+        "data",
+        "output",
+        "tests",
+        "evals",
+        "docs/local",
+        "docs/superpowers",
+    } <= excluded

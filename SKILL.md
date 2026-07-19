@@ -15,6 +15,21 @@ This skill is educational. Do not present content as diagnosis, prescription, or
 
 ## Workflow
 
+### Default Retrieval Policy
+
+- The default path is the lightweight bundled Skill: read `references/index.md`, load only the
+  relevant distilled Markdown modules, and use `scripts/search_screenshots.py` or
+  `scripts/search_pdf_evidence.py` when source evidence is needed.
+- Do not create a virtual environment, install the RAG runtime, invoke `nihaisha_kg`, or download
+  RAG assets for ordinary course questions, symptom-study questions, formula comparisons, lesson
+  review, screenshot lookup, or PDF/page evidence lookup.
+- Full-corpus RAG is explicit opt-in only. Use it when the user directly asks for RAG/full-corpus
+  semantic retrieval, or when the lightweight path is insufficient and the user explicitly
+  approves the optional 3.68 GB download after being told the cost.
+- Formula-pattern comparisons stay on `references/formula-patterns.md` plus
+  `references/six-channel.md` by default. Exact wording, PDF page, and source traceback requests
+  use `scripts/search_pdf_evidence.py` first.
+
 1. Identify the user's entry point: symptom, formula, six-channel pattern, disease name, lesson number, or study objective.
 2. Open `references/index.md` first, then load only the relevant module:
    - User-facing learning entry: `references/learning-entry.md`.
@@ -45,7 +60,7 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - Ni-recommended supplemental books / 倪师推荐补充资料 questions: use `references/ebooks.md` to check source role and edition/OCR/extraction caveats. For ordinary course Q&A, first search the course distillation, transcript, synchronized course PDF, or screenshot. Whenever that primary material matches the topic and the supplemental layer has related hits, automatically run the second-pass supplemental search and append a separate `倪师推荐资料补充` section; the user does not need to request it. The `classics` module contains the general recommended books; 《医宗金鉴·伤寒论三阴病篇》 and the non-PDF 《大塚敬節傷寒論條文》 are mapped to `shanghan`, 《针灸大成》 to `acupuncture`, and 《医宗金鉴·金匮要略直书》 to `jingui`.
    - Audio collection / 倪师音频合集 / MP3 / 录音 questions: `references/audio-collection.md`; use to map local audio files to already-distilled course modules.
    - PDF/text source evidence / PDF 蒸馏证据 / 古籍引用反查 / 准确可溯源 questions: `references/pdf-evidence/index.md` and, for non-PDF supplements, `references/text-evidence/index.md`; use `python scripts/search_pdf_evidence.py <term...> --module <module>`. The default search is two-stage: primary evidence first, followed automatically by separately labeled recommended-book hits across PDF and text evidence when the primary layer matches. Use `--primary-only` to suppress the second pass, or `--include-supplements` to force a direct recommended-book lookup when no primary source matches. Add `--show-full-page` only when the whole page/section is needed. Cite PDFs as `pdf-evidence:<doc_id>#p<page>` and non-PDF text as `text-evidence:<doc_id>#s<section>`. Do not open large evidence-card files wholesale. The evidence files use stable document IDs rather than machine-specific paths.
-   - Full-corpus RAG / original paragraph / page traceback / formula-pattern comparison / related-reference lookup: use the local `nihaisha_kg` runtime described in **RAG Runtime Assets** below. Prefer `text` for exact wording and `hybrid` for semantic questions. Keep `reference_secondary` results separate and label them `关联参考资料（非倪海厦著作）`.
+   - Optional full-corpus RAG: only after explicit user opt-in, use the local `nihaisha_kg` runtime described in **Optional RAG Runtime Assets** below for cross-corpus semantic retrieval or deeper original-paragraph exploration that the lightweight evidence search could not satisfy. Prefer `text` for exact wording and `hybrid` for semantic questions. Keep `reference_secondary` results separate and label them `关联参考资料（非倪海厦著作）`.
    - Course overview or integrated lookup: `references/shanghanlun.md`.
    - Board/PPT/source evidence: use `python scripts/search_screenshots.py <query or terms...>` for ranked results across all screenshot evidence files. The script normalizes natural-language queries and compound terms; use `--show-terms` when checking how a query was split.
 3. Answer in the structure that matches the task:
@@ -63,15 +78,19 @@ When the user asks whether the structure is suitable, or what the learner's purp
 
 If the user uses plain everyday language rather than TCM terms, open `references/beginner-questions.md` first. Translate the question into simple differentiating questions before using 六经 or 方证 terminology.
 
-## RAG Runtime Assets
+## Optional RAG Runtime Assets
+
+This runtime is an advanced, non-default capability. Its presence in the repository does not
+authorize automatic installation, download, or invocation. Do not route ordinary formula
+comparisons, course questions, screenshots, or PDF/page lookups here.
 
 The five production runtime files are published separately as the public Hugging Face Dataset
 `JuneYao/nihaisha-rag-assets`, pinned to `production-2026-07-15` (3,679,424,241 bytes, about
 3.68 GB). They are intentionally not committed to GitHub.
 
-Before the first RAG lookup, check for `data/pdf_rag_bge_m3/rag.sqlite`. If the asset set is
-missing or incomplete, tell the user that about 3.68 GB will be downloaded, then run from this
-Skill directory:
+Before the first explicitly requested RAG lookup, check for `data/pdf_rag_bge_m3/rag.sqlite`.
+If the asset set is missing or incomplete, tell the user that about 3.68 GB will be downloaded
+and obtain explicit confirmation before running these commands from the Skill directory:
 
 ```bash
 python3 -m venv .venv

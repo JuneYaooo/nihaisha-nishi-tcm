@@ -104,6 +104,13 @@ The course distillation method used in this project comes from the author's [lin
 
 ## Install
 
+Installation and ordinary use are lightweight by default. Course questions, formula comparisons,
+lesson review, screenshot search, and PDF page traceback use the bundled `references/`, `assets/`,
+and lightweight search scripts. They do not install Python RAG dependencies or automatically
+download models or the optional 3.68 GB RAG assets. Full semantic RAG is enabled only when the
+user explicitly requests it, or when lightweight retrieval is insufficient and the user approves
+the download after being told its cost.
+
 Paste this prompt into your AI assistant:
 
 ```text

@@ -1138,7 +1138,7 @@ class LocalBgeM3EmbeddingBackend(DenseEmbeddingBackend):
 
             self.model_instance = BGEM3FlagModel(self.model, use_fp16=self.use_fp16)
             return self.model_instance
-        except ImportError as flag_error:
+        except ImportError:
             try:
                 from sentence_transformers import SentenceTransformer
 

@@ -99,6 +99,7 @@ main() {
 
     print_info "目标 agent: $AGENT_LABEL"
     print_info "目标目录: $SKILL_DIR"
+    print_info "安装模式: 轻量 Skill（不复制本地 RAG 资产）"
 
     if [ -d "$SKILL_DIR" ]; then
         print_warning "Skill 目录已存在: $SKILL_DIR"
@@ -123,6 +124,18 @@ main() {
         --exclude='install_as_skill.sh' \
         --exclude='__pycache__' \
         --exclude='.pytest_cache' \
+        --exclude='.ruff_cache' \
+        --exclude='.venv' \
+        --exclude='.coverage' \
+        --exclude='.env' \
+        --exclude='*.egg-info' \
+        --exclude='LOCAL_USABILITY_REPORT.md' \
+        --exclude='data' \
+        --exclude='output' \
+        --exclude='tests' \
+        --exclude='evals' \
+        --exclude='docs/local' \
+        --exclude='docs/superpowers' \
         "$SCRIPT_DIR/" "$SKILL_DIR/"
 
     print_header "安装完成"
