@@ -228,3 +228,6 @@ output/
 
 # Verified RAG runtime assets are downloaded from the public Hugging Face release.
 data/pdf_rag_bge_m3/
+
+# Local usability audit report
+LOCAL_USABILITY_REPORT.md
