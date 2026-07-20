@@ -25,6 +25,10 @@ The course distillation method used in this project comes from the author's [lin
 
 ## Update Log
 
+### 2026-07-18
+
+- Added a RAG + knowledge-graph mode. Its required resources are relatively large and the mode is still under testing; download with caution if disk space is limited.
+
 ### 2026-07-16
 
 - Added a separately labeled search layer for books recommended by Ni Haisha; these sources are not presented as Ni-authored material.
@@ -109,7 +113,9 @@ lesson review, screenshot search, and PDF page traceback use the bundled `refere
 and lightweight search scripts. They do not install Python RAG dependencies or automatically
 download models or the optional 3.68 GB RAG assets. Full semantic RAG is enabled only when the
 user explicitly requests it, or when lightweight retrieval is insufficient and the user approves
-the download after being told its cost.
+the download after being told its cost. The optional data comes from the public
+[Hugging Face Dataset](https://huggingface.co/datasets/JuneYao/nihaisha-rag-assets), is verified
+after download, and is retained locally for reuse.
 
 Paste this prompt into your AI assistant:
 
