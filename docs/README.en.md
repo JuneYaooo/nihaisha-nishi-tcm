@@ -66,7 +66,6 @@ separately and explicitly asks to download the RAG data.
 
 - Complete assets: about **3.68 GB**; the mode is still under testing, so use caution when disk space is limited.
 - Source: [Hugging Face Dataset — `JuneYao/nihaisha-rag-assets`](https://huggingface.co/datasets/JuneYao/nihaisha-rag-assets)
-- Pinned revision: `production-2026-07-15`
 - Local data path: `data/pdf_rag_bge_m3/`
 - Reuse: completed downloads are verified and retained locally, so they do not need to be downloaded again.
 

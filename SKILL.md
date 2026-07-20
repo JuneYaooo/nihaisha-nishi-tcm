@@ -88,8 +88,8 @@ authorize automatic installation, download, or invocation. Do not route ordinary
 comparisons, course questions, screenshots, or PDF/page lookups here.
 
 The five production runtime files are published separately as the public Hugging Face Dataset
-`JuneYao/nihaisha-rag-assets`, pinned to `production-2026-07-15` (3,679,424,241 bytes, about
-3.68 GB). They are intentionally not committed to GitHub.
+`JuneYao/nihaisha-rag-assets` (3,679,424,241 bytes, about 3.68 GB). They are intentionally not
+committed to GitHub.
 
 Before an explicitly requested RAG lookup, check for `data/pdf_rag_bge_m3/rag.sqlite`. If the
 asset set is missing or incomplete, tell the user that the complete download is about 3.68 GB,
