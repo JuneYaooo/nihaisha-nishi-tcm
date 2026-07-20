@@ -167,13 +167,11 @@ class PdfVectorTests(unittest.TestCase):
         directory = private["directory"]
         cases = {
             f"https://{authority}": "pdfs/source.pdf",
-            f"https://{authority}/{directory}/伤寒论.pdf?sig={sentinel}#{sentinel}":
-                "pdfs/伤寒论.pdf",
+            f"https://{authority}/{directory}/伤寒论.pdf?sig={sentinel}#{sentinel}": "pdfs/伤寒论.pdf",
             f"s3://bucket-{private['marker']}/{directory}/金匮.pdf?token={sentinel}": "pdfs/金匮.pdf",
             f"file://{private['posix_root']}/针灸.pdf": "pdfs/针灸.pdf",
             f"file:Z:/{private['account']}/{directory}/本草.pdf": "pdfs/本草.pdf",
-            "https://example.test/course/%E9%BB%84%E5%B8%9D%E5%86%85%E7%BB%8F.pdf":
-                "pdfs/黄帝内经.pdf",
+            "https://example.test/course/%E9%BB%84%E5%B8%9D%E5%86%85%E7%BB%8F.pdf": "pdfs/黄帝内经.pdf",
             "https://example.test/course/%2E%2E%2Fodd%5Cname.pdf": "pdfs/name.pdf",
             "https://example.test/course/%252E%252E%252Fdouble.pdf": "pdfs/double.pdf",
             "https://example.test/course/%00%1Fcontrol.pdf": "pdfs/control.pdf",
@@ -208,9 +206,7 @@ class PdfVectorTests(unittest.TestCase):
                 self.assertEqual(pdf_vector.public_source_path(source), f"pdfs/{filename}")
 
         self.assertEqual(
-            pdf_vector.public_source_path(
-                "%E8%AF%BE%E7%A8%8B/pdfs/%E9%92%88%E7%81%B8.pdf"
-            ),
+            pdf_vector.public_source_path("%E8%AF%BE%E7%A8%8B/pdfs/%E9%92%88%E7%81%B8.pdf"),
             "课程/pdfs/针灸.pdf",
         )
 
@@ -238,9 +234,7 @@ class PdfVectorTests(unittest.TestCase):
             with self.subTest(source=source):
                 public = pdf_vector.public_source_path(source)
                 self.assertEqual(public, f"pdfs/{filename}")
-                for private_fragment in (
-                    private["account"], private["directory"], sentinel
-                ):
+                for private_fragment in (private["account"], private["directory"], sentinel):
                     self.assertNotIn(private_fragment, public)
 
         excessive = posix
@@ -306,15 +300,22 @@ class PdfVectorTests(unittest.TestCase):
         self.assertTrue(
             all(citation["source_path"] == "pdfs/伤寒论.pdf" for citation in answer["citations"])
         )
-        self.assertTrue(all(citation["label"] == "伤寒论.pdf p42" for citation in answer["citations"]))
+        self.assertTrue(
+            all(citation["label"] == "伤寒论.pdf p42" for citation in answer["citations"])
+        )
 
     def _assert_unhealthy_faiss_mapping_reaches_dense_guard(
         self,
         mapped_unit_ids: list[str],
     ) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -325,9 +326,15 @@ class PdfVectorTests(unittest.TestCase):
 
         units = [
             RetrievalUnit(
-                unit_id=f"u-{index}", paragraph_id="p-a", doc_id="doc",
-                unit_type="sentence", text=f"unit {index}", text_for_embedding=f"unit {index}",
-                sentence_start=index, sentence_end=index, weight=1.0,
+                unit_id=f"u-{index}",
+                paragraph_id="p-a",
+                doc_id="doc",
+                unit_type="sentence",
+                text=f"unit {index}",
+                text_for_embedding=f"unit {index}",
+                sentence_start=index,
+                sentence_end=index,
+                weight=1.0,
             )
             for index in range(3)
         ]
@@ -338,7 +345,9 @@ class PdfVectorTests(unittest.TestCase):
             index_path = base / "vectors.faiss"
             ids_path = base / "vector_ids.jsonl"
             store = LocalVectorStore(
-                db_path, embedding_backend=ToyDenseBackend(), brute_force_limit=2,
+                db_path,
+                embedding_backend=ToyDenseBackend(),
+                brute_force_limit=2,
             )
             store.recreate()
             store.insert_paragraphs([paragraph])
@@ -363,8 +372,13 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_runtime_search_honors_db_relative_custom_faiss_paths(self) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -374,8 +388,14 @@ class PdfVectorTests(unittest.TestCase):
                 return [[1.0, 0.0] for _ in texts]
 
         unit = RetrievalUnit(
-            unit_id="u-1", paragraph_id="p-a", doc_id="doc", unit_type="sentence",
-            text="桂枝汤", text_for_embedding="桂枝汤", sentence_start=0, sentence_end=0,
+            unit_id="u-1",
+            paragraph_id="p-a",
+            doc_id="doc",
+            unit_type="sentence",
+            text="桂枝汤",
+            text_for_embedding="桂枝汤",
+            sentence_start=0,
+            sentence_end=0,
             weight=1.0,
         )
         fake_faiss = FakeFaiss()
@@ -410,8 +430,13 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_vector_search_uses_bounded_metadata_reader(self) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
         with tempfile.TemporaryDirectory() as tmpdir:
             store = LocalVectorStore(Path(tmpdir) / "rag.sqlite")
@@ -448,7 +473,9 @@ class PdfVectorTests(unittest.TestCase):
         self.assertIn("metadata", str(raised.exception).lower())
         self.assertLess(len(str(raised.exception)), 200)
 
-    def test_vector_search_rejects_invalid_utf8_metadata_without_leaking_decoder_error(self) -> None:
+    def test_vector_search_rejects_invalid_utf8_metadata_without_leaking_decoder_error(
+        self,
+    ) -> None:
         class ToyDenseBackend(DenseEmbeddingBackend):
             name = "toy_dense"
 
@@ -508,8 +535,13 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_uppercase_meta_table_preserves_vector_kind_mismatch_guard(self) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -692,8 +724,16 @@ class PdfVectorTests(unittest.TestCase):
         flow = build_differentiation_flow(
             "下利 恶心 黄芩加半夏生姜汤",
             [
-                {"badge": "方证", "label": "黄芩加半夏生姜汤", "path": "伤寒 p168 > 方证 > 黄芩加半夏生姜汤"},
-                {"badge": "方证", "label": "黄芩加半夏生姜汤", "path": "伤寒 p169 > 方证 > 黄芩加半夏生姜汤"},
+                {
+                    "badge": "方证",
+                    "label": "黄芩加半夏生姜汤",
+                    "path": "伤寒 p168 > 方证 > 黄芩加半夏生姜汤",
+                },
+                {
+                    "badge": "方证",
+                    "label": "黄芩加半夏生姜汤",
+                    "path": "伤寒 p169 > 方证 > 黄芩加半夏生姜汤",
+                },
                 {"badge": "方证", "label": "小半夏汤", "path": "金匮 p232 > 方证 > 小半夏汤"},
             ],
         )
@@ -789,7 +829,11 @@ class PdfVectorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             stdout = io.StringIO()
-            with patch("nihaisha_kg.cli.build_pdf_vector_store", side_effect=fake_build_pdf_vector_store, create=True):
+            with patch(
+                "nihaisha_kg.cli.build_pdf_vector_store",
+                side_effect=fake_build_pdf_vector_store,
+                create=True,
+            ):
                 with redirect_stdout(stdout):
                     exit_code = rag_cli.main(
                         [
@@ -844,7 +888,9 @@ class PdfVectorTests(unittest.TestCase):
 
             loaded = pdf_vector.load_build_source_catalog(catalog)
 
-        self.assertEqual(loaded[pdf_vector.source_catalog_key("四圣心源.pdf")]["exclude_pages"], [1, 21])
+        self.assertEqual(
+            loaded[pdf_vector.source_catalog_key("四圣心源.pdf")]["exclude_pages"], [1, 21]
+        )
 
     def test_build_manifest_preserves_reference_link_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -904,7 +950,9 @@ class PdfVectorTests(unittest.TestCase):
             manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
 
         self.assertEqual(manifest["reference_link_evidence"][0]["evidence_id"], "course-p10")
-        self.assertEqual(manifest["reference_link_evidence"][0]["logical_source_path"], "pdfs/课程.pdf")
+        self.assertEqual(
+            manifest["reference_link_evidence"][0]["logical_source_path"], "pdfs/课程.pdf"
+        )
         document = manifest["documents"][0]
         self.assertEqual(document["source_path"], "pdfs/关联书.pdf")
         self.assertEqual(document["relation_evidence_ids"], ["course-p10"])
@@ -912,7 +960,9 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_public_search_excludes_secondary_references_unless_explicit(self) -> None:
         paragraphs = [
-            ParsedParagraph("p-course", "d-course", "pdfs/课程.pdf", "课程", 1, 1, "桂枝汤课程原文。"),
+            ParsedParagraph(
+                "p-course", "d-course", "pdfs/课程.pdf", "课程", 1, 1, "桂枝汤课程原文。"
+            ),
             ParsedParagraph("p-ref", "d-ref", "pdfs/参考书.pdf", "参考", 2, 2, "桂枝汤参考资料。"),
         ]
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1071,15 +1121,30 @@ class PdfVectorTests(unittest.TestCase):
     def test_answer_pdf_rag_exposes_previous_current_next_evidence_context(self) -> None:
         paragraphs = [
             ParsedParagraph(
-                "p-prev", "doc", "pdfs/课程.pdf", "课程 p1", 1, 1,
+                "p-prev",
+                "doc",
+                "pdfs/课程.pdf",
+                "课程 p1",
+                1,
+                1,
                 "上一段用于说明章节背景。",
             ),
             ParsedParagraph(
-                "p-current", "doc", "pdfs/课程.pdf", "课程 p2", 2, 2,
+                "p-current",
+                "doc",
+                "pdfs/课程.pdf",
+                "课程 p2",
+                2,
+                2,
                 "木香饼以生地和木香作饼，热熨贴之，用于课程原文出处测试。",
             ),
             ParsedParagraph(
-                "p-next", "doc", "pdfs/课程.pdf", "课程 p3", 3, 3,
+                "p-next",
+                "doc",
+                "pdfs/课程.pdf",
+                "课程 p3",
+                3,
+                3,
                 "下一段继续讲解相关课程内容。",
             ),
         ]
@@ -1116,7 +1181,15 @@ class PdfVectorTests(unittest.TestCase):
                     "INSERT INTO evidence_records VALUES (?, ?, ?, ?, ?, ?, ?)",
                     [
                         ("ev-prev", "doc", "p-prev", "p1", paragraphs[0].text, None, "ev-current"),
-                        ("ev-current", "doc", "p-current", "p2", paragraphs[1].text, "ev-prev", "ev-next"),
+                        (
+                            "ev-current",
+                            "doc",
+                            "p-current",
+                            "p2",
+                            paragraphs[1].text,
+                            "ev-prev",
+                            "ev-next",
+                        ),
                         ("ev-next", "doc", "p-next", "p3", paragraphs[2].text, "ev-current", None),
                     ],
                 )
@@ -1136,7 +1209,9 @@ class PdfVectorTests(unittest.TestCase):
         self.assertEqual(citation["context_navigation"]["previous"]["label"], "课程.pdf p1")
         self.assertEqual(citation["context_navigation"]["current"]["paragraph_id"], "p-current")
         self.assertEqual(citation["context_navigation"]["next"]["label"], "课程.pdf p3")
-        self.assertIn("上一段用于说明章节背景", citation["context_navigation"]["previous"]["paragraph_text"])
+        self.assertIn(
+            "上一段用于说明章节背景", citation["context_navigation"]["previous"]["paragraph_text"]
+        )
         self.assertTrue(answer["answer_sections"]["has_context_navigation"])
         self.assertIn("详细依据", answer["answer"])
 
@@ -1210,7 +1285,9 @@ class PdfVectorTests(unittest.TestCase):
     def test_cli_augment_questions_dispatches_to_existing_function(self) -> None:
         calls: dict[str, object] = {}
 
-        def fake_augment_pdf_vector_store_questions(db_path: Path, **kwargs: object) -> dict[str, object]:
+        def fake_augment_pdf_vector_store_questions(
+            db_path: Path, **kwargs: object
+        ) -> dict[str, object]:
             calls["db_path"] = db_path
             calls.update(kwargs)
             return {"question_units": 5}
@@ -1311,7 +1388,15 @@ class PdfVectorTests(unittest.TestCase):
             redirect_stdout(stdout),
         ):
             status = rag_cli.main(
-                ["evaluate", "--db", "/tmp/rag.sqlite", "--cases", "/tmp/cases.jsonl", "--mode", "text"]
+                [
+                    "evaluate",
+                    "--db",
+                    "/tmp/rag.sqlite",
+                    "--cases",
+                    "/tmp/cases.jsonl",
+                    "--mode",
+                    "text",
+                ]
             )
 
         self.assertEqual(status, 0)
@@ -1412,9 +1497,13 @@ class PdfVectorTests(unittest.TestCase):
             def __init__(self, model: str | None = None) -> None:
                 self.model = model
 
-            def rerank(self, query: str, rows: list[dict[str, object]], limit: int) -> RerankOutcome:
+            def rerank(
+                self, query: str, rows: list[dict[str, object]], limit: int
+            ) -> RerankOutcome:
                 rerank_calls.append((query, rows, limit))
-                return RerankOutcome(results=list(reversed(rows))[:limit], model=self.model or "default")
+                return RerankOutcome(
+                    results=list(reversed(rows))[:limit], model=self.model or "default"
+                )
 
         stdout = io.StringIO()
         with (
@@ -1423,7 +1512,19 @@ class PdfVectorTests(unittest.TestCase):
             redirect_stdout(stdout),
         ):
             status = rag_cli.main(
-                ["search", "needle", "--mode", "text", "--limit", "3", "--reranker", "siliconflow", "--rerank-model", "chosen", "--json"]
+                [
+                    "search",
+                    "needle",
+                    "--mode",
+                    "text",
+                    "--limit",
+                    "3",
+                    "--reranker",
+                    "siliconflow",
+                    "--rerank-model",
+                    "chosen",
+                    "--json",
+                ]
             )
 
         output = json.loads(stdout.getvalue())
@@ -1442,7 +1543,10 @@ class PdfVectorTests(unittest.TestCase):
             def search(self, _query: str, limit: int, mode: str) -> list[dict[str, object]]:
                 if mode != "text":
                     raise AssertionError(mode)
-                return [{"paragraph_id": str(index), "text": "x", "score": 1.0} for index in range(limit)]
+                return [
+                    {"paragraph_id": str(index), "text": "x", "score": 1.0}
+                    for index in range(limit)
+                ]
 
         with (
             patch("nihaisha_kg.cli.LocalVectorStore", FakeStore),
@@ -1450,8 +1554,12 @@ class PdfVectorTests(unittest.TestCase):
             patch("nihaisha_kg.cli.SiliconFlowReranker") as reranker,
             redirect_stdout(io.StringIO()),
         ):
-            self.assertEqual(rag_cli.main(["search", "q", "--mode", "text", "--reranker", "auto", "--json"]), 0)
-            self.assertEqual(rag_cli.main(["search", "q", "--mode", "text", "--reranker", "none", "--json"]), 0)
+            self.assertEqual(
+                rag_cli.main(["search", "q", "--mode", "text", "--reranker", "auto", "--json"]), 0
+            )
+            self.assertEqual(
+                rag_cli.main(["search", "q", "--mode", "text", "--reranker", "none", "--json"]), 0
+            )
         reranker.assert_not_called()
 
     def test_cli_search_explicit_reranker_configuration_failure_is_safe(self) -> None:
@@ -1504,7 +1612,9 @@ class PdfVectorTests(unittest.TestCase):
             "Outcome",
             (),
             {
-                "results": [{"paragraph_id": str(index), "text": "evidence"} for index in range(1000)],
+                "results": [
+                    {"paragraph_id": str(index), "text": "evidence"} for index in range(1000)
+                ],
                 "model": "model",
                 "degraded_feature": "",
                 "error": "",
@@ -1518,7 +1628,17 @@ class PdfVectorTests(unittest.TestCase):
             redirect_stdout(stdout),
         ):
             status = rag_cli.main(
-                ["search", "q", "--mode", "text", "--reranker", "siliconflow", "--limit", "1", "--json"]
+                [
+                    "search",
+                    "q",
+                    "--mode",
+                    "text",
+                    "--reranker",
+                    "siliconflow",
+                    "--limit",
+                    "1",
+                    "--json",
+                ]
             )
         self.assertEqual(status, 0)
         self.assertEqual(len(json.loads(stdout.getvalue())), 1)
@@ -1544,7 +1664,17 @@ class PdfVectorTests(unittest.TestCase):
             patch("sys.stderr", stderr),
         ):
             status = rag_cli.main(
-                ["search", "q", "--mode", "text", "--reranker", "siliconflow", "--limit", "1", "--json"]
+                [
+                    "search",
+                    "q",
+                    "--mode",
+                    "text",
+                    "--reranker",
+                    "siliconflow",
+                    "--limit",
+                    "1",
+                    "--json",
+                ]
             )
         self.assertEqual(status, 1)
         self.assertIn("invalid reranker results", stderr.getvalue())
@@ -1561,7 +1691,17 @@ class PdfVectorTests(unittest.TestCase):
         ):
             self.assertEqual(
                 rag_cli.main(
-                    ["search", "q", "--mode", "text", "--reranker", "siliconflow", "--limit", "1", "--json"]
+                    [
+                        "search",
+                        "q",
+                        "--mode",
+                        "text",
+                        "--reranker",
+                        "siliconflow",
+                        "--limit",
+                        "1",
+                        "--json",
+                    ]
                 ),
                 1,
             )
@@ -1584,8 +1724,16 @@ class PdfVectorTests(unittest.TestCase):
         ):
             status = rag_cli.main(
                 [
-                    "search", "q", "--mode", "text", "--reranker", "siliconflow",
-                    "--limit", "1", "--json", "--trace",
+                    "search",
+                    "q",
+                    "--mode",
+                    "text",
+                    "--reranker",
+                    "siliconflow",
+                    "--limit",
+                    "1",
+                    "--json",
+                    "--trace",
                 ]
             )
         self.assertEqual(status, 1)
@@ -1630,7 +1778,9 @@ class PdfVectorTests(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(payload["trace"]["selected_paragraph_ids"], ["p1"])
         self.assertEqual(payload["trace"]["retrieval_channels"], ["text", "vector"])
-        self.assertEqual(payload["trace"]["channel_ranks"], [{"paragraph_id": "p1", "text": 2, "vector": 3}])
+        self.assertEqual(
+            payload["trace"]["channel_ranks"], [{"paragraph_id": "p1", "text": 2, "vector": 3}]
+        )
         self.assertNotIn(secret, serialized_trace)
         self.assertNotIn("provider", serialized_trace)
 
@@ -1722,9 +1872,23 @@ class PdfVectorTests(unittest.TestCase):
             calls.append({"query": query, **kwargs})
             return {"answer": "ok", "citations": []}
 
-        with patch("nihaisha_kg.cli.answer_pdf_rag", side_effect=fake_answer), redirect_stdout(io.StringIO()):
+        with (
+            patch("nihaisha_kg.cli.answer_pdf_rag", side_effect=fake_answer),
+            redirect_stdout(io.StringIO()),
+        ):
             status = rag_cli.main(
-                ["answer", "question", "--mode", "text", "--reranker", "siliconflow", "--rerank-model", "chosen", "--trace", "--json"]
+                [
+                    "answer",
+                    "question",
+                    "--mode",
+                    "text",
+                    "--reranker",
+                    "siliconflow",
+                    "--rerank-model",
+                    "chosen",
+                    "--trace",
+                    "--json",
+                ]
             )
 
         self.assertEqual(status, 0)
@@ -1779,8 +1943,14 @@ class PdfVectorTests(unittest.TestCase):
         ):
             status = rag_cli.main(
                 [
-                    "search", oversized, "--mode", "text", "--reranker", "none",
-                    "--json", "--trace",
+                    "search",
+                    oversized,
+                    "--mode",
+                    "text",
+                    "--reranker",
+                    "none",
+                    "--json",
+                    "--trace",
                 ]
             )
 
@@ -1903,7 +2073,9 @@ class PdfVectorTests(unittest.TestCase):
         self.assertEqual(results[0]["unit_type"], "method")
         self.assertEqual(manifest["knowledge_units"], 1)
         self.assertEqual(manifest["knowledge_unit_types"]["method"], 1)
-        self.assertEqual(manifest["knowledge_trace"], str(base / "traces" / "knowledge_units.jsonl"))
+        self.assertEqual(
+            manifest["knowledge_trace"], str(base / "traces" / "knowledge_units.jsonl")
+        )
         self.assertTrue(trace_exists)
 
     def test_hybrid_search_includes_grounded_knowledge_units(self) -> None:
@@ -1924,7 +2096,9 @@ class PdfVectorTests(unittest.TestCase):
                 return [[1.0, 0.0] for _ in texts]
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            store = LocalVectorStore(Path(tmpdir) / "rag.sqlite", embedding_backend=ToyDenseBackend())
+            store = LocalVectorStore(
+                Path(tmpdir) / "rag.sqlite", embedding_backend=ToyDenseBackend()
+            )
             store.recreate()
             store.insert_paragraphs([paragraph])
             store.insert_units(build_retrieval_units([paragraph], window_size=2, overlap=1))
@@ -2039,7 +2213,8 @@ class PdfVectorTests(unittest.TestCase):
         anchors = answer_anchor_terms("桂枝汤的出处在哪本书哪一页？")
 
         self.assertIn("桂枝汤", anchors)
-        self.assertTrue(any("出处" in query and "原文" in query for query in plan))
+        self.assertEqual(plan[0], "桂枝汤")
+        self.assertFalse(any(query == "出处 原文 治法 材料 方法 来源" for query in plan))
         self.assertNotIn("木香饼", "\n".join(plan))
         self.assertNotIn("热熨", "\n".join(plan))
 
@@ -2081,7 +2256,9 @@ class PdfVectorTests(unittest.TestCase):
         self.assertIn("详细依据", answer["answer"])
         self.assertEqual(len(answer["answer_sections"]["key_points"]), 2)
         self.assertEqual(answer["answer_sections"]["citation_count"], 1)
-        self.assertEqual(answer["citations"][0]["label"], "人纪04伤寒视频同步文稿 2024新版.pdf p276")
+        self.assertEqual(
+            answer["citations"][0]["label"], "人纪04伤寒视频同步文稿 2024新版.pdf p276"
+        )
         self.assertIn("开八本书", answer["citations"][0]["evidence_quote"])
         self.assertIn("世补斋医书全集", answer["citations"][0]["evidence_quote"])
 
@@ -2121,6 +2298,26 @@ class PdfVectorTests(unittest.TestCase):
         self.assertTrue(any("黄芩加半夏生姜汤" in item for item in primary_queries))
         self.assertTrue(any("葛根黄芩黄连汤" in item for item in primary_queries))
 
+    def test_sweat_comparison_query_plan_adds_grounded_formula_contrast(self) -> None:
+        query = "感冒后怕冷，有汗和无汗在课程里分别该看哪些分水岭？"
+
+        plan = build_query_plan(query, intent="clinical")
+
+        self.assertTrue(
+            any(
+                all(term in item for term in ("桂枝汤", "麻黄汤", "汗出", "无汗"))
+                for item in plan[:-1]
+            )
+        )
+
+    def test_chest_bi_learning_mainline_query_plan_starts_with_chapter_anchor(self) -> None:
+        plan = build_query_plan(
+            "《金匮要略》课程里胸痹的学习主线是什么？",
+            intent="general",
+        )
+
+        self.assertEqual(plan[0], "胸痹心痛短气病脉证第九篇")
+
     def test_query_plan_can_add_evidence_derived_followup_queries(self) -> None:
         seed_results = [
             {
@@ -2142,7 +2339,9 @@ class PdfVectorTests(unittest.TestCase):
             }
         ]
 
-        plan = build_query_plan("古时候的一钱，是现代的多少克？", intent="dosage", seed_results=seed_results)
+        plan = build_query_plan(
+            "古时候的一钱，是现代的多少克？", intent="dosage", seed_results=seed_results
+        )
 
         self.assertGreaterEqual(len(plan), 5)
         self.assertTrue(any("5克" in query or "3.6克" in query for query in plan))
@@ -2251,7 +2450,9 @@ class PdfVectorTests(unittest.TestCase):
             ],
         )
 
-    def test_fuse_query_rewrites_counts_duplicate_once_but_inspects_it_for_representative(self) -> None:
+    def test_fuse_query_rewrites_counts_duplicate_once_but_inspects_it_for_representative(
+        self,
+    ) -> None:
         first = {
             "paragraph_id": "p-a",
             "score": 2.0,
@@ -2482,7 +2683,9 @@ class PdfVectorTests(unittest.TestCase):
         self.assertIn("葛根黄芩黄连汤", formulas)
         self.assertIn("桂枝汤", formulas)
         self.assertIn("甘草泻心汤", formulas)
-        self.assertFalse(any(formula.startswith(("所以", "解表用", "就是")) for formula in formulas))
+        self.assertFalse(
+            any(formula.startswith(("所以", "解表用", "就是")) for formula in formulas)
+        )
 
     def test_known_formula_evidence_uses_longest_valid_occurrence(self) -> None:
         text = "乌头桂枝汤用于寒疝；太阳中风，桂枝汤主之；另有桂枝汤锅产品。"
@@ -2602,12 +2805,12 @@ class PdfVectorTests(unittest.TestCase):
                     "text": f"患者下利恶心，饮食段落提到{formula}。",
                     "matched_knowledge_units": [],
                 }
-                answer = synthesize_pdf_rag_answer(
-                    f"患者下利恶心，{formula}如何理解？", [result]
-                )
+                answer = synthesize_pdf_rag_answer(f"患者下利恶心，{formula}如何理解？", [result])
                 self.assertNotIn(f"方名包括：{formula}", answer["answer"])
 
-    def test_no_result_formula_like_source_queries_keep_medical_safety_without_assertion(self) -> None:
+    def test_no_result_formula_like_source_queries_keep_medical_safety_without_assertion(
+        self,
+    ) -> None:
         for query in ("大陷胸汤出处", "白虎加人参汤出处", "桂枝热汤出处"):
             with self.subTest(query=query):
                 answer = synthesize_pdf_rag_answer(query, [])
@@ -2642,13 +2845,21 @@ class PdfVectorTests(unittest.TestCase):
     def test_text_store_source_lookup_retains_only_direct_formula_evidence(self) -> None:
         paragraphs = [
             ParsedParagraph(
-                paragraph_id="p-longer", doc_id="doc", source_path="/tmp/金匮.pdf",
-                title="金匮 p1", page_start=1, page_end=1,
+                paragraph_id="p-longer",
+                doc_id="doc",
+                source_path="/tmp/金匮.pdf",
+                title="金匮 p1",
+                page_start=1,
+                page_end=1,
                 text="寒疝腹中痛，乌头桂枝汤主之。",
             ),
             ParsedParagraph(
-                paragraph_id="p-direct", doc_id="doc", source_path="/tmp/伤寒.pdf",
-                title="伤寒 p2", page_start=2, page_end=2,
+                paragraph_id="p-direct",
+                doc_id="doc",
+                source_path="/tmp/伤寒.pdf",
+                title="伤寒 p2",
+                page_start=2,
+                page_end=2,
                 text="太阳中风，桂枝汤主之。",
             ),
         ]
@@ -2732,7 +2943,11 @@ class PdfVectorTests(unittest.TestCase):
             "title": "伤寒 p169",
             "text": "黄芩加半夏生姜汤，治下利，是热利，同时有恶心。",
             "matched_knowledge_units": [
-                {"unit_type": "formula_pattern", "subject": "黄芩加半夏生姜汤", "object": "下利恶心"}
+                {
+                    "unit_type": "formula_pattern",
+                    "subject": "黄芩加半夏生姜汤",
+                    "object": "下利恶心",
+                }
             ],
         }
 
@@ -2764,7 +2979,11 @@ class PdfVectorTests(unittest.TestCase):
             "page_end": 169,
             "text": "黄芩加半夏生姜汤，治下利，是热利，腹痛，同时有恶心。",
             "matched_knowledge_units": [
-                {"unit_type": "formula_pattern", "subject": "黄芩加半夏生姜汤", "object": "热利下利恶心腹痛"}
+                {
+                    "unit_type": "formula_pattern",
+                    "subject": "黄芩加半夏生姜汤",
+                    "object": "热利下利恶心腹痛",
+                }
             ],
         }
 
@@ -2820,7 +3039,9 @@ class PdfVectorTests(unittest.TestCase):
                 reranker="none",
             )
 
-        citation_text = "\n".join(str(citation["evidence_quote"]) for citation in answer["citations"])
+        citation_text = "\n".join(
+            str(citation["evidence_quote"]) for citation in answer["citations"]
+        )
         self.assertIn("3.3克", answer["answer"])
         self.assertIn("3.6克", answer["answer"])
         self.assertIn("5克", answer["answer"])
@@ -2872,7 +3093,9 @@ class PdfVectorTests(unittest.TestCase):
             patch("nihaisha_kg.pdf_vector.filter_results_for_intent", return_value=[candidate]),
             patch("nihaisha_kg.pdf_vector.select_diverse_results", return_value=[candidate]),
             patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesized),
-            patch("nihaisha_kg.pdf_vector.linked_reference_materials", return_value=linked) as resolver,
+            patch(
+                "nihaisha_kg.pdf_vector.linked_reference_materials", return_value=linked
+            ) as resolver,
         ):
             answer = answer_pdf_rag("问题", db_path, mode="text", reranker="none")
 
@@ -3035,8 +3258,13 @@ class PdfVectorTests(unittest.TestCase):
                 patch("nihaisha_kg.pdf_vector.build_query_plan", return_value=["问题"]),
                 patch("nihaisha_kg.pdf_vector.run_query_plan_search", return_value=candidates),
                 patch("nihaisha_kg.pdf_vector.filter_results_for_intent", return_value=candidates),
-                patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
-                patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", side_effect=fake_synthesize),
+                patch(
+                    "nihaisha_kg.pdf_vector.select_diverse_results",
+                    side_effect=lambda rows, **_: rows,
+                ),
+                patch(
+                    "nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", side_effect=fake_synthesize
+                ),
             ):
                 answer = answer_pdf_rag(
                     "问题",
@@ -3077,9 +3305,7 @@ class PdfVectorTests(unittest.TestCase):
             results = [candidate]
             model = f'{{"api_key": "{secret}"}}' + "m" * 10_000
             degraded_feature = "token='feature-secret' " + "d" * 10_000
-            error = RaisingDict(
-                {"authorization": "Bearer object-secret", "candidate": candidate}
-            )
+            error = RaisingDict({"authorization": "Bearer object-secret", "candidate": candidate})
 
         class HostileReranker:
             def rerank(self, *_args: object, **_kwargs: object) -> HostileOutcome:
@@ -3099,7 +3325,9 @@ class PdfVectorTests(unittest.TestCase):
             patch("nihaisha_kg.pdf_vector.build_query_plan", return_value=["问题"]),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", return_value=[candidate]),
             patch("nihaisha_kg.pdf_vector.filter_results_for_intent", return_value=[candidate]),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
             patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesized),
         ):
             answer = answer_pdf_rag(
@@ -3152,7 +3380,9 @@ class PdfVectorTests(unittest.TestCase):
             def __init__(self, *_args: object, **_kwargs: object) -> None:
                 pass
 
-            def search_guide_nodes(self, *_args: object, **_kwargs: object) -> list[dict[str, object]]:
+            def search_guide_nodes(
+                self, *_args: object, **_kwargs: object
+            ) -> list[dict[str, object]]:
                 return []
 
         synthesized = {
@@ -3164,14 +3394,33 @@ class PdfVectorTests(unittest.TestCase):
         patches = (
             patch("nihaisha_kg.pdf_vector.LocalVectorStore", FakeStore),
             patch("nihaisha_kg.pdf_vector.detect_answer_intent", return_value="general"),
-            patch("nihaisha_kg.pdf_vector.build_query_plan", side_effect=[["initial query"], ["initial query", "followup query"]]),
+            patch(
+                "nihaisha_kg.pdf_vector.build_query_plan",
+                side_effect=[["initial query"], ["initial query", "followup query"]],
+            ),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", side_effect=[initial, followup]),
-            patch("nihaisha_kg.pdf_vector.fuse_query_rewrites", return_value=[initial[0], followup[0]]),
-            patch("nihaisha_kg.pdf_vector.filter_results_for_intent", side_effect=lambda _q, _i, rows: rows),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
+            patch(
+                "nihaisha_kg.pdf_vector.fuse_query_rewrites", return_value=[initial[0], followup[0]]
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.filter_results_for_intent",
+                side_effect=lambda _q, _i, rows: rows,
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
             patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesized),
         )
-        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7]:
+        with (
+            patches[0],
+            patches[1],
+            patches[2],
+            patches[3],
+            patches[4],
+            patches[5],
+            patches[6],
+            patches[7],
+        ):
             without_trace = answer_pdf_rag("question", Path("/unused.sqlite"), mode="text")
 
         self.assertNotIn("trace", without_trace)
@@ -3179,11 +3428,21 @@ class PdfVectorTests(unittest.TestCase):
         with (
             patch("nihaisha_kg.pdf_vector.LocalVectorStore", FakeStore),
             patch("nihaisha_kg.pdf_vector.detect_answer_intent", return_value="general"),
-            patch("nihaisha_kg.pdf_vector.build_query_plan", side_effect=[["initial query"], ["initial query", "followup query"]]),
+            patch(
+                "nihaisha_kg.pdf_vector.build_query_plan",
+                side_effect=[["initial query"], ["initial query", "followup query"]],
+            ),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", side_effect=[initial, followup]),
-            patch("nihaisha_kg.pdf_vector.fuse_query_rewrites", return_value=[initial[0], followup[0]]),
-            patch("nihaisha_kg.pdf_vector.filter_results_for_intent", side_effect=lambda _q, _i, rows: rows),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
+            patch(
+                "nihaisha_kg.pdf_vector.fuse_query_rewrites", return_value=[initial[0], followup[0]]
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.filter_results_for_intent",
+                side_effect=lambda _q, _i, rows: rows,
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
             patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesized),
         ):
             traced = answer_pdf_rag(
@@ -3219,7 +3478,9 @@ class PdfVectorTests(unittest.TestCase):
             def __init__(self, *_args: object, **_kwargs: object) -> None:
                 pass
 
-            def search_guide_nodes(self, *_args: object, **_kwargs: object) -> list[dict[str, object]]:
+            def search_guide_nodes(
+                self, *_args: object, **_kwargs: object
+            ) -> list[dict[str, object]]:
                 return []
 
         synthesized = {
@@ -3231,11 +3492,19 @@ class PdfVectorTests(unittest.TestCase):
         with (
             patch("nihaisha_kg.pdf_vector.LocalVectorStore", FakeStore),
             patch("nihaisha_kg.pdf_vector.detect_answer_intent", return_value="general"),
-            patch("nihaisha_kg.pdf_vector.build_query_plan", side_effect=[["initial"], ["initial", "followup"]]),
+            patch(
+                "nihaisha_kg.pdf_vector.build_query_plan",
+                side_effect=[["initial"], ["initial", "followup"]],
+            ),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", side_effect=[initial, followup]),
             patch("nihaisha_kg.pdf_vector.fuse_query_rewrites", return_value=initial + followup),
-            patch("nihaisha_kg.pdf_vector.filter_results_for_intent", side_effect=lambda _q, _i, rows: rows),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
+            patch(
+                "nihaisha_kg.pdf_vector.filter_results_for_intent",
+                side_effect=lambda _q, _i, rows: rows,
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
             patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesized),
         ):
             answer = answer_pdf_rag(
@@ -3259,7 +3528,9 @@ class PdfVectorTests(unittest.TestCase):
             def __init__(self, *_args: object, **_kwargs: object) -> None:
                 pass
 
-            def search_guide_nodes(self, *_args: object, **_kwargs: object) -> list[dict[str, object]]:
+            def search_guide_nodes(
+                self, *_args: object, **_kwargs: object
+            ) -> list[dict[str, object]]:
                 return []
 
         synthesized = {
@@ -3305,7 +3576,9 @@ class PdfVectorTests(unittest.TestCase):
             def __init__(self, *_args: object, **_kwargs: object) -> None:
                 pass
 
-            def search_guide_nodes(self, *_args: object, **_kwargs: object) -> list[dict[str, object]]:
+            def search_guide_nodes(
+                self, *_args: object, **_kwargs: object
+            ) -> list[dict[str, object]]:
                 return []
 
         class Backend:
@@ -3315,7 +3588,12 @@ class PdfVectorTests(unittest.TestCase):
                 return type(
                     "Outcome",
                     (),
-                    {"results": self.results, "model": "model", "degraded_feature": "", "error": ""},
+                    {
+                        "results": self.results,
+                        "model": "model",
+                        "degraded_feature": "",
+                        "error": "",
+                    },
                 )()
 
         selected_rows: list[list[dict[str, object]]] = []
@@ -3328,14 +3606,19 @@ class PdfVectorTests(unittest.TestCase):
                 "related_knowledge_units": [],
                 "results": rows,
             }
+
         backend = Backend()
-        backend.results = [{"paragraph_id": str(index), "text": "evidence"} for index in range(1000)]
+        backend.results = [
+            {"paragraph_id": str(index), "text": "evidence"} for index in range(1000)
+        ]
         with (
             patch("nihaisha_kg.pdf_vector.LocalVectorStore", FakeStore),
             patch("nihaisha_kg.pdf_vector.build_query_plan", return_value=["query"]),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", return_value=[candidate]),
             patch("nihaisha_kg.pdf_vector.filter_results_for_intent", return_value=[candidate]),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
             patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", side_effect=synthesize),
         ):
             answer = answer_pdf_rag(
@@ -3401,7 +3684,9 @@ class PdfVectorTests(unittest.TestCase):
                     "query", Path("/unused.sqlite"), mode="text", limit=1, reranker_backend=backend
                 )
 
-    def test_answer_pdf_rag_explicit_siliconflow_uses_model_and_auto_without_key_skips(self) -> None:
+    def test_answer_pdf_rag_explicit_siliconflow_uses_model_and_auto_without_key_skips(
+        self,
+    ) -> None:
         candidate = {"paragraph_id": "p1", "text": "证据"}
 
         class FakeStore:
@@ -3438,8 +3723,12 @@ class PdfVectorTests(unittest.TestCase):
             patch("nihaisha_kg.pdf_vector.build_query_plan", return_value=["问题"]),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", return_value=[candidate]),
             patch("nihaisha_kg.pdf_vector.filter_results_for_intent", return_value=[candidate]),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
-            patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesize_result),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesize_result
+            ),
             patch("nihaisha_kg.rerank.SiliconFlowReranker", return_value=backend) as factory,
         ):
             explicit = answer_pdf_rag(
@@ -3459,8 +3748,12 @@ class PdfVectorTests(unittest.TestCase):
             patch("nihaisha_kg.pdf_vector.build_query_plan", return_value=["问题"]),
             patch("nihaisha_kg.pdf_vector.run_query_plan_search", return_value=[candidate]),
             patch("nihaisha_kg.pdf_vector.filter_results_for_intent", return_value=[candidate]),
-            patch("nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows),
-            patch("nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesize_result),
+            patch(
+                "nihaisha_kg.pdf_vector.select_diverse_results", side_effect=lambda rows, **_: rows
+            ),
+            patch(
+                "nihaisha_kg.pdf_vector.synthesize_pdf_rag_answer", return_value=synthesize_result
+            ),
             patch("nihaisha_kg.pdf_vector.siliconflow_api_key_available", return_value=False),
             patch("nihaisha_kg.rerank.SiliconFlowReranker") as skipped_factory,
         ):
@@ -3622,7 +3915,9 @@ class PdfVectorTests(unittest.TestCase):
             store = LocalVectorStore(Path(tmpdir) / "rag.sqlite")
             store.recreate()
             store.insert_paragraphs([paragraph_a, paragraph_b])
-            store.insert_units(build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1))
+            store.insert_units(
+                build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1)
+            )
 
             results = store.search("桂枝汤 汗出 恶风", limit=4)
 
@@ -3666,7 +3961,7 @@ class PdfVectorTests(unittest.TestCase):
         text_terms = text_search_terms("太阳病欲解时从什么时候到什么时候？")
         knowledge_terms = knowledge_search_terms("比较与区别")
 
-        self.assertEqual(text_terms, ["太阳病", "欲解", "太陽病"])
+        self.assertEqual(text_terms, ["太阳病欲解时", "太陽病欲解時"])
         self.assertNotIn("太阳", text_terms)
         self.assertEqual(
             knowledge_terms,
@@ -3720,9 +4015,7 @@ class PdfVectorTests(unittest.TestCase):
             page_end=1,
             text="手足厥冷时可辨证选方。needleanchor",
         )
-        oversized_query = "needleanchor " + " ".join(
-            f"token{index:04d}" for index in range(1001)
-        )
+        oversized_query = "needleanchor " + " ".join(f"token{index:04d}" for index in range(1001))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             store = LocalVectorStore(Path(tmpdir) / "rag.sqlite")
@@ -3762,7 +4055,10 @@ class PdfVectorTests(unittest.TestCase):
         )
 
         for traditional_li, paragraph_id in cases:
-            with self.subTest(traditional_li=traditional_li), tempfile.TemporaryDirectory() as tmpdir:
+            with (
+                self.subTest(traditional_li=traditional_li),
+                tempfile.TemporaryDirectory() as tmpdir,
+            ):
                 paragraph = ParsedParagraph(
                     paragraph_id=paragraph_id,
                     doc_id="doc",
@@ -3814,10 +4110,14 @@ class PdfVectorTests(unittest.TestCase):
                 return vectors
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            store = LocalVectorStore(Path(tmpdir) / "rag.sqlite", embedding_backend=ToyDenseBackend())
+            store = LocalVectorStore(
+                Path(tmpdir) / "rag.sqlite", embedding_backend=ToyDenseBackend()
+            )
             store.recreate()
             store.insert_paragraphs([paragraph_a, paragraph_b])
-            store.insert_units(build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1))
+            store.insert_units(
+                build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1)
+            )
 
             results = store.search_hybrid("猪肤汤", limit=4)
 
@@ -3865,7 +4165,9 @@ class PdfVectorTests(unittest.TestCase):
             store = LocalVectorStore(db_path, embedding_backend=ToyDenseBackend())
             store.recreate()
             store.insert_paragraphs([paragraph_a, paragraph_b])
-            store.insert_units(build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1))
+            store.insert_units(
+                build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1)
+            )
 
             stats = build_faiss_vector_index(
                 db_path,
@@ -3932,8 +4234,13 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_build_faiss_vector_index_writes_absolute_artifact_metadata(self) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -4000,7 +4307,9 @@ class PdfVectorTests(unittest.TestCase):
             store = LocalVectorStore(db_path, embedding_backend=ToyDenseBackend())
             store.recreate()
             store.insert_paragraphs([paragraph_a, paragraph_b])
-            store.insert_units(build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1))
+            store.insert_units(
+                build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1)
+            )
             build_faiss_vector_index(
                 db_path,
                 index_path=base / "vectors.faiss",
@@ -4126,8 +4435,13 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_faiss_exact_id_audit_is_cached_until_artifact_or_database_changes(self) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -4137,8 +4451,14 @@ class PdfVectorTests(unittest.TestCase):
                 return [[1.0, 0.0] for _ in texts]
 
         unit = RetrievalUnit(
-            unit_id="u-1", paragraph_id="p-a", doc_id="doc", unit_type="sentence",
-            text="桂枝汤", text_for_embedding="桂枝汤", sentence_start=0, sentence_end=0,
+            unit_id="u-1",
+            paragraph_id="p-a",
+            doc_id="doc",
+            unit_type="sentence",
+            text="桂枝汤",
+            text_for_embedding="桂枝汤",
+            sentence_start=0,
+            sentence_end=0,
             weight=1.0,
         )
         fake_faiss = FakeFaiss()
@@ -4180,7 +4500,9 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_faiss_search_rejects_nonfinite_scores(self) -> None:
         class NonfiniteIndex(FakeFaissIndex):
-            def search(self, queries: object, top_k: int) -> tuple[list[list[float]], list[list[int]]]:
+            def search(
+                self, queries: object, top_k: int
+            ) -> tuple[list[list[float]], list[list[int]]]:
                 return [[math.nan, math.inf]], [[0, 1]]
 
         results = self._search_with_custom_faiss_index(NonfiniteIndex(2), ["u-0", "u-1"])
@@ -4188,7 +4510,9 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_faiss_search_deduplicates_returned_row_indices(self) -> None:
         class DuplicateIndex(FakeFaissIndex):
-            def search(self, queries: object, top_k: int) -> tuple[list[list[float]], list[list[int]]]:
+            def search(
+                self, queries: object, top_k: int
+            ) -> tuple[list[list[float]], list[list[int]]]:
                 return [[0.9, 0.8]], [[0, 0]]
 
         results = self._search_with_custom_faiss_index(DuplicateIndex(2), ["u-0", "u-1"])
@@ -4220,8 +4544,13 @@ class PdfVectorTests(unittest.TestCase):
         unit_ids: list[str],
     ) -> list[dict[str, object]]:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -4232,9 +4561,15 @@ class PdfVectorTests(unittest.TestCase):
 
         units = [
             RetrievalUnit(
-                unit_id=unit_id, paragraph_id="p-a", doc_id="doc", unit_type="sentence",
-                text=unit_id, text_for_embedding=unit_id, sentence_start=offset,
-                sentence_end=offset, weight=1.0,
+                unit_id=unit_id,
+                paragraph_id="p-a",
+                doc_id="doc",
+                unit_type="sentence",
+                text=unit_id,
+                text_for_embedding=unit_id,
+                sentence_start=offset,
+                sentence_end=offset,
+                weight=1.0,
             )
             for offset, unit_id in enumerate(unit_ids)
         ]
@@ -4275,9 +4610,15 @@ class PdfVectorTests(unittest.TestCase):
 
         units = [
             RetrievalUnit(
-                unit_id=f"u-{index}", paragraph_id="p-a", doc_id="doc",
-                unit_type="sentence", text=f"unit {index}", text_for_embedding=f"unit {index}",
-                sentence_start=index, sentence_end=index, weight=1.0,
+                unit_id=f"u-{index}",
+                paragraph_id="p-a",
+                doc_id="doc",
+                unit_type="sentence",
+                text=f"unit {index}",
+                text_for_embedding=f"unit {index}",
+                sentence_start=index,
+                sentence_end=index,
+                weight=1.0,
             )
             for index in range(3)
         ]
@@ -4296,8 +4637,13 @@ class PdfVectorTests(unittest.TestCase):
 
     def test_small_dense_search_can_brute_force_without_faiss(self) -> None:
         paragraph = ParsedParagraph(
-            paragraph_id="p-a", doc_id="doc", source_path="/tmp/doc.pdf", title="test",
-            page_start=1, page_end=1, text="桂枝汤主之。",
+            paragraph_id="p-a",
+            doc_id="doc",
+            source_path="/tmp/doc.pdf",
+            title="test",
+            page_start=1,
+            page_end=1,
+            text="桂枝汤主之。",
         )
 
         class ToyDenseBackend(DenseEmbeddingBackend):
@@ -4307,9 +4653,15 @@ class PdfVectorTests(unittest.TestCase):
                 return [[1.0, 0.0] for _ in texts]
 
         unit = RetrievalUnit(
-            unit_id="u-1", paragraph_id="p-a", doc_id="doc", unit_type="sentence",
-            text="桂枝汤主之", text_for_embedding="桂枝汤主之", sentence_start=0,
-            sentence_end=0, weight=1.0,
+            unit_id="u-1",
+            paragraph_id="p-a",
+            doc_id="doc",
+            unit_type="sentence",
+            text="桂枝汤主之",
+            text_for_embedding="桂枝汤主之",
+            sentence_start=0,
+            sentence_end=0,
+            weight=1.0,
         )
         with tempfile.TemporaryDirectory() as tmpdir:
             store = LocalVectorStore(
@@ -4355,7 +4707,9 @@ class PdfVectorTests(unittest.TestCase):
             store.insert_paragraphs([paragraph])
             store.insert_units(build_retrieval_units([paragraph], window_size=2, overlap=1))
 
-            mismatched_store = LocalVectorStore(db_path, embedding_backend=create_embedding_backend("sparse"))
+            mismatched_store = LocalVectorStore(
+                db_path, embedding_backend=create_embedding_backend("sparse")
+            )
             with self.assertRaisesRegex(RuntimeError, "vector_kind mismatch"):
                 mismatched_store.search_vector("桂枝汤", limit=1)
 
@@ -4450,8 +4804,7 @@ class PdfVectorTests(unittest.TestCase):
                 for path in [paragraphs_path, units_path, events_path, config_path]
             )
             files_exist = all(
-                path.exists()
-                for path in [paragraphs_path, units_path, events_path, config_path]
+                path.exists() for path in [paragraphs_path, units_path, events_path, config_path]
             )
 
         self.assertTrue(files_exist)
@@ -4542,10 +4895,14 @@ class PdfVectorTests(unittest.TestCase):
                 return vectors
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            store = LocalVectorStore(Path(tmpdir) / "rag.sqlite", embedding_backend=ToyDenseBackend())
+            store = LocalVectorStore(
+                Path(tmpdir) / "rag.sqlite", embedding_backend=ToyDenseBackend()
+            )
             store.recreate()
             store.insert_paragraphs([paragraph_a, paragraph_b])
-            store.insert_units(build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1))
+            store.insert_units(
+                build_retrieval_units([paragraph_a, paragraph_b], window_size=2, overlap=1)
+            )
 
             results = store.search("桂枝汤 汗出 恶风", limit=2)
 
@@ -4613,7 +4970,9 @@ class PdfVectorTests(unittest.TestCase):
             store.insert_units(base_units)
 
             first = augment_pdf_vector_store_questions(db_path, embedding_backend=ToyDenseBackend())
-            second = augment_pdf_vector_store_questions(db_path, embedding_backend=ToyDenseBackend())
+            second = augment_pdf_vector_store_questions(
+                db_path, embedding_backend=ToyDenseBackend()
+            )
 
             with store.connect() as conn:
                 question_count = conn.execute(
@@ -4623,6 +4982,80 @@ class PdfVectorTests(unittest.TestCase):
         self.assertGreaterEqual(first["question_units"], 4)
         self.assertEqual(second["question_units"], first["question_units"])
         self.assertEqual(question_count, first["question_units"])
+
+
+class RetrievalQualityRegressionTests(unittest.TestCase):
+    def test_domain_terms_split_acupoint_pair_and_keep_source_phrase(self) -> None:
+        self.assertEqual(
+            text_search_terms("合谷和太冲合称什么"),
+            ["合称", "合谷", "太冲", "四关"],
+        )
+        self.assertEqual(
+            pdf_vector.query_core_entity_terms("合谷和太冲合称什么"),
+            ["合谷", "太冲"],
+        )
+        self.assertEqual(
+            pdf_vector.reliable_source_anchors("太阳病欲解时原文"),
+            ["太阳病欲解时"],
+        )
+        self.assertEqual(
+            pdf_vector.query_core_entity_terms("桂枝汤和麻黄汤的方证如何鉴别？"),
+            ["桂枝汤", "麻黄汤"],
+        )
+        self.assertEqual(
+            pdf_vector.query_core_entity_terms("《金匮要略》课程里胸痹的学习主线是什么？"),
+            ["胸痹"],
+        )
+        self.assertEqual(
+            pdf_vector.query_core_entity_terms("《神农本草》课程里上中下三品的分类重点是什么？"),
+            ["上品", "中品", "下品"],
+        )
+
+    def test_text_search_prioritizes_exact_body_over_title_and_broad_topic(self) -> None:
+        paragraphs = [
+            ParsedParagraph(
+                "p-title", "doc", "/tmp/a.pdf", "太阳病欲解时原文", 1, 1, "普通课程介绍。"
+            ),
+            ParsedParagraph(
+                "p-broad", "doc", "/tmp/a.pdf", "伤寒 p2", 2, 2, "太阳病与阳明病合病的讲解。"
+            ),
+            ParsedParagraph(
+                "p-exact", "doc", "/tmp/a.pdf", "伤寒 p3", 3, 3, "太阳病欲解时，从巳至未上。"
+            ),
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            store = LocalVectorStore(Path(tmpdir) / "rag.sqlite")
+            store.recreate()
+            store.insert_paragraphs(paragraphs)
+            rows = store.search_text("太阳病欲解时原文", limit=3)
+
+        self.assertEqual(rows[0]["paragraph_id"], "p-exact")
+        self.assertEqual(rows[0]["exact_phrase_matches"], ["太阳病欲解时"])
+        self.assertIsNotNone(rows[0]["bm25_rank"])
+        self.assertNotIn("p-title", [row["paragraph_id"] for row in rows[:2]])
+
+    def test_text_search_penalizes_toc_and_repeated_ocr_noise(self) -> None:
+        paragraphs = [
+            ParsedParagraph(
+                "p-noise",
+                "doc",
+                "/tmp/a.pdf",
+                "目录 p1",
+                1,
+                1,
+                "太阳病欲解时太阳病欲解时太阳病欲解时........................",
+            ),
+            ParsedParagraph(
+                "p-body", "doc", "/tmp/a.pdf", "伤寒 p136", 136, 136, "太阳病欲解时，从巳至未上。"
+            ),
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            store = LocalVectorStore(Path(tmpdir) / "rag.sqlite")
+            store.recreate()
+            store.insert_paragraphs(paragraphs)
+            rows = store.search_text("太阳病欲解时原文", limit=2)
+
+        self.assertEqual(rows[0]["paragraph_id"], "p-body")
 
 
 if __name__ == "__main__":

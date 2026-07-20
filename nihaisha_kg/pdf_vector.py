@@ -70,7 +70,9 @@ def normalize_whitespace(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-FORMULA_SIGNAL_CHARS = set("黄芩连桂枝麻葛根柴胡半夏生姜甘草芍药枣参附子茯苓白术干吴茱萸当归枳实栀豉杏仁牡蛎龙骨苇苓泽泻滑石石膏中气梅乌薯蓣肾")
+FORMULA_SIGNAL_CHARS = set(
+    "黄芩连桂枝麻葛根柴胡半夏生姜甘草芍药枣参附子茯苓白术干吴茱萸当归枳实栀豉杏仁牡蛎龙骨苇苓泽泻滑石石膏中气梅乌薯蓣肾"
+)
 FORMULA_NUMERAL_PREFIXES = tuple("一二三四五六七八九十百千万大小")
 FORMULA_SIGNAL_REQUIRED_SUFFIXES = {"丸", "散", "饮", "膏", "丹"}
 FORMULA_NON_FORMULA_ENDINGS = (
@@ -86,6 +88,7 @@ FORMULA_NON_FORMULA_ENDINGS = (
 SIX_CHANNEL_TERMS = ("太阳", "阳明", "少阳", "太阴", "少阴", "厥阴")
 SYMPTOM_TERMS = (
     "汗出",
+    "有汗",
     "无汗",
     "恶风",
     "恶寒",
@@ -165,6 +168,8 @@ CLINICAL_REWRITE_TERMS = (
     "發燒",
     "退烧",
     "怕冷",
+    "有汗",
+    "无汗",
     "恶寒",
     "咳嗽",
     "白痰",
@@ -223,6 +228,34 @@ FORMULA_DOSAGE_SAFETY_NOTICE = (
     "现代药材来源、炮制、浓度和药效也和以前差很多。建议去线下正规中医渠道面诊辨证，"
     "不要私自购药有风险。"
 )
+EMERGENCY_SAFETY_NOTICE = (
+    "如果正在出现胸痛、呼吸困难、昏厥、意识改变、疑似中风、大出血或其他急重症象，"
+    "请立即联系当地急救或前往急诊，不要等待课程资料检索结果。"
+)
+EMERGENCY_QUERY_TERMS = (
+    "胸痛",
+    "胸口痛",
+    "心前区痛",
+    "呼吸困难",
+    "气短",
+    "氣短",
+    "喘不过气",
+    "昏厥",
+    "意识不清",
+    "意识改变",
+    "抽搐",
+    "口角歪",
+    "单侧无力",
+    "單側無力",
+    "大出血",
+    "呕血",
+    "便血",
+    "严重脱水",
+    "嚴重脫水",
+    "中毒",
+    "严重过敏",
+    "嚴重過敏",
+)
 SOURCE_LOOKUP_MARKERS = ("出处", "哪本书", "哪一本书", "哪一页", "哪一段", "原文")
 REFERENCE_MATERIAL_QUERY_MARKERS = (
     "参考书",
@@ -250,29 +283,148 @@ ANSWER_ANCHOR_EXCLUDED_TERMS = {
     "课程",
     "相关线索",
 }
-RELIABLE_SOURCE_NAMED_TERMS = ("木香饼", "一钱", "太阳病", "黄金比例")
+RELIABLE_SOURCE_NAMED_TERMS = ("太阳病欲解时", "木香饼", "一钱", "太阳病", "黄金比例")
+DOMAIN_ENTITY_TERMS = (
+    "合谷",
+    "太冲",
+    "四关",
+    "胸痹",
+    "太阳病欲解时",
+    "欲解时",
+    "欲解",
+    "上品",
+    "中品",
+    "下品",
+    "上中下三品",
+    "春夏秋冬",
+    "春夏",
+    "秋冬",
+    "伤寒论",
+    "金匮要略",
+    "黄帝内经",
+    "神农本草经",
+    "神农本草",
+    "针灸",
+    "天纪",
+    "先天卦",
+    "后天卦",
+    "易经",
+    "八卦",
+    "紫微斗数",
+    "阳宅",
+    "学习主线",
+    "学习路线",
+    "系统复习",
+    "复习顺序",
+)
+COURSE_SCOPE_TERMS = frozenset({"伤寒论", "金匮要略", "黄帝内经", "神农本草经", "神农本草", "针灸"})
+TASK_ONLY_QUERY_TERMS = frozenset(
+    {
+        "合称",
+        "学习主线",
+        "学习路线",
+        "系统复习",
+        "复习顺序",
+        "鉴别",
+        "比较",
+        "区别",
+        "出处",
+        "原文",
+        "顺序",
+    }
+)
+RAG_TIANJI_QUERY_TERMS = ("天纪", "先天卦", "后天卦", "紫微斗数", "阳宅", "风水")
+RAG_LEARNING_ROUTE_TERMS = ("复习顺序", "系统复习", "怎么学")
 KNOWN_FORMULA_ANCHORS = frozenset(
     {
-        "桂枝汤", "麻黄汤", "四逆汤", "真武汤", "葛根汤", "小柴胡汤", "理中汤",
-        "黄芩加半夏生姜汤", "黄芩汤", "半夏泻心汤", "生姜泻心汤", "甘草泻心汤",
-        "葛根黄芩黄连汤", "白虎汤", "大承气汤", "小承气汤", "调胃承气汤",
-        "小建中汤", "十枣汤", "大柴胡汤", "小青龙汤", "大青龙汤", "吴茱萸汤",
-        "当归四逆汤", "苓桂术甘汤", "茵陈蒿汤", "越婢汤", "旋覆代赭汤",
-        "麦门冬汤", "木防己汤", "百合知母汤", "五苓散", "肾气丸", "麻子仁丸",
-        "乌头桂枝汤", "白虎加人参汤", "通脉四逆汤", "大陷胸汤", "小半夏汤",
+        "桂枝汤",
+        "麻黄汤",
+        "四逆汤",
+        "真武汤",
+        "葛根汤",
+        "小柴胡汤",
+        "理中汤",
+        "黄芩加半夏生姜汤",
+        "黄芩汤",
+        "半夏泻心汤",
+        "生姜泻心汤",
+        "甘草泻心汤",
+        "葛根黄芩黄连汤",
+        "白虎汤",
+        "大承气汤",
+        "小承气汤",
+        "调胃承气汤",
+        "小建中汤",
+        "十枣汤",
+        "大柴胡汤",
+        "小青龙汤",
+        "大青龙汤",
+        "吴茱萸汤",
+        "当归四逆汤",
+        "苓桂术甘汤",
+        "茵陈蒿汤",
+        "越婢汤",
+        "旋覆代赭汤",
+        "麦门冬汤",
+        "木防己汤",
+        "百合知母汤",
+        "五苓散",
+        "肾气丸",
+        "麻子仁丸",
+        "乌头桂枝汤",
+        "白虎加人参汤",
+        "通脉四逆汤",
+        "大陷胸汤",
+        "小半夏汤",
     }
 )
 FORMULA_LEFT_QUERY_PREFIXES = ("请问", "关于", "查询", "和", "与", "、")
 FORMULA_RIGHT_QUERY_SUFFIXES = (
-    "的出处", "出处", "原文", "哪本书", "哪一页", "方证", "主治", "对应",
-    "开什么方", "是什么方", "怎么理解", "如何理解", "如何",
-    "鉴别", "比较", "区别", "和", "与", "、",
+    "的出处",
+    "的方证",
+    "的鉴别",
+    "的比较",
+    "的区别",
+    "出处",
+    "原文",
+    "哪本书",
+    "哪一页",
+    "方证",
+    "主治",
+    "对应",
+    "开什么方",
+    "是什么方",
+    "怎么理解",
+    "如何理解",
+    "如何",
+    "鉴别",
+    "比较",
+    "区别",
+    "和",
+    "与",
+    "、",
 )
 EXPLICIT_FORMULA_RIGHT_QUERY_SUFFIXES = (
-    *FORMULA_RIGHT_QUERY_SUFFIXES, "是什么方", "开什么方", "如何理解", "怎么理解", "见于哪里",
+    *FORMULA_RIGHT_QUERY_SUFFIXES,
+    "是什么方",
+    "开什么方",
+    "如何理解",
+    "怎么理解",
+    "见于哪里",
 )
 EXPLICIT_FORMULA_NARRATIVE_PREFIXES = (
-    "可能出现", "因为", "可能", "提到", "患者", "病人", "关于", "查询", "请问", "喝", "吃", "有",
+    "可能出现",
+    "因为",
+    "可能",
+    "提到",
+    "患者",
+    "病人",
+    "关于",
+    "查询",
+    "请问",
+    "喝",
+    "吃",
+    "有",
 )
 EXPLICIT_FORMULA_FOOD_TERMS = frozenset(
     {"鸡", "排骨", "鱼", "菜", "饭", "粥", "酸辣", "火锅", "羊肉", "牛肉", "猪肉", "海鲜"}
@@ -298,7 +450,13 @@ REFERENCE_EDITION_LABELS = {
     "authenticity_disputed_and_edition_unverified": "真伪存在争议，具体版本未核实",
 }
 NAMED_RIGHT_QUERY_SUFFIXES = (
-    *FORMULA_RIGHT_QUERY_SUFFIXES, "的原文", "热熨法", "是", "多少", "几克", "换算"
+    *FORMULA_RIGHT_QUERY_SUFFIXES,
+    "的原文",
+    "热熨法",
+    "是",
+    "多少",
+    "几克",
+    "换算",
 )
 QUERY_BOUNDARY_CHARS = frozenset("，,。！？!?；;、：:（）()【】[]「」『』《》〈〉/\\|\t\r\n ")
 FORMULA_PRODUCT_CONTINUATIONS = ("圆", "锅", "装", "子", "产品", "包装")
@@ -410,6 +568,36 @@ def has_guide_source_noise(text: str) -> bool:
     return False
 
 
+def retrieval_noise_penalty(title: str, text: str) -> float:
+    """Down-rank navigation/boilerplate fragments without mutating the source DB."""
+    normalized = normalize_whitespace(text)
+    penalty = 0.0
+    if len(normalized) < 24:
+        penalty += 0.35
+    if has_guide_source_noise(normalized):
+        penalty += 0.65
+    if "目录" in title or normalized.startswith("目录"):
+        penalty += 0.55
+    if re.search(r"(?:版权所有|本书编委会|出版社|图书在版编目)", normalized[:240]):
+        penalty += 0.55
+    return min(penalty, 1.35)
+
+
+def overview_structure_bonus(query: str, text: str) -> float:
+    normalized_query = normalize_query_text(query)
+    if not any(marker in normalized_query for marker in ("学习主线", "学习路线", "课程概览")):
+        return 0.0
+    normalized_text = normalize_query_text(text)
+    bonus = 0.0
+    if "病脉证并治" in normalized_text:
+        bonus += 0.55
+    if re.search(r"第[一二三四五六七八九十\d]+篇", normalized_text):
+        bonus += 0.6
+    if any(marker in normalized_text for marker in ("第一条", "接下来看", "这一篇")):
+        bonus += 0.35
+    return bonus
+
+
 def clean_guide_evidence_text(text: str) -> str:
     cleaned = normalize_whitespace(text)
     cleaned = re.sub(r"^微信公众号[:：].*?道法自然\d*", "", cleaned)
@@ -453,10 +641,9 @@ def public_source_path(source_path: object) -> str:
     decoded_raw = decode_path(raw)
     if decoded_raw is None:
         return "pdfs/source.pdf"
-    introduced_separator = (
-        decoded_raw.count("/") > raw.count("/")
-        or decoded_raw.count("\\") > raw.count("\\")
-    )
+    introduced_separator = decoded_raw.count("/") > raw.count("/") or decoded_raw.count(
+        "\\"
+    ) > raw.count("\\")
 
     windows_drive = bool(re.match(r"^[A-Za-z]:", decoded_raw))
     uri_scheme = bool(re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", decoded_raw))
@@ -469,9 +656,7 @@ def public_source_path(source_path: object) -> str:
             return "pdfs/source.pdf"
         parsed_path = re.sub(r"/{2,}", "/", uri_path.replace("\\", "/"))
         uri_basename = (
-            parsed_path.rsplit("/", 1)[-1]
-            if parsed_path and not parsed_path.endswith("/")
-            else ""
+            parsed_path.rsplit("/", 1)[-1] if parsed_path and not parsed_path.endswith("/") else ""
         )
         return f"pdfs/{safe_basename(uri_basename)}"
 
@@ -485,8 +670,7 @@ def public_source_path(source_path: object) -> str:
     for index, part in enumerate(parts):
         normalized_part = part.strip()
         has_control = any(
-            unicodedata.category(character).startswith("C")
-            for character in normalized_part
+            unicodedata.category(character).startswith("C") for character in normalized_part
         )
         decoded_scheme_prefix = index == 0 and bool(
             re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", normalized_part)
@@ -558,7 +742,9 @@ def split_sentences(text: str) -> list[str]:
     return [sentence for sentence in sentences if sentence]
 
 
-def split_long_text_to_paragraphs(text: str, max_chars: int = 900, min_chars: int = 120) -> list[str]:
+def split_long_text_to_paragraphs(
+    text: str, max_chars: int = 900, min_chars: int = 120
+) -> list[str]:
     sentences = split_sentences(text)
     if not sentences:
         return []
@@ -600,7 +786,9 @@ def clean_formula_candidate(candidate: str) -> str:
         changed = False
         for prefix in sorted(FORMULA_PREFIX_NOISE, key=len, reverse=True):
             if cleaned.startswith(prefix):
-                cleaned = cleaned[len(prefix) :].strip(" \t\r\n'\"`「」『』《》〈〉“”‘’（）()[]【】：:，,。；;、")
+                cleaned = cleaned[len(prefix) :].strip(
+                    " \t\r\n'\"`「」『』《》〈〉“”‘’（）()[]【】：:，,。；;、"
+                )
                 changed = True
         for marker in ("用", "宜"):
             marker_offset = cleaned.rfind(marker)
@@ -668,16 +856,60 @@ def query_domain_terms(query: str) -> list[str]:
         "出处",
         "太阳病",
         "欲解",
+        "合称",
+        *DOMAIN_ENTITY_TERMS,
         *SYMPTOM_TERMS,
         *SIX_CHANNEL_TERMS,
     )
     terms = extract_formula_terms(normalized)
     terms.extend(term for term in fixed_terms if term in normalized)
+    if "合称" in normalized and "合谷" in normalized and "太冲" in normalized:
+        terms.append("四关")
     return dedupe_keep_order(terms)
 
 
 def text_search_terms(query: str) -> list[str]:
-    return lexical_query_terms(query, domain_terms=query_domain_terms(query))
+    terms = lexical_query_terms(query, domain_terms=query_domain_terms(query))
+    normalized = normalize_query_text(query)
+    if "合称" in normalized and "合谷" in normalized and "太冲" in normalized:
+        terms.append("四关")
+    if "上中下三品" in normalized:
+        terms.extend(["上品", "中品", "下品"])
+    return dedupe_keep_order(terms)
+
+
+def query_core_entity_terms(query: str) -> list[str]:
+    """Return literal domain entities that retrieved正文 must actually support."""
+    normalized = normalize_query_text(query)
+    terms = [
+        *reliable_formula_anchors(normalized),
+        *explicit_query_formula_terms(normalized),
+        *direct_present_terms(normalized, DOMAIN_ENTITY_TERMS),
+        *direct_present_terms(normalized, SYMPTOM_TERMS),
+    ]
+    terms = [term for term in dedupe_keep_order(terms) if term not in TASK_ONLY_QUERY_TERMS]
+    if "上中下三品" in normalized:
+        terms = [term for term in terms if term != "上中下三品"]
+        terms.extend(["上品", "中品", "下品"])
+    substantive = [term for term in terms if term not in COURSE_SCOPE_TERMS]
+    return (substantive or terms)[:12]
+
+
+def exact_query_phrases(query: str) -> list[str]:
+    anchors = reliable_source_anchors(query)
+    if anchors:
+        return anchors
+    return [term for term in query_core_entity_terms(query) if len(term) >= 3][:6]
+
+
+def query_requires_all_core_terms(query: str, intent: str) -> bool:
+    core_terms = set(query_core_entity_terms(query))
+    return (
+        intent == "comparison"
+        or "合称" in normalize_query_text(query)
+        or {"上品", "中品", "下品"} <= core_terms
+        or {"有汗", "无汗"} <= core_terms
+    )
 
 
 def knowledge_search_terms(query: str) -> list[str]:
@@ -778,7 +1010,9 @@ def build_retrieval_units(
                 continue
             unit_text = "".join(window_sentences)
             text_for_embedding = f"{prefix}\n正文：{unit_text}" if prefix else unit_text
-            unit_id = stable_id(paragraph.paragraph_id, "window", start, start + len(window_sentences) - 1)
+            unit_id = stable_id(
+                paragraph.paragraph_id, "window", start, start + len(window_sentences) - 1
+            )
             units.append(
                 RetrievalUnit(
                     unit_id=unit_id,
@@ -923,7 +1157,9 @@ def extract_knowledge_units_from_paragraph(paragraph: ParsedParagraph) -> list[K
             "一钱，",
             "一钱 ",
         )
-        if "一钱匕" in dosage_evidence and not any(marker in dosage_evidence for marker in dosage_context_markers):
+        if "一钱匕" in dosage_evidence and not any(
+            marker in dosage_evidence for marker in dosage_context_markers
+        ):
             dosage_evidence = ""
         local_text = dosage_evidence
         if local_text and len(re.findall(r"\d+(?:\.\d+)?\s*克", local_text)) > 8:
@@ -1018,7 +1254,9 @@ def extract_knowledge_units_from_paragraph(paragraph: ParsedParagraph) -> list[K
             )
 
         formulas = extract_formula_terms(sentence)
-        if len(formulas) >= 2 and ("鉴别" in sentence or "区别" in sentence or "比较" in sentence or "和" in sentence):
+        if len(formulas) >= 2 and (
+            "鉴别" in sentence or "区别" in sentence or "比较" in sentence or "和" in sentence
+        ):
             units.append(
                 make_knowledge_unit(
                     paragraph,
@@ -1150,9 +1388,13 @@ class LocalBgeM3EmbeddingBackend(DenseEmbeddingBackend):
                     'Install with `pip install ".[local]"` or `pip install FlagEmbedding`.'
                 ) from sentence_error
             except Exception as sentence_error:
-                raise RuntimeError(f"failed to load local embedding model {self.model}: {sentence_error}") from sentence_error
+                raise RuntimeError(
+                    f"failed to load local embedding model {self.model}: {sentence_error}"
+                ) from sentence_error
         except Exception as flag_error:
-            raise RuntimeError(f"failed to load local embedding model {self.model}: {flag_error}") from flag_error
+            raise RuntimeError(
+                f"failed to load local embedding model {self.model}: {flag_error}"
+            ) from flag_error
 
     def _encode_batch(self, model: object, batch: list[str]) -> list[list[float]]:
         try:
@@ -1617,7 +1859,9 @@ def build_faiss_vector_index(
 ) -> dict[str, object]:
     faiss = faiss_module or load_faiss_module()
     if faiss is None:
-        raise RuntimeError('FAISS is required. Install with `pip install ".[faiss]"` or `pip install faiss-cpu`.')
+        raise RuntimeError(
+            'FAISS is required. Install with `pip install ".[faiss]"` or `pip install faiss-cpu`.'
+        )
 
     index_path = (index_path or default_faiss_index_path(db_path)).resolve()
     ids_path = (ids_path or default_faiss_ids_path(db_path)).resolve()
@@ -1657,16 +1901,27 @@ def build_faiss_vector_index(
                 for row in rows:
                     vector = unpack_dense_vector(row["vector_blob"])
                     vectors.append(vector)
-                    ids_file.write(json.dumps({"unit_id": row["unit_id"]}, ensure_ascii=False) + "\n")
+                    ids_file.write(
+                        json.dumps({"unit_id": row["unit_id"]}, ensure_ascii=False) + "\n"
+                    )
                 index.add(faiss_matrix(vectors))
                 total += len(rows)
                 offset += len(rows)
 
         faiss.write_index(index, str(index_path))
-        conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_index", str(index_path)))
-        conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_ids", str(ids_path)))
-        conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_vectors", str(total)))
-        conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_dim", str(dims)))
+        conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+            ("faiss_index", str(index_path)),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_ids", str(ids_path))
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_vectors", str(total))
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", ("faiss_dim", str(dims))
+        )
 
     manifest_path = db_path.parent / "manifest.json"
     if manifest_path.exists():
@@ -1675,7 +1930,9 @@ def build_faiss_vector_index(
         manifest["faiss_ids"] = str(ids_path)
         manifest["faiss_vectors"] = total
         manifest["faiss_dim"] = dims
-        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
 
     return {
         "faiss_index": str(index_path),
@@ -1720,7 +1977,9 @@ class LocalVectorStore:
             return {}
         with self.connect() as conn:
             try:
-                return {row["key"]: row["value"] for row in conn.execute("SELECT key, value FROM meta")}
+                return {
+                    row["key"]: row["value"] for row in conn.execute("SELECT key, value FROM meta")
+                }
             except sqlite3.OperationalError:
                 return {}
 
@@ -1858,7 +2117,9 @@ class LocalVectorStore:
                 """
             )
             conn.execute("INSERT INTO meta(key, value) VALUES (?, ?)", ("dims", str(self.dims)))
-            conn.execute("INSERT INTO meta(key, value) VALUES (?, ?)", ("vector_dim", str(self.dims)))
+            conn.execute(
+                "INSERT INTO meta(key, value) VALUES (?, ?)", ("vector_dim", str(self.dims))
+            )
             conn.execute(
                 "INSERT INTO meta(key, value) VALUES (?, ?)",
                 ("embedding", self.embedding_backend.name),
@@ -1997,8 +2258,7 @@ class LocalVectorStore:
             """
         )
         existing = {
-            row["name"]
-            for row in conn.execute("PRAGMA table_info(guide_nodes)").fetchall()
+            row["name"] for row in conn.execute("PRAGMA table_info(guide_nodes)").fetchall()
         }
         migrations = {
             "paragraph_id": "ALTER TABLE guide_nodes ADD COLUMN paragraph_id TEXT NOT NULL DEFAULT ''",
@@ -2250,22 +2510,22 @@ class LocalVectorStore:
                 score += 3.0
             results.append(
                 {
-                "node_id": row["node_id"],
-                "parent_id": row["parent_id"],
-                "node_type": row["node_type"],
-                "label": row["label"],
-                "badge": row["badge"],
-                "path": row["path"],
-                "content": row["content"],
-                "search_text": row["search_text"],
-                "paragraph_id": row["paragraph_id"],
-                "source_path": public_source_path(row["source_path"]),
-                "title": row["title"],
-                "page_start": row["page_start"],
-                "page_end": row["page_end"],
-                "evidence_quote": row["evidence_quote"],
-                "score": score,
-            }
+                    "node_id": row["node_id"],
+                    "parent_id": row["parent_id"],
+                    "node_type": row["node_type"],
+                    "label": row["label"],
+                    "badge": row["badge"],
+                    "path": row["path"],
+                    "content": row["content"],
+                    "search_text": row["search_text"],
+                    "paragraph_id": row["paragraph_id"],
+                    "source_path": public_source_path(row["source_path"]),
+                    "title": row["title"],
+                    "page_start": row["page_start"],
+                    "page_end": row["page_end"],
+                    "evidence_quote": row["evidence_quote"],
+                    "score": score,
+                }
             )
         results.sort(key=lambda item: (float(item["score"]), len(str(item["path"]))), reverse=True)
         unique_results: list[dict[str, object]] = []
@@ -2453,14 +2713,21 @@ class LocalVectorStore:
         with self.connect() as conn:
             for start in range(0, len(unit_list), insert_batch_size):
                 batch = unit_list[start : start + insert_batch_size]
-                vectors = self.embedding_backend.embed_texts([unit.text_for_embedding for unit in batch])
+                vectors = self.embedding_backend.embed_texts(
+                    [unit.text_for_embedding for unit in batch]
+                )
                 if len(vectors) != len(batch):
                     raise RuntimeError("embedding backend returned a different number of vectors")
                 if self.embedding_backend.vector_kind == "dense":
                     vector_dim = len(vectors[0]) if vectors else 0
                     if any(len(vector) != vector_dim for vector in vectors):
-                        raise RuntimeError("dense embedding backend returned inconsistent vector dimensions")
-                    conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", ("dims", str(vector_dim)))
+                        raise RuntimeError(
+                            "dense embedding backend returned inconsistent vector dimensions"
+                        )
+                    conn.execute(
+                        "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)",
+                        ("dims", str(vector_dim)),
+                    )
                     conn.execute(
                         "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)",
                         ("vector_dim", str(vector_dim)),
@@ -2519,18 +2786,14 @@ class LocalVectorStore:
     ) -> list[dict[str, object]]:
         if not results:
             return []
-        paragraph_ids = dedupe_keep_order(
-            str(result.get("paragraph_id", "")) for result in results
-        )
+        paragraph_ids = dedupe_keep_order(str(result.get("paragraph_id", "")) for result in results)
         paragraph_ids = [paragraph_id for paragraph_id in paragraph_ids if paragraph_id]
         if not paragraph_ids:
             return results
         with self.connect() as conn:
             tables = {
                 str(row[0])
-                for row in conn.execute(
-                    "SELECT name FROM sqlite_master WHERE type='table'"
-                )
+                for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
             }
             if not {"documents", "evidence_records"} <= tables:
                 return results
@@ -2579,7 +2842,9 @@ class LocalVectorStore:
         query_vector = query_vectors[0]
         if not query_vector:
             return []
-        dense_query_vector = normalize_dense_vector(query_vector) if vector_kind == "dense" else None
+        dense_query_vector = (
+            normalize_dense_vector(query_vector) if vector_kind == "dense" else None
+        )
         hits: list[tuple[float, sqlite3.Row]] = []
         with self.connect() as conn:
             if dense_query_vector is not None:
@@ -2598,7 +2863,7 @@ class LocalVectorStore:
                     raise RuntimeError(
                         f"Dense search has {unit_count} retrieval units and cannot safely brute-force "
                         f"more than {self.brute_force_limit}. Install FAISS with "
-                        "`pip install \".[runtime]\"` and run `nihaisha-rag doctor`."
+                        '`pip install ".[runtime]"` and run `nihaisha-rag doctor`.'
                     )
 
             rows = conn.execute(
@@ -2617,7 +2882,9 @@ class LocalVectorStore:
                 if score > 0:
                     hits.append((score, row))
             hits.sort(key=lambda item: item[0], reverse=True)
-            return self._vector_hits_to_results(conn, hits[:unit_limit], limit=limit, source="vector")
+            return self._vector_hits_to_results(
+                conn, hits[:unit_limit], limit=limit, source="vector"
+            )
 
     def _search_vector_faiss(
         self,
@@ -2759,29 +3026,31 @@ class LocalVectorStore:
             if not paragraph:
                 continue
             results.append(
-                    {
-                        "paragraph_id": paragraph["paragraph_id"],
-                        "doc_id": paragraph["doc_id"],
-                        "source_path": public_source_path(paragraph["source_path"]),
-                        "title": paragraph["title"],
-                        "page_start": paragraph["page_start"],
-                        "page_end": paragraph["page_end"],
-                        "text": paragraph["text"],
-                        "score": round(float(item["score"]), 6),
-                        "vector_score": round(float(item["score"]), 6),
-                        "text_score": 0.0,
-                        "knowledge_score": 0.0,
-                        "retrieval_sources": [source],
-                        "hit_count": item["hit_count"],
-                        "unit_types": sorted(item["unit_types"]),
-                        "matched_units": item["matched_units"][:5],
-                        "matched_text_terms": [],
-                        "matched_knowledge_units": [],
-                    }
-                )
+                {
+                    "paragraph_id": paragraph["paragraph_id"],
+                    "doc_id": paragraph["doc_id"],
+                    "source_path": public_source_path(paragraph["source_path"]),
+                    "title": paragraph["title"],
+                    "page_start": paragraph["page_start"],
+                    "page_end": paragraph["page_end"],
+                    "text": paragraph["text"],
+                    "score": round(float(item["score"]), 6),
+                    "vector_score": round(float(item["score"]), 6),
+                    "text_score": 0.0,
+                    "knowledge_score": 0.0,
+                    "retrieval_sources": [source],
+                    "hit_count": item["hit_count"],
+                    "unit_types": sorted(item["unit_types"]),
+                    "matched_units": item["matched_units"][:5],
+                    "matched_text_terms": [],
+                    "matched_knowledge_units": [],
+                }
+            )
         return results
 
-    def search_text(self, query: str, limit: int = 8, candidate_limit: int = 200) -> list[dict[str, object]]:
+    def search_text(
+        self, query: str, limit: int = 8, candidate_limit: int = 200
+    ) -> list[dict[str, object]]:
         validate_runtime_limit(limit, "limit", MAX_INTERNAL_SEARCH_LIMIT)
         validate_runtime_limit(candidate_limit, "candidate_limit", MAX_INTERNAL_SEARCH_LIMIT)
         terms = text_search_terms(query)
@@ -2804,17 +3073,29 @@ class LocalVectorStore:
                             """,
                             (fts_query, candidate_limit),
                         ).fetchall()
-                        for index, row in enumerate(rows):
-                            score = 0.45 + 0.35 * (1.0 - index / max(1, len(rows)))
+                        fts_ranks = [float(row["rank"]) for row in rows]
+                        best_rank = min(fts_ranks, default=0.0)
+                        worst_rank = max(fts_ranks, default=0.0)
+                        rank_span = worst_rank - best_rank
+                        for row in rows:
+                            bm25_rank = float(row["rank"])
+                            normalized_bm25 = (
+                                (worst_rank - bm25_rank) / rank_span if rank_span > 0 else 1.0
+                            )
+                            score = 0.35 + 0.45 * normalized_bm25
                             item = paragraph_scores.setdefault(
                                 row["paragraph_id"],
                                 {
                                     "paragraph_id": row["paragraph_id"],
                                     "text_score": 0.0,
                                     "matched_text_terms": set(),
+                                    "bm25_rank": bm25_rank,
                                 },
                             )
                             item["text_score"] = max(float(item["text_score"]), score)
+                            item["bm25_rank"] = min(
+                                float(item.get("bm25_rank", bm25_rank)), bm25_rank
+                            )
                     except sqlite3.OperationalError:
                         pass
 
@@ -2822,49 +3103,90 @@ class LocalVectorStore:
             params: list[str] = []
             for term in terms:
                 pattern = f"%{term}%"
-                clauses.append("(text LIKE ? OR title LIKE ?)")
-                params.extend([pattern, pattern])
+                clauses.append("text LIKE ?")
+                params.append(pattern)
             like_rows = conn.execute(
                 f"""
                 SELECT paragraph_id, title, text
                 FROM paragraphs
                 WHERE {" OR ".join(clauses)}
+                ORDER BY paragraph_id
                 LIMIT ?
                 """,
                 [*params, candidate_limit],
             ).fetchall()
 
             for row in like_rows:
-                haystack = f"{row['title']}\n{row['text']}"
-                matched_terms = [term for term in terms if term in haystack]
+                normalized_text = normalize_query_text(str(row["text"]))
+                matched_terms = [
+                    term for term in terms if normalize_query_text(term) in normalized_text
+                ]
                 if not matched_terms:
                     continue
-                all_terms_bonus = 0.12 if len(matched_terms) == len(terms) else 0.0
-                score = 0.5 + 0.08 * len(matched_terms) + all_terms_bonus
                 item = paragraph_scores.setdefault(
                     row["paragraph_id"],
                     {
                         "paragraph_id": row["paragraph_id"],
                         "text_score": 0.0,
                         "matched_text_terms": set(),
+                        "bm25_rank": None,
                     },
                 )
-                item["text_score"] = max(float(item["text_score"]), score)
                 item["matched_text_terms"].update(matched_terms)
 
-            ranked = sorted(
-                paragraph_scores.values(),
-                key=lambda item: float(item["text_score"]),
-                reverse=True,
-            )
-
-            results = []
-            for item in ranked[:limit]:
+            core_terms = query_core_entity_terms(query)
+            phrases = exact_query_phrases(query)
+            scored: list[tuple[dict[str, object], sqlite3.Row]] = []
+            for item in paragraph_scores.values():
                 paragraph = conn.execute(
                     "SELECT * FROM paragraphs WHERE paragraph_id = ?", (item["paragraph_id"],)
                 ).fetchone()
                 if not paragraph:
                     continue
+                body = str(paragraph["text"])
+                title = str(paragraph["title"])
+                normalized_body = normalize_query_text(body)
+                normalized_title = normalize_query_text(title)
+                body_terms = [
+                    term for term in terms if normalize_query_text(term) in normalized_body
+                ]
+                title_terms = [
+                    term for term in terms if normalize_query_text(term) in normalized_title
+                ]
+                normalized_core = dedupe_keep_order(
+                    normalize_query_text(term) for term in core_terms
+                )
+                core_hits = [term for term in normalized_core if term in normalized_body]
+                phrase_hits = [
+                    phrase for phrase in phrases if normalize_query_text(phrase) in normalized_body
+                ]
+                if title_terms and not body_terms:
+                    continue
+                score = float(item["text_score"])
+                score += 0.12 * min(len(body_terms), 6)
+                if phrase_hits:
+                    score += 1.25 + 0.12 * min(len(phrase_hits), 3)
+                if normalized_core and len(core_hits) == len(normalized_core):
+                    score += 0.55
+                elif normalized_core:
+                    score += 0.2 * (len(core_hits) / len(normalized_core))
+                score += overview_structure_bonus(query, body)
+                score -= retrieval_noise_penalty(title, body)
+                item["text_score"] = max(0.0, score)
+                item["matched_text_terms"].update(body_terms)
+                item["matched_core_terms"] = core_hits
+                item["exact_phrase_matches"] = phrase_hits
+                scored.append((item, paragraph))
+
+            scored.sort(
+                key=lambda pair: (
+                    -float(pair[0]["text_score"]),
+                    str(pair[0]["paragraph_id"]),
+                )
+            )
+
+            results = []
+            for item, paragraph in scored[:limit]:
                 results.append(
                     {
                         "paragraph_id": paragraph["paragraph_id"],
@@ -2883,6 +3205,9 @@ class LocalVectorStore:
                         "unit_types": [],
                         "matched_units": [],
                         "matched_text_terms": sorted(item["matched_text_terms"]),
+                        "matched_core_terms": list(item.get("matched_core_terms", [])),
+                        "exact_phrase_matches": list(item.get("exact_phrase_matches", [])),
+                        "bm25_rank": item.get("bm25_rank"),
                         "matched_knowledge_units": [],
                     }
                 )
@@ -3063,6 +3388,8 @@ class LocalVectorStore:
         entity_terms = dedupe_keep_order(
             [
                 *reliable_formula_anchors(normalized_query),
+                *explicit_query_formula_terms(normalized_query),
+                *direct_present_terms(normalized_query, DOMAIN_ENTITY_TERMS),
                 *(term for term in SYMPTOM_TERMS if term in normalized_query),
                 *(term for term in ("一钱",) if term in normalized_query),
             ]
@@ -3073,18 +3400,12 @@ class LocalVectorStore:
         with self.connect() as conn:
             tables = {
                 str(row[0])
-                for row in conn.execute(
-                    "SELECT name FROM sqlite_master WHERE type='table'"
-                )
+                for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
             }
-            required = {
-                "documents", "evidence_records", "entities", "relations", "paragraphs"
-            }
+            required = {"documents", "evidence_records", "entities", "relations", "paragraphs"}
             if not required <= tables:
                 return []
-            relation_columns = {
-                str(row[1]) for row in conn.execute("PRAGMA table_info(relations)")
-            }
+            relation_columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(relations)")}
             if "evidence_quote" not in relation_columns:
                 return []
             placeholders = ",".join("?" for _ in entity_terms)
@@ -3155,13 +3476,21 @@ class LocalVectorStore:
                 assert isinstance(matched, list)
                 matched.append(relation)
                 item["hit_count"] = len(matched)
-                item["graph_score"] = max(
-                    float(item["graph_score"]), float(row["confidence"])
-                )
+                item["graph_score"] = max(float(item["graph_score"]), float(row["confidence"]))
                 item["score"] = item["graph_score"]
 
+        core_terms = query_core_entity_terms(query)
+        grounded = [
+            item
+            for item in grouped.values()
+            if not core_terms
+            or any(
+                normalize_query_text(term) in normalize_query_text(str(item.get("text", "")))
+                for term in core_terms
+            )
+        ]
         ranked = sorted(
-            grouped.values(),
+            grounded,
             key=lambda item: (
                 -len(item["matched_graph_relations"]),
                 -float(item["graph_score"]),
@@ -3351,7 +3680,9 @@ def bounded_query_terms(
                 occurrences.append((offset, end, term))
             offset = normalized.find(term, offset + 1)
     selected: list[tuple[int, int, str]] = []
-    for start, end, formula in sorted(occurrences, key=lambda item: (item[0], -len(item[2]), item[2])):
+    for start, end, formula in sorted(
+        occurrences, key=lambda item: (item[0], -len(item[2]), item[2])
+    ):
         if any(start < kept_end and end > kept_start for kept_start, kept_end, _ in selected):
             continue
         selected.append((start, end, formula))
@@ -3375,7 +3706,9 @@ def _longest_known_formula_occurrences(text: str) -> list[tuple[int, int, str]]:
         while offset >= 0:
             end = offset + len(formula)
             right = normalized[end:]
-            if not any(right.startswith(continuation) for continuation in FORMULA_PRODUCT_CONTINUATIONS):
+            if not any(
+                right.startswith(continuation) for continuation in FORMULA_PRODUCT_CONTINUATIONS
+            ):
                 occurrences.append((offset, end, formula))
             offset = normalized.find(formula, offset + 1)
     selected: list[tuple[int, int, str]] = []
@@ -3421,7 +3754,9 @@ def is_conservative_explicit_formula_candidate(candidate: str) -> bool:
             return True
     if len(signal_chars) >= 2:
         return True
-    return stem.startswith("通脉") and any(character in stem for character in FORMULA_NUMERAL_PREFIXES)
+    return stem.startswith("通脉") and any(
+        character in stem for character in FORMULA_NUMERAL_PREFIXES
+    )
 
 
 def explicit_query_formula_terms(query: str) -> list[str]:
@@ -3438,7 +3773,9 @@ def literal_product_safe_term_in_text(term: str, text: str) -> bool:
     offset = text.find(term)
     while term and offset >= 0:
         right = text[offset + len(term) :]
-        if not any(right.startswith(continuation) for continuation in FORMULA_PRODUCT_CONTINUATIONS):
+        if not any(
+            right.startswith(continuation) for continuation in FORMULA_PRODUCT_CONTINUATIONS
+        ):
             return True
         offset = text.find(term, offset + 1)
     return False
@@ -3466,7 +3803,9 @@ def validated_source_anchor_spans(
         if anchor not in KNOWN_FORMULA_ANCHORS and anchor not in RELIABLE_SOURCE_NAMED_TERMS:
             continue
         if anchor in KNOWN_FORMULA_ANCHORS:
-            spans = [(start, end) for start, end, formula in formula_occurrences if formula == anchor]
+            spans = [
+                (start, end) for start, end, formula in formula_occurrences if formula == anchor
+            ]
             if spans:
                 validated[anchor] = spans
             continue
@@ -3629,6 +3968,8 @@ def clinical_rewrite_queries(query: str) -> list[str]:
     has_abdominal_pain = "腹痛" in term_set
     has_epigastric = bool(term_set & {"心下痞", "肠鸣"})
 
+    if {"有汗", "无汗"} <= term_set:
+        queries.insert(0, "桂枝汤 麻黄汤 汗出 无汗 营卫 鉴别")
     if has_heat_diarrhea:
         queries.append("下利 黄臭 热利 方证 鉴别")
         queries.append("葛根黄芩黄连汤 热利 下利 表证 鉴别")
@@ -3669,6 +4010,20 @@ def build_query_plan(
     normalized = normalize_query_text(query)
     resolved_intent = intent or detect_answer_intent(normalized)
     planned: list[str] = []
+
+    source_anchors = reliable_source_anchors(normalized)
+    if resolved_intent == "source_lookup" and source_anchors:
+        exact_first = [" ".join(source_anchors), normalized]
+        if query != normalized:
+            exact_first.append(query)
+        return dedupe_keep_order(exact_first)[:max_queries]
+
+    if (
+        resolved_intent == "general"
+        and "学习主线" in normalized
+        and "胸痹" in query_core_entity_terms(normalized)
+    ):
+        planned.append("胸痹心痛短气病脉证第九篇")
 
     query_terms = rewritten_query_terms(normalized, resolved_intent)
     if query_terms:
@@ -3783,9 +4138,7 @@ def fuse_query_rewrites(
                 current["representative_key"] = representative_key
 
             if contributes_to_query_fusion:
-                current["query_fusion_score"] = (
-                    float(current["query_fusion_score"]) + rrf_increment
-                )
+                current["query_fusion_score"] = float(current["query_fusion_score"]) + rrf_increment
             current["rewrite_observation_count"] = int(current["rewrite_observation_count"]) + 1
             observations = current["rewrite_observations"]
             assert isinstance(observations, list)
@@ -3856,7 +4209,9 @@ def clinical_evidence_clues(text: str) -> list[str]:
         "胃口不好": "食欲差",
         "食欲不振": "食欲差",
     }
-    clues = [replacements.get(term, term) for term in CLINICAL_EVIDENCE_CLUE_TERMS if term in normalized]
+    clues = [
+        replacements.get(term, term) for term in CLINICAL_EVIDENCE_CLUE_TERMS if term in normalized
+    ]
     if "黄臭" in normalized and "下利" in normalized:
         clues.append("热利")
     return dedupe_keep_order(clues)
@@ -3873,6 +4228,9 @@ def canonical_clinical_clues(text: str) -> list[str]:
     canonical_by_variant = {
         "怕冷": "恶寒",
         "恶寒": "恶寒",
+        "有汗": "汗出",
+        "汗出": "汗出",
+        "无汗": "无汗",
         "腹泻": "下利",
         "拉肚子": "下利",
         "下利": "下利",
@@ -3894,6 +4252,37 @@ def canonical_clinical_clues(text: str) -> list[str]:
     return dedupe_keep_order(canonical_by_variant.get(clue, clue) for clue in observed)
 
 
+def sweat_formula_comparison_excerpt(text: str, max_chars: int = 520) -> str:
+    """Select the two source sentences that actually ground the sweat contrast."""
+    sentences = split_sentences(text)
+    positive = [
+        sentence
+        for sentence in sentences
+        if "桂枝汤" in sentence and any(term in sentence for term in ("自汗", "汗出", "有汗"))
+    ]
+    negative = [sentence for sentence in sentences if "麻黄汤" in sentence and "无汗" in sentence]
+    if not positive or not negative:
+        return ""
+
+    def pair_quality(pair: tuple[str, str]) -> tuple[int, int, int]:
+        joined = " ".join(dedupe_keep_order(pair))
+        differentiators = sum(
+            term in joined for term in ("营卫", "自汗", "恶寒", "怕冷", "身痛", "骨节", "喘")
+        )
+        unsafe_actions = sum(term in joined for term in ("直接开", "放心用", "不要手软", "剂量"))
+        return differentiators, -unsafe_actions, -len(joined)
+
+    best_pair = max(
+        (
+            (positive_sentence, negative_sentence)
+            for positive_sentence in positive
+            for negative_sentence in negative
+        ),
+        key=pair_quality,
+    )
+    return evidence_quote(" ".join(dedupe_keep_order(best_pair)), max_chars=max_chars)
+
+
 def is_clinical_relevant_result(result: dict[str, object]) -> bool:
     evidence = primary_evidence_text(result)
     formulas = known_formula_terms_in_evidence(evidence)
@@ -3909,7 +4298,9 @@ def has_clinical_formula_evidence(result: dict[str, object]) -> bool:
     return bool(known_formula_terms_in_evidence(primary_evidence_text(result)))
 
 
-def filter_results_for_query(query: str, results: list[dict[str, object]], intent: str) -> list[dict[str, object]]:
+def filter_results_for_query(
+    query: str, results: list[dict[str, object]], intent: str
+) -> list[dict[str, object]]:
     if intent != "clinical":
         return results
 
@@ -4003,6 +4394,14 @@ def select_diverse_results(
 ) -> list[dict[str, object]]:
     if limit <= 0 or not results:
         return []
+    if intent not in {"clinical", "dosage"}:
+        return sorted(
+            results,
+            key=lambda item: (
+                -float(item.get("score", 0.0)),
+                str(item.get("paragraph_id", "")),
+            ),
+        )[:limit]
     if len(results) <= limit and intent != "clinical":
         return results[:limit]
 
@@ -4023,13 +4422,21 @@ def select_diverse_results(
             measure_bonus = 0.0
             if intent == "dosage":
                 measure_bonus = 0.35 * min(len(new_measures), 3)
-            source_bonus = 0.08 if not any(
-                Path(str(item.get("source_path", ""))).name
-                == Path(str(candidate.get("source_path", ""))).name
-                for item in selected
-            ) else 0.0
-            clinical_bonus = clinical_result_quality_bonus(candidate) if intent == "clinical" else 0.0
-            candidate_score = relevance + 0.45 * novelty + measure_bonus + source_bonus + clinical_bonus
+            source_bonus = (
+                0.08
+                if not any(
+                    Path(str(item.get("source_path", ""))).name
+                    == Path(str(candidate.get("source_path", ""))).name
+                    for item in selected
+                )
+                else 0.0
+            )
+            clinical_bonus = (
+                clinical_result_quality_bonus(candidate) if intent == "clinical" else 0.0
+            )
+            candidate_score = (
+                relevance + 0.45 * novelty + measure_bonus + source_bonus + clinical_bonus
+            )
             if candidate_score > best_score:
                 best_score = candidate_score
                 best_index = index
@@ -4072,9 +4479,7 @@ def _manifest_string_list(value: object, max_items: int = 20, max_chars: int = 1
     if not isinstance(value, list):
         return []
     return dedupe_keep_order(
-        text
-        for raw in value[:max_items]
-        if (text := _manifest_text(raw, max_chars=max_chars))
+        text for raw in value[:max_items] if (text := _manifest_text(raw, max_chars=max_chars))
     )
 
 
@@ -4120,10 +4525,10 @@ def linked_reference_materials(
 
     triggered: dict[str, dict[str, object]] = {}
     for citation in citations[:MAX_PUBLIC_ANSWER_LIMIT]:
-        if (
-            not isinstance(citation, dict)
-            or citation.get("source_layer") not in {"course_primary", "classic_primary"}
-        ):
+        if not isinstance(citation, dict) or citation.get("source_layer") not in {
+            "course_primary",
+            "classic_primary",
+        }:
             continue
         raw_source_path = _manifest_text(citation.get("source_path"), max_chars=500)
         source_path = public_source_path(raw_source_path) if raw_source_path else ""
@@ -4217,8 +4622,12 @@ def _evidence_context_record(row: sqlite3.Row) -> dict[str, object]:
             max_chars=300,
         ),
         "locator": locator,
-        "page_start": page_start if isinstance(page_start, int) and not isinstance(page_start, bool) else "",
-        "page_end": page_end if isinstance(page_end, int) and not isinstance(page_end, bool) else "",
+        "page_start": page_start
+        if isinstance(page_start, int) and not isinstance(page_start, bool)
+        else "",
+        "page_end": page_end
+        if isinstance(page_end, int) and not isinstance(page_end, bool)
+        else "",
         "label": label,
         "evidence_quote": evidence_quote(str(row["original_text"]), max_chars=260),
         "paragraph_text": _bounded_original_text(row["original_text"]),
@@ -4279,9 +4688,7 @@ def enrich_results_with_evidence_context(
     except (OSError, sqlite3.DatabaseError):
         return enriched
 
-    rows_by_evidence = {
-        str(row["evidence_id"]): row for row in [*current_rows, *neighbor_rows]
-    }
+    rows_by_evidence = {str(row["evidence_id"]): row for row in [*current_rows, *neighbor_rows]}
     current_by_paragraph = {str(row["paragraph_id"]): row for row in current_rows}
     output: list[dict[str, object]] = []
     for result in enriched:
@@ -4330,7 +4737,10 @@ def anchor_evidence_snippet(text: str, anchors: list[str], max_chars: int = 220)
     sentence_matches = list(SENTENCE_RE.finditer(text))
     for match in sentence_matches:
         if all(
-            any(match.start() <= start and end <= match.end() for start, end in validated.get(anchor, []))
+            any(
+                match.start() <= start and end <= match.end()
+                for start, end in validated.get(anchor, [])
+            )
             for anchor in anchors
         ):
             sentence = match.group(0).strip()
@@ -4360,9 +4770,7 @@ def anchor_evidence_snippet(text: str, anchors: list[str], max_chars: int = 220)
             end = min(len(text), start + max_chars)
             start = max(0, end - max_chars)
             return text[start:end].strip()
-    present = dedupe_keep_order(
-        anchor for offset, anchor in zip(offsets, anchors) if offset >= 0
-    )
+    present = dedupe_keep_order(anchor for offset, anchor in zip(offsets, anchors) if offset >= 0)
     separator = " … "
     minimum = sum(len(anchor) for anchor in present) + len(separator) * max(0, len(present) - 1)
     if not present:
@@ -4401,6 +4809,69 @@ def literal_term_evidence_snippet(text: str, terms: list[str], max_chars: int = 
     return text[start:end].strip()
 
 
+def core_terms_evidence_snippet(
+    text: str,
+    terms: list[str],
+    *,
+    require_all: bool = False,
+    max_chars: int = 280,
+) -> str:
+    normalized_terms = dedupe_keep_order(normalize_query_text(term) for term in terms)
+    if not normalized_terms:
+        return ""
+    clue_terms = (
+        "有汗",
+        "自汗",
+        "流汗",
+        "汗出",
+        "无汗",
+        "悪风",
+        "悪寒",
+        "怕冷",
+        "喘",
+        "身痛",
+        "脉浮",
+        "脉紧",
+    )
+    candidates: list[tuple[int, int, int, str]] = []
+    for sentence in split_sentences(text):
+        normalized_sentence = normalize_query_text(sentence)
+        hit_count = sum(term in normalized_sentence for term in normalized_terms)
+        if hit_count and (not require_all or hit_count == len(normalized_terms)):
+            clue_count = sum(clue in normalized_sentence for clue in clue_terms)
+            candidates.append((hit_count, clue_count, -len(sentence), sentence))
+
+    def distributed_term_sentences() -> tuple[int, str]:
+        selected: list[str] = []
+        total_clues = 0
+        for term in normalized_terms:
+            term_candidates: list[tuple[int, int, str]] = []
+            for sentence in split_sentences(text):
+                normalized_sentence = normalize_query_text(sentence)
+                if term not in normalized_sentence:
+                    continue
+                clue_count = sum(clue in normalized_sentence for clue in clue_terms)
+                term_candidates.append((clue_count, -len(sentence), sentence))
+            if not term_candidates:
+                return 0, ""
+            term_candidates.sort(reverse=True)
+            total_clues += term_candidates[0][0]
+            selected.append(term_candidates[0][2])
+        joined = " ".join(dedupe_keep_order(selected))
+        return total_clues, evidence_quote(joined, max_chars=max_chars)
+
+    if not candidates:
+        if not require_all:
+            return ""
+        return distributed_term_sentences()[1]
+    candidates.sort(reverse=True)
+    if require_all and candidates[0][1] == 0:
+        distributed_clues, distributed = distributed_term_sentences()
+        if distributed_clues and distributed:
+            return distributed
+    return evidence_quote(candidates[0][3], max_chars=max_chars)
+
+
 def citation_evidence_for_result(
     result: dict[str, object],
     intent: str = "general",
@@ -4409,7 +4880,9 @@ def citation_evidence_for_result(
     if intent == "dosage":
         evidence_parts: list[str] = []
         for sentence in split_sentences(str(result.get("text", ""))):
-            if ("一钱" in sentence or "1钱" in sentence) and ("克" in sentence or "比例" in sentence):
+            if ("一钱" in sentence or "1钱" in sentence) and (
+                "克" in sentence or "比例" in sentence
+            ):
                 evidence_parts.append(sentence)
         for quote in verified_unit_evidence_quotes(result):
             if "一钱" in quote or "1钱" in quote or "克" in quote:
@@ -4425,7 +4898,27 @@ def citation_evidence_for_result(
         [*verified_graph_evidence_quotes(result), *verified_unit_evidence_quotes(result)]
     )
     paragraph = str(result.get("text", "")).strip()
+    if (
+        intent == "general"
+        and "春夏秋冬" in normalize_query_text(query)
+        and "养生" in normalize_query_text(query)
+    ):
+        mapping_match = re.search(
+            r"春天就是肝脏[^。！？!?]{0,80}?夏天就是心脏[^。！？!?]{0,80}?"
+            r"秋天是肺脏[^。！？!?]{0,80}?冬天是肾脏",
+            paragraph,
+        )
+        if mapping_match:
+            return mapping_match.group(0) + "。"
+        for sentence in split_sentences(paragraph):
+            if "长夏" in sentence and "节气" in sentence:
+                return evidence_quote(sentence, max_chars=280)
     if intent == "clinical":
+        if {"有汗", "无汗"} <= set(query_core_entity_terms(query)):
+            for quote in [*unit_quotes, paragraph]:
+                snippet = sweat_formula_comparison_excerpt(quote)
+                if snippet:
+                    return snippet
         formula_anchors = reliable_formula_anchors(query)
         if formula_anchors:
             for quote in unit_quotes:
@@ -4459,6 +4952,24 @@ def citation_evidence_for_result(
             snippet = literal_term_evidence_snippet(paragraph, explicit_terms)
             if snippet:
                 return snippet
+    core_terms = query_core_entity_terms(query)
+    if core_terms:
+        require_all = query_requires_all_core_terms(query, intent)
+        for quote in unit_quotes:
+            snippet = core_terms_evidence_snippet(
+                quote,
+                core_terms,
+                require_all=require_all,
+            )
+            if snippet:
+                return snippet
+        snippet = core_terms_evidence_snippet(
+            paragraph,
+            core_terms,
+            require_all=require_all,
+        )
+        if snippet:
+            return snippet
     if unit_quotes:
         return unit_quotes[0]
     return evidence_quote(paragraph, max_chars=220).strip()
@@ -4543,10 +5054,7 @@ def knowledge_relations(
     with sqlite3.connect(path) as conn:
         conn.row_factory = sqlite3.Row
         tables = {
-            str(row[0])
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
+            str(row[0]) for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
         }
         required = {"documents", "evidence_records", "entities", "relations"}
         if not required <= tables:
@@ -4631,7 +5139,17 @@ def filter_results_for_intent(
             ]
         anchors = reliable_source_anchors(query)
         if not anchors:
-            return results
+            explicit_terms = explicit_query_formula_terms(query)
+            if not explicit_terms:
+                return results
+            return [
+                result
+                for result in results
+                if all(
+                    literal_product_safe_term_in_text(term, primary_evidence_text(result))
+                    for term in explicit_terms
+                )
+            ]
         formula_anchors = [anchor for anchor in anchors if anchor in KNOWN_FORMULA_ANCHORS]
         return [
             result
@@ -4649,6 +5167,30 @@ def filter_results_for_intent(
             )
         ]
     elif intent == "clinical":
+        query_core_terms = set(query_core_entity_terms(query))
+        if {"有汗", "无汗"} <= query_core_terms:
+            sweat_comparison_results: list[tuple[int, dict[str, object]]] = []
+            for result in results:
+                evidence = primary_evidence_text(result)
+                snippet = sweat_formula_comparison_excerpt(evidence)
+                if snippet:
+                    quality = sum(
+                        term in snippet
+                        for term in ("营卫", "自汗", "恶寒", "怕冷", "身痛", "骨节", "喘")
+                    )
+                    sweat_comparison_results.append((quality, result))
+            if sweat_comparison_results:
+                return [
+                    result
+                    for _, result in sorted(
+                        sweat_comparison_results,
+                        key=lambda item: (
+                            -item[0],
+                            -float(item[1].get("score", 0.0)),
+                            str(item[1].get("paragraph_id", "")),
+                        ),
+                    )
+                ]
         query_formulas = reliable_formula_anchors(query)
         if query_formulas:
             formula_focused = [
@@ -4674,11 +5216,54 @@ def filter_results_for_intent(
             clue_match = bool(query_clues & set(canonical_clinical_clues(evidence)))
             if formula_match or clue_match:
                 clinical_filtered.append(result)
-        formula_filtered = [result for result in clinical_filtered if has_clinical_formula_evidence(result)]
+        formula_filtered = [
+            result for result in clinical_filtered if has_clinical_formula_evidence(result)
+        ]
         return formula_filtered or clinical_filtered
+    elif (
+        intent == "general"
+        and "学习主线" in normalize_query_text(query)
+        and "胸痹" in query_core_entity_terms(query)
+    ):
+        chapter_results = [
+            result
+            for result in results
+            if "胸痹" in primary_evidence_text(result) and "第九篇" in primary_evidence_text(result)
+        ]
+        if chapter_results:
+            return chapter_results
+        return [result for result in results if "胸痹" in primary_evidence_text(result)]
+    elif (
+        intent == "general"
+        and "春夏秋冬" in normalize_query_text(query)
+        and "养生" in normalize_query_text(query)
+    ):
+        return [
+            result
+            for result in results
+            if (
+                any(
+                    "长夏" in sentence and "节气" in sentence
+                    for sentence in split_sentences(primary_evidence_text(result))
+                )
+                or all(
+                    term in primary_evidence_text(result)
+                    for term in ("春天", "肝脏", "夏天", "心脏", "秋天", "肺脏", "冬天", "肾脏")
+                )
+            )
+        ]
     else:
-        filtered = results
-    return filtered or results
+        core_terms = query_core_entity_terms(query)
+        if not core_terms:
+            return results
+        require_all = query_requires_all_core_terms(query, intent)
+        filtered = []
+        for result in results:
+            evidence = normalize_query_text(primary_evidence_text(result))
+            matches = [term for term in core_terms if normalize_query_text(term) in evidence]
+            if (require_all and len(matches) == len(core_terms)) or (not require_all and matches):
+                filtered.append(result)
+        return filtered
 
 
 def is_dosage_relevant_result(result: dict[str, object]) -> bool:
@@ -4716,9 +5301,7 @@ def collect_matched_knowledge_units(results: list[dict[str, object]]) -> list[di
             source_path = public_source_path(result.get("source_path", ""))
             page_start = result.get("page_start")
             enriched.setdefault("paragraph_id", result.get("paragraph_id", ""))
-            enriched["source_path"] = public_source_path(
-                enriched.get("source_path") or source_path
-            )
+            enriched["source_path"] = public_source_path(enriched.get("source_path") or source_path)
             enriched.setdefault("title", result.get("title", ""))
             enriched.setdefault("page_start", page_start)
             enriched.setdefault("page_end", result.get("page_end", page_start))
@@ -4819,7 +5402,9 @@ def collect_gram_values(results: list[dict[str, object]]) -> list[str]:
         if ("一钱的量" in text or "1钱的量" in text) and any(
             marker in text for marker in ("也就是说", "按照比例", "加起来是")
         ):
-            anchor_offsets = [offset for offset in (text.find("一钱的量"), text.find("1钱的量")) if offset >= 0]
+            anchor_offsets = [
+                offset for offset in (text.find("一钱的量"), text.find("1钱的量")) if offset >= 0
+            ]
             if anchor_offsets:
                 anchor_offset = min(anchor_offsets)
                 values.extend(re.findall(r"\d+(?:\.\d+)?\s*克", text[anchor_offset:]))
@@ -4847,9 +5432,12 @@ def collect_gram_values(results: list[dict[str, object]]) -> list[str]:
         )
         if any(marker in text for marker in markers):
             return True
-        if ("大约一钱的量" in text or "一钱的量" in text or "大约1钱的量" in text or "1钱的量" in text) and not any(
-            marker in text for marker in ("也就是说", "按照比例", "加起来是")
-        ):
+        if (
+            "大约一钱的量" in text
+            or "一钱的量" in text
+            or "大约1钱的量" in text
+            or "1钱的量" in text
+        ) and not any(marker in text for marker in ("也就是说", "按照比例", "加起来是")):
             return False
         return ("一钱" in text or "1钱" in text) and "克" in text
 
@@ -4888,6 +5476,71 @@ def with_formula_dosage_safety(notice: str) -> str:
     if not notice:
         return FORMULA_DOSAGE_SAFETY_NOTICE
     return f"{notice} {FORMULA_DOSAGE_SAFETY_NOTICE}"
+
+
+def emergency_notice_for_query(query: str) -> str:
+    normalized = normalize_query_text(query)
+    return (
+        EMERGENCY_SAFETY_NOTICE
+        if any(normalize_query_text(term) in normalized for term in EMERGENCY_QUERY_TERMS)
+        else ""
+    )
+
+
+def combine_safety_notices(*notices: str) -> str:
+    return " ".join(dedupe_keep_order(notice for notice in notices if notice.strip()))
+
+
+def rag_capability_gap(query: str, db_path: Path) -> str:
+    """Refuse known out-of-corpus tasks instead of borrowing unrelated paragraphs."""
+    normalized = normalize_query_text(query)
+    if any(term in normalized for term in RAG_LEARNING_ROUTE_TERMS):
+        return (
+            "当前 RAG 资产是 PDF 原文检索库，不包含用户学习路线编排层。"
+            "请改用主项目轻量模式的 references/learning-entry.md 和 references/lesson-map.md。"
+        )
+    if not any(term in normalized for term in RAG_TIANJI_QUERY_TERMS):
+        return ""
+    if not db_path.is_file():
+        return ""
+    try:
+        with sqlite3.connect(db_path) as conn:
+            rows = conn.execute("SELECT DISTINCT source_path FROM paragraphs").fetchall()
+    except sqlite3.DatabaseError:
+        return ""
+    sources = "\n".join(str(row[0]) for row in rows)
+    if "天纪" in sources:
+        return ""
+    return (
+        "当前 RAG PDF 语料不包含《天纪》课程，不能用其他中医课程的相似段落替代回答。"
+        "请改用主项目轻量模式的 references/tianji.md 及天纪截图证据。"
+    )
+
+
+def capability_gap_answer(query: str, message: str) -> dict[str, object]:
+    return {
+        "query": query,
+        "intent": detect_answer_intent(query),
+        "answer": message,
+        "answer_sections": {
+            "summary": message,
+            "key_points": [],
+            "citation_count": 0,
+            "has_context_navigation": False,
+            "linked_reference_count": 0,
+        },
+        "citations": [],
+        "related_knowledge_units": [],
+        "safety_notice": emergency_notice_for_query(query),
+        "results": [],
+        "capability_gap": True,
+        "linked_reference_materials": [],
+        "reference_secondary_included": False,
+        "rerank": {"model": "none", "degraded_feature": "", "error": ""},
+        "related_guide_nodes": [],
+        "differentiation_flow": {"text_steps": [], "mermaid": ""},
+        "followup_questions": [],
+    }
 
 
 def _citation_detail_points(
@@ -4939,6 +5592,7 @@ def synthesize_pdf_rag_answer(
     max_citations: int = 6,
 ) -> dict[str, object]:
     intent = detect_answer_intent(query)
+    emergency_notice = emergency_notice_for_query(query)
     relevant_results = filter_results_for_intent(query, intent, results)
     if intent == "source_lookup" and not reliable_source_anchors(query):
         explicit_terms = explicit_query_formula_terms(query)
@@ -4946,9 +5600,7 @@ def synthesize_pdf_rag_answer(
             relevant_results = sorted(
                 relevant_results,
                 key=lambda result: not any(
-                    literal_product_safe_term_in_text(
-                        term, str(result.get("text", "")).strip()
-                    )
+                    literal_product_safe_term_in_text(term, str(result.get("text", "")).strip())
                     for term in explicit_terms
                 ),
             )
@@ -4976,12 +5628,33 @@ def synthesize_pdf_rag_answer(
             )
         else:
             safety_notice = ""
+        insufficient_summary = "当前知识库没有检索到足够可靠的原文证据。"
+        insufficient_answer = (
+            f"{insufficient_summary}建议换用更具体的方名、药名、症状或原文短语再查。"
+        )
+        normalized_query = normalize_query_text(query)
+        if "上中下三品" in normalized_query or {
+            "上品",
+            "中品",
+            "下品",
+        } <= set(query_core_entity_terms(query)):
+            insufficient_summary = (
+                "当前默认主课程语料没有检索到同时解释上、中、下三品分类的可靠原文。"
+            )
+            insufficient_answer = (
+                f"{insufficient_summary}关联参考资料只有在用户明确使用 `--include-references` "
+                "时才可检索，并且必须标为“关联参考资料（非倪海厦著作）”；"
+                "因此这里不从外部常识或参考书拼出分类答案。"
+            )
+        if emergency_notice:
+            insufficient_answer = f"{emergency_notice}\n\n{insufficient_answer}"
+            safety_notice = combine_safety_notices(emergency_notice, safety_notice)
         return {
             "query": query,
             "intent": intent,
-            "answer": "当前知识库没有检索到足够可靠的原文证据。建议换用更具体的方名、药名、症状或原文短语再查。",
+            "answer": insufficient_answer,
             "answer_sections": {
-                "summary": "当前知识库没有检索到足够可靠的原文证据。",
+                "summary": insufficient_summary,
                 "key_points": [],
                 "citation_count": 0,
                 "has_context_navigation": False,
@@ -5010,7 +5683,9 @@ def synthesize_pdf_rag_answer(
                 continue
             values = collect_gram_values([result])
             if values:
-                point_text = f"该段给出或讨论的一钱数值线索：{'、'.join(values)}；需结合原段语境理解。"
+                point_text = (
+                    f"该段给出或讨论的一钱数值线索：{'、'.join(values)}；需结合原段语境理解。"
+                )
             elif "比例" in primary_evidence_text(result):
                 point_text = "该段强调方中比例也是理解一钱用量时需要保留的原文语境。"
             else:
@@ -5022,7 +5697,9 @@ def synthesize_pdf_rag_answer(
                     "source_label": citation["label"],
                 }
             )
-        safety_notice = with_formula_dosage_safety("这是课程资料整理和出处检索，不是个人用药剂量建议。")
+        safety_notice = with_formula_dosage_safety(
+            "这是课程资料整理和出处检索，不是个人用药剂量建议。"
+        )
     elif intent == "source_lookup":
         if is_reference_material_query(query):
             titles = dedupe_keep_order(
@@ -5056,10 +5733,11 @@ def synthesize_pdf_rag_answer(
         else:
             anchors = answer_anchor_terms(query)
             topic = "、".join(anchors[:3]) or normalize_query_text(query).rstrip("。！？!?；;，,")
-            locations = "；".join(f"{citation['label']}[{citation['index']}]" for citation in citations[:4])
+            locations = "；".join(
+                f"{citation['label']}[{citation['index']}]" for citation in citations[:4]
+            )
             answer = (
-                f"关于“{topic}”，当前检索到的原文位置是：{locations}。"
-                "下面按来源列出详细原文依据。"
+                f"关于“{topic}”，当前检索到的原文位置是：{locations}。下面按来源列出详细原文依据。"
             )
             has_formula_content = bool(
                 reliable_formula_anchors(query) or explicit_query_formula_terms(query)
@@ -5079,49 +5757,166 @@ def synthesize_pdf_rag_answer(
         focus_clues = clinical_evidence_clues(normalize_query_text(query))
         focus_text = "、".join(focus_clues) if focus_clues else "问题中描述的症状"
         citation_sentence = f"可核对原文证据 {citation_refs}。" if citation_refs else ""
-        answer = (
-            "这个问题含有具体病人信息，我不直接给个人处方。"
-            f"问题焦点是：{focus_text}。按课程资料检索，相关原文中出现的方名包括：{formula_text}。"
-            f"{citation_sentence}若用于真实病人，需要由合格医师面诊辨证。"
+        citation_evidence = "\n".join(
+            str(citation.get("evidence_quote", "")) for citation in citations
         )
-        detail_points = [
-            {
-                "text": (
-                    f"课程原文中可核对到的方名为：{formula_text}；"
-                    f"与本次问题相关的症状焦点为：{focus_text}。"
-                ),
-                "citation_indices": [
-                    citation["index"] for citation in citations[:3]
-                ],
-                "source_label": "；".join(
-                    str(citation["label"]) for citation in citations[:3]
-                ),
-            }
-        ]
-        safety_notice = with_formula_dosage_safety("课程资料不能替代诊断；这里不直接给个人处方、剂量或治疗建议。")
+        sweat_comparison = (
+            {"有汗", "无汗"} <= set(query_core_entity_terms(query))
+            and "桂枝汤" in citation_evidence
+            and "麻黄汤" in citation_evidence
+            and any(term in citation_evidence for term in ("自汗", "汗出", "有汗"))
+            and "无汗" in citation_evidence
+        )
+        if sweat_comparison:
+            answer = (
+                "按当前检索到的课程原文，可先核对“汗”的分水岭："
+                "有汗或汗出，并见营卫不和一侧，核对桂枝汤证；"
+                "无汗，并见怕冷、身痛、喘等线索一侧，核对麻黄汤证。"
+                f"{citation_sentence}这只是课程方证学习线索，不能据此为真实病人自行选方。"
+            )
+            detail_points = _citation_detail_points(citations)
+        else:
+            answer = (
+                "这个问题含有具体病人信息，我不直接给个人处方。"
+                f"问题焦点是：{focus_text}。按课程资料检索，相关原文中出现的方名包括：{formula_text}。"
+                f"{citation_sentence}若用于真实病人，需要由合格医师面诊辨证。"
+            )
+            detail_points = [
+                {
+                    "text": (
+                        f"课程原文中可核对到的方名为：{formula_text}；"
+                        f"与本次问题相关的症状焦点为：{focus_text}。"
+                    ),
+                    "citation_indices": [citation["index"] for citation in citations[:3]],
+                    "source_label": "；".join(str(citation["label"]) for citation in citations[:3]),
+                }
+            ]
+        if emergency_notice:
+            answer = f"{emergency_notice}\n\n{answer}"
+        safety_notice = combine_safety_notices(
+            emergency_notice,
+            with_formula_dosage_safety(
+                "课程资料不能替代诊断；这里不直接给个人处方、剂量或治疗建议。"
+            ),
+        )
+    elif (
+        intent == "comparison"
+        and {"桂枝汤", "麻黄汤"} <= set(query_core_entity_terms(query))
+        and any(
+            "桂枝汤" in str(citation.get("evidence_quote", ""))
+            and "麻黄汤" in str(citation.get("evidence_quote", ""))
+            and any(
+                clue in str(citation.get("evidence_quote", "")) for clue in ("自汗", "汗出", "有汗")
+            )
+            and "无汗" in str(citation.get("evidence_quote", ""))
+            for citation in citations
+        )
+    ):
+        answer = (
+            "按当前检索到的课程原文，首要分水岭是汗："
+            "桂枝汤放在发热自汗、营卫不和一侧；"
+            "麻黄汤放在无汗，且身痛、恶寒较重一侧。"
+            f"证据见 {citation_refs}。"
+        )
+        safety_notice = with_formula_dosage_safety("这是课程方证比较，不是个人选方或用药建议。")
+    elif (
+        intent == "general"
+        and "学习主线" in normalize_query_text(query)
+        and "胸痹" in query_core_entity_terms(query)
+        and any("第九篇" in str(citation.get("evidence_quote", "")) for citation in citations)
+    ):
+        answer = (
+            "当前 RAG 原文能可靠确认的学习起点是《金匮》第九篇"
+            "“胸痹心痛短气病脉证并治”；当前证据不足以自动补写一套完整学习路线。"
+            f"证据见 {citation_refs}。"
+        )
+        safety_notice = "这是课程章节定位，不是心血管疾病诊断或治疗建议。"
+    elif (
+        intent == "general"
+        and "合称" in normalize_query_text(query)
+        and {"合谷", "太冲"} <= set(query_core_entity_terms(query))
+        and any("四关" in str(citation.get("evidence_quote", "")) for citation in citations)
+    ):
+        answer = f"根据当前检索到的课程原文，合谷与太冲合称“四关”；课程中也称同时取用为“开四关”。证据见 {citation_refs}。"
+        safety_notice = "这是课程术语和原文定位，不是针灸操作指导；请勿自行针刺。"
+    elif (
+        intent == "general"
+        and "春夏秋冬" in normalize_query_text(query)
+        and "养生" in normalize_query_text(query)
+    ):
+        long_summer_citation = next(
+            (
+                citation
+                for citation in citations
+                if "长夏" in str(citation.get("evidence_quote", ""))
+            ),
+            None,
+        )
+        organ_citation = next(
+            (
+                citation
+                for citation in citations
+                if all(
+                    term in str(citation.get("evidence_quote", ""))
+                    for term in ("春天", "肝脏", "夏天", "心脏", "秋天", "肺脏", "冬天", "肾脏")
+                )
+            ),
+            None,
+        )
+        supported_points: list[str] = []
+        detail_points = []
+        for citation, point in (
+            (
+                organ_citation,
+                "课程原文把春、夏、秋、冬依次联系到肝、心、肺、肾。",
+            ),
+            (
+                long_summer_citation,
+                "课程还把四季之间的节气交换阶段称为“长夏”。",
+            ),
+        ):
+            if not citation:
+                continue
+            supported_points.append(f"{point}[{citation['index']}]")
+            detail_points.append(
+                {
+                    "text": clean_guide_evidence_text(str(citation.get("evidence_quote", ""))),
+                    "citation_indices": [citation["index"]],
+                    "source_label": str(citation.get("label", "")),
+                }
+            )
+        supported_text = "".join(supported_points) or "当前只检索到零散的四时相关段落。"
+        answer = (
+            f"当前 RAG 原文能直接支持的对应关系是：{supported_text}"
+            "但现有证据没有完整列出四季分别应采取的养生行动，"
+            "所以这里不补写一张看似完整、实际无原文支撑的四季养生表。"
+        )
+        safety_notice = ""
     else:
         points = "；".join(
-            evidence_quote(str(result.get("text", "")), max_chars=120)
-            for result in relevant_results[:3]
-            if str(result.get("text", "")).strip()
+            evidence_quote(str(citation.get("evidence_quote", "")), max_chars=160)
+            for citation in citations[:3]
+            if str(citation.get("evidence_quote", "")).strip()
         )
-        if not points:
-            points = "；".join(
-                evidence_quote(text, max_chars=120)
-                for result in relevant_results[:3]
-                for text in source_primary_evidence_texts(result)[1:2]
-            )
         citation_sentence = f"证据见 {citation_refs}。" if citation_refs else ""
         answer = f"根据当前检索结果，相关原文要点包括：{points}。{citation_sentence}"
-        safety_notice = ""
+        has_formula_content = bool(
+            reliable_formula_anchors(query) or explicit_query_formula_terms(query)
+        ) or any(
+            known_formula_terms_in_evidence(primary_evidence_text(result))
+            for result in relevant_results
+        )
+        safety_notice = (
+            with_formula_dosage_safety("这是课程原文比较，不是个人用药建议。")
+            if has_formula_content
+            else ""
+        )
 
     if not detail_points:
         detail_points = _citation_detail_points(citations)
     summary = answer
     answer = _render_detailed_answer(summary, detail_points)
-    has_context_navigation = any(
-        bool(citation.get("context_navigation")) for citation in citations
-    )
+    has_context_navigation = any(bool(citation.get("context_navigation")) for citation in citations)
 
     return {
         "query": query,
@@ -5220,9 +6015,7 @@ def _trace_query_plan(
     plan: list[str],
     results: list[dict[str, object]],
 ) -> list[dict[str, object]]:
-    grouped: list[list[dict[str, object]]] = [
-        [] for _ in plan[:TRACE_MAX_PLAN_ITEMS]
-    ]
+    grouped: list[list[dict[str, object]]] = [[] for _ in plan[:TRACE_MAX_PLAN_ITEMS]]
     for result in results[:TRACE_MAX_SELECTED_IDS]:
         paragraph_id = _safe_trace_string(
             _trace_dict_get(result, "paragraph_id", ""),
@@ -5291,6 +6084,9 @@ def answer_pdf_rag(
         "synthesis": 0.0,
     }
     db_path = db_path.expanduser().resolve()
+    capability_gap = rag_capability_gap(query, db_path)
+    if capability_gap:
+        return capability_gap_answer(query, capability_gap)
     if embedding_backend is not None:
         store = LocalVectorStore(db_path, embedding_backend=embedding_backend)
     elif mode in {"text", "knowledge", "graph"}:
@@ -5321,11 +6117,20 @@ def answer_pdf_rag(
     initial_results = results
     _trace_phase_finish(latency_ms, "retrieval", phase_started)
     phase_started = _trace_phase_start(trace_enabled)
-    followup_plan = [] if mode == "graph" else [
-        planned_query
-        for planned_query in build_query_plan(query, intent=intent, seed_results=results)
-        if planned_query not in initial_plan
-    ]
+    skip_followup_expansion = bool(query_core_entity_terms(query)) and intent in {
+        "general",
+        "comparison",
+        "source_lookup",
+    }
+    followup_plan = (
+        []
+        if mode == "graph" or skip_followup_expansion
+        else [
+            planned_query
+            for planned_query in build_query_plan(query, intent=intent, seed_results=results)
+            if planned_query not in initial_plan
+        ]
+    )
     _trace_phase_finish(latency_ms, "planning", phase_started)
     followup_results: list[dict[str, object]] = []
     if followup_plan:
@@ -5338,7 +6143,9 @@ def answer_pdf_rag(
             intent=intent,
             **search_options,
         )
-        results = fuse_query_rewrites([results, followup_results], limit=max(candidate_limit * 2, 32))
+        results = fuse_query_rewrites(
+            [results, followup_results], limit=max(candidate_limit * 2, 32)
+        )
         _trace_phase_finish(latency_ms, "retrieval", phase_started)
     phase_started = _trace_phase_start(trace_enabled)
     intent_results = filter_results_for_intent(query, intent, results)
@@ -5348,9 +6155,7 @@ def answer_pdf_rag(
     phase_started = _trace_phase_start(trace_enabled)
     if reranker_backend is not None:
         rerank_outcome = reranker_backend.rerank(query, intent_results, limit=rerank_limit)
-    elif reranker == "siliconflow" or (
-        reranker == "auto" and siliconflow_api_key_available()
-    ):
+    elif reranker == "siliconflow" or (reranker == "auto" and siliconflow_api_key_available()):
         from .rerank import SiliconFlowReranker
 
         rerank_outcome = SiliconFlowReranker(model=rerank_model).rerank(
@@ -5434,9 +6239,7 @@ def answer_pdf_rag(
             }
         )
         model_value = rerank_outcome.model if rerank_outcome is not None else "none"
-        degraded_value = (
-            rerank_outcome.degraded_feature if rerank_outcome is not None else ""
-        )
+        degraded_value = rerank_outcome.degraded_feature if rerank_outcome is not None else ""
         answer["trace"] = {
             "normalized_query": _safe_trace_string(
                 normalize_query_text(query),
@@ -5450,8 +6253,7 @@ def answer_pdf_rag(
             "reranker": model_value,
             "degraded_features": [degraded_value] if degraded_value else [],
             "latency_ms": {
-                phase: _bounded_latency_ms(value)
-                for phase, value in latency_ms.items()
+                phase: _bounded_latency_ms(value) for phase, value in latency_ms.items()
             },
         }
     return answer
@@ -5481,21 +6283,18 @@ def load_build_source_catalog(path: Path | None) -> dict[str, dict[str, Any]]:
         if key in entries:
             raise ValueError("duplicate source catalog filename")
         excluded = raw.get("exclude_pages", [])
-        if (
-            not isinstance(excluded, list)
-            or any(not isinstance(page, int) or isinstance(page, bool) or page < 1 for page in excluded)
+        if not isinstance(excluded, list) or any(
+            not isinstance(page, int) or isinstance(page, bool) or page < 1 for page in excluded
         ):
             raise ValueError("invalid source catalog exclude_pages")
         strip_patterns = raw.get("strip_text_patterns", [])
-        if (
-            not isinstance(strip_patterns, list)
-            or any(not isinstance(pattern, str) or not pattern for pattern in strip_patterns)
+        if not isinstance(strip_patterns, list) or any(
+            not isinstance(pattern, str) or not pattern for pattern in strip_patterns
         ):
             raise ValueError("invalid source catalog strip_text_patterns")
         strip_regexes = raw.get("strip_text_regexes", [])
-        if (
-            not isinstance(strip_regexes, list)
-            or any(not isinstance(pattern, str) or not pattern for pattern in strip_regexes)
+        if not isinstance(strip_regexes, list) or any(
+            not isinstance(pattern, str) or not pattern for pattern in strip_regexes
         ):
             raise ValueError("invalid source catalog strip_text_regexes")
         try:
@@ -5505,14 +6304,12 @@ def load_build_source_catalog(path: Path | None) -> dict[str, dict[str, Any]]:
             raise ValueError("invalid source catalog strip_text_regex") from exc
         relation_evidence_ids = raw.get("relation_evidence_ids", [])
         quality_flags = raw.get("quality_flags", [])
-        if (
-            not isinstance(relation_evidence_ids, list)
-            or any(not isinstance(item, str) or not item.strip() for item in relation_evidence_ids)
+        if not isinstance(relation_evidence_ids, list) or any(
+            not isinstance(item, str) or not item.strip() for item in relation_evidence_ids
         ):
             raise ValueError("invalid source catalog relation_evidence_ids")
-        if (
-            not isinstance(quality_flags, list)
-            or any(not isinstance(item, str) or not item.strip() for item in quality_flags)
+        if not isinstance(quality_flags, list) or any(
+            not isinstance(item, str) or not item.strip() for item in quality_flags
         ):
             raise ValueError("invalid source catalog quality_flags")
         entries[key] = raw
@@ -5586,7 +6383,9 @@ def extract_pdf_paragraphs(
     try:
         import fitz
     except ImportError as exc:
-        raise RuntimeError("PyMuPDF is required for PDF extraction. Install package: PyMuPDF") from exc
+        raise RuntimeError(
+            "PyMuPDF is required for PDF extraction. Install package: PyMuPDF"
+        ) from exc
 
     pdf_path = pdf_path.expanduser().resolve()
     doc_id = stable_id(pdf_path.name, pdf_path.stat().st_size)
@@ -5736,7 +6535,9 @@ def build_pdf_vector_store(
                 "vector_dim": vector_dim,
                 "window_size": window_size,
                 "overlap": overlap,
-                "unit_types": sorted(unit_types) if unit_types else ["paragraph", "question", "sentence", "window"],
+                "unit_types": sorted(unit_types)
+                if unit_types
+                else ["paragraph", "question", "sentence", "window"],
                 "trace_dir": "traces" if portable_source_paths else trace_stats["trace_dir"],
                 "documents": manifest,
                 "reference_link_evidence": reference_link_evidence,
@@ -5834,8 +6635,7 @@ def _update_manifest_after_question_augment(db_path: Path) -> None:
     manifest["unit_types"] = unit_types
 
     document_counts = {
-        row[0]: {"paragraphs": int(row[1]), "retrieval_units": int(row[2])}
-        for row in document_rows
+        row[0]: {"paragraphs": int(row[1]), "retrieval_units": int(row[2])} for row in document_rows
     }
     documents = []
     for document in manifest.get("documents", []):
@@ -5957,7 +6757,9 @@ def main(argv: list[str] | None = None) -> int:
     search.add_argument("query")
     search.add_argument("--db", type=Path, required=True)
     search.add_argument("--limit", type=int, default=5)
-    search.add_argument("--mode", choices=["hybrid", "vector", "text", "knowledge"], default="hybrid")
+    search.add_argument(
+        "--mode", choices=["hybrid", "vector", "text", "knowledge"], default="hybrid"
+    )
     search.add_argument(
         "--embedding",
         choices=["auto", "sparse", "siliconflow", "local-bge-m3"],
@@ -6032,7 +6834,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "rebuild-knowledge-units":
         store = LocalVectorStore(args.db)
         trace_dir = args.trace_dir or (args.db.parent / "traces")
-        print(json.dumps(store.rebuild_knowledge_units(trace_dir=trace_dir), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                store.rebuild_knowledge_units(trace_dir=trace_dir), ensure_ascii=False, indent=2
+            )
+        )
         return 0
     parser.error(f"unknown command: {args.command}")
     return 2

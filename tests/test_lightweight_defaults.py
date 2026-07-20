@@ -31,6 +31,16 @@ def test_ordinary_formula_and_source_queries_do_not_route_to_rag() -> None:
     assert "use `scripts/search_pdf_evidence.py` first" in skill
 
 
+def test_missing_rag_modules_stay_on_lightweight_and_evidence_is_inline() -> None:
+    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "Route by corpus capability even after RAG opt-in" in skill
+    assert "Tianji, learning-entry, lesson-plan" in skill
+    assert "Never fill a missing RAG module" in skill
+    assert "show a short, safe original excerpt first" in skill
+    assert "Do not return a bare file/page locator" in skill
+
+
 def test_agent_default_prompt_forbids_automatic_rag_download() -> None:
     agent_config = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
 

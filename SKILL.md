@@ -32,6 +32,10 @@ This skill is educational. Do not present content as diagnosis, prescription, or
 - Formula-pattern comparisons stay on `references/formula-patterns.md` plus
   `references/six-channel.md` by default. Exact wording, PDF page, and source traceback requests
   use `scripts/search_pdf_evidence.py` first.
+- Route by corpus capability even after RAG opt-in: Tianji, learning-entry, lesson-plan, clinical-case,
+  Bagang, Fuyang, Yijinjing, Liangdong, and Stanford questions remain on their lightweight modules
+  unless the active RAG manifest explicitly contains that course. Never fill a missing RAG module
+  with semantically similar paragraphs from another course.
 
 1. Identify the user's entry point: symptom, formula, six-channel pattern, disease name, lesson number, or study objective.
 2. Open `references/index.md` first, then load only the relevant module:
@@ -70,7 +74,7 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - Symptom or case: pattern differentiation, missing evidence, possible course方证, cautions, and no personal prescription.
    - Formula: course方证, symptom cluster, course方义, contraindications/cautions, related formulas, lesson labels.
    - Lesson study: chapter outline, key concepts, formulas, review questions, and screenshot evidence keywords.
-   - Evidence request: return course, timestamp/page/section, brief note, relative screenshot path, `pdf-evidence:<doc_id>#p<page>`, or `text-evidence:<doc_id>#s<section>` citation. Prefer results that match all important query terms.
+   - Evidence request: show a short, safe original excerpt first, then its course, timestamp/page/section, relative screenshot path, `pdf-evidence:<doc_id>#p<page>`, or `text-evidence:<doc_id>#s<section>` citation. Prefer results that match all important query terms. Do not return a bare file/page locator without the supporting excerpt.
    - Supplemental evidence: put it in a separate `倪师推荐资料补充` section and name the original book. Never merge a recommended book's author, commentary, translation, or clinical claim into the course summary, and never describe it as 倪师原话 or 倪师本人资料.
    - Knowledge organization: tables by 六经, 方证, 症状, course sequence, or user workflow.
 4. Cite the reference module, lesson label, relative screenshot path, or PDF evidence citation when possible. Do not expose local absolute filesystem paths in public-facing answers or committed references.

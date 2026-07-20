@@ -28,20 +28,61 @@ def result(
 class AnswerQualityTests(unittest.TestCase):
     def test_reliable_formula_anchors_use_exact_curated_lexicon(self) -> None:
         known = (
-            "桂枝汤", "麻黄汤", "四逆汤", "真武汤", "葛根汤", "小柴胡汤", "理中汤",
-            "黄芩加半夏生姜汤", "黄芩汤", "半夏泻心汤", "生姜泻心汤", "甘草泻心汤",
-            "葛根黄芩黄连汤", "白虎汤", "大承气汤", "小承气汤", "调胃承气汤",
-            "小建中汤", "十枣汤", "大柴胡汤", "小青龙汤", "大青龙汤", "吴茱萸汤",
-            "当归四逆汤", "苓桂术甘汤", "茵陈蒿汤", "越婢汤", "旋覆代赭汤",
-            "麦门冬汤", "木防己汤", "百合知母汤", "五苓散", "肾气丸", "麻子仁丸",
+            "桂枝汤",
+            "麻黄汤",
+            "四逆汤",
+            "真武汤",
+            "葛根汤",
+            "小柴胡汤",
+            "理中汤",
+            "黄芩加半夏生姜汤",
+            "黄芩汤",
+            "半夏泻心汤",
+            "生姜泻心汤",
+            "甘草泻心汤",
+            "葛根黄芩黄连汤",
+            "白虎汤",
+            "大承气汤",
+            "小承气汤",
+            "调胃承气汤",
+            "小建中汤",
+            "十枣汤",
+            "大柴胡汤",
+            "小青龙汤",
+            "大青龙汤",
+            "吴茱萸汤",
+            "当归四逆汤",
+            "苓桂术甘汤",
+            "茵陈蒿汤",
+            "越婢汤",
+            "旋覆代赭汤",
+            "麦门冬汤",
+            "木防己汤",
+            "百合知母汤",
+            "五苓散",
+            "肾气丸",
+            "麻子仁丸",
         )
         for formula in known:
             with self.subTest(formula=formula):
                 self.assertEqual(pdf_vector.reliable_source_anchors(f"{formula}出处"), [formula])
 
         generic = (
-            "红枣汤", "白米汤", "人参鸡汤", "排骨汤", "每天喝白米汤", "小药丸", "护手膏",
-            "喝汤", "鸡汤", "热汤", "一碗汤", "米汤", "煎汤", "喝热汤", "一碗热汤",
+            "红枣汤",
+            "白米汤",
+            "人参鸡汤",
+            "排骨汤",
+            "每天喝白米汤",
+            "小药丸",
+            "护手膏",
+            "喝汤",
+            "鸡汤",
+            "热汤",
+            "一碗汤",
+            "米汤",
+            "煎汤",
+            "喝热汤",
+            "一碗热汤",
         )
         for phrase in generic:
             with self.subTest(phrase=phrase):
@@ -51,7 +92,9 @@ class AnswerQualityTests(unittest.TestCase):
         for query in ("桂枝汤圆出处", "大承气汤锅出处", "五苓散装产品出处", "肾气丸子出处"):
             with self.subTest(query=query):
                 self.assertEqual(pdf_vector.reliable_formula_anchors(query), [])
-                self.assertEqual(pdf_vector.synthesize_pdf_rag_answer(query, [])["safety_notice"], "")
+                self.assertEqual(
+                    pdf_vector.synthesize_pdf_rag_answer(query, [])["safety_notice"], ""
+                )
 
         positives = {
             "桂枝汤出处": ["桂枝汤"],
@@ -66,7 +109,9 @@ class AnswerQualityTests(unittest.TestCase):
     def test_embedded_product_formula_phrase_does_not_hard_filter(self) -> None:
         candidate = result("课程资料提到日常产品名称。")
 
-        filtered = pdf_vector.filter_results_for_intent("桂枝汤圆出处", "source_lookup", [candidate])
+        filtered = pdf_vector.filter_results_for_intent(
+            "桂枝汤圆出处", "source_lookup", [candidate]
+        )
 
         self.assertEqual(filtered, [candidate])
 
@@ -150,11 +195,17 @@ class AnswerQualityTests(unittest.TestCase):
 
     def test_clinical_synonym_groups_match_bidirectionally(self) -> None:
         pairs = (
-            ("发烧", "发热"), ("发热", "发烧"), ("發燒", "发热"),
-            ("咽喉疼痛", "咽痛"), ("咽痛", "咽喉疼痛"),
-            ("胃口差", "食欲差"), ("食欲差", "胃口差"),
-            ("胃口不好", "食欲差"), ("食欲差", "胃口不好"),
-            ("食欲不振", "食欲差"), ("食欲差", "食欲不振"),
+            ("发烧", "发热"),
+            ("发热", "发烧"),
+            ("發燒", "发热"),
+            ("咽喉疼痛", "咽痛"),
+            ("咽痛", "咽喉疼痛"),
+            ("胃口差", "食欲差"),
+            ("食欲差", "胃口差"),
+            ("胃口不好", "食欲差"),
+            ("食欲差", "胃口不好"),
+            ("食欲不振", "食欲差"),
+            ("食欲差", "食欲不振"),
         )
         for query_clue, evidence_clue in pairs:
             with self.subTest(query=query_clue, evidence=evidence_clue):
@@ -165,7 +216,9 @@ class AnswerQualityTests(unittest.TestCase):
                 self.assertIn("麻黄汤", answer["answer"])
                 self.assertTrue(answer["citations"])
 
-    def test_source_citation_prefers_anchor_bearing_paragraph_over_unrelated_unit_quote(self) -> None:
+    def test_source_citation_prefers_anchor_bearing_paragraph_over_unrelated_unit_quote(
+        self,
+    ) -> None:
         evidence = result("太阳中风，桂枝汤主之。")
         evidence["matched_knowledge_units"] = [
             {"unit_type": "clinical_pattern", "evidence_quote": "头痛者另论"}
@@ -382,7 +435,9 @@ class AnswerQualityTests(unittest.TestCase):
                     pdf_vector.filter_results_for_intent(query, "source_lookup", [evidence]),
                     [evidence],
                 )
-                self.assertTrue(pdf_vector.synthesize_pdf_rag_answer(query, [evidence])["citations"])
+                self.assertTrue(
+                    pdf_vector.synthesize_pdf_rag_answer(query, [evidence])["citations"]
+                )
 
     def test_named_anchor_evidence_accepts_ordinary_prose_continuations(self) -> None:
         cases = (
@@ -447,7 +502,9 @@ class AnswerQualityTests(unittest.TestCase):
             }
         ]
 
-        answer = pdf_vector.synthesize_pdf_rag_answer("患者恶寒咳嗽、下利恶心，开什么方？", [evidence])
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "患者恶寒咳嗽、下利恶心，开什么方？", [evidence]
+        )
 
         self.assertNotIn("桂枝汤", answer["answer"])
         self.assertTrue(answer["citations"])
@@ -471,7 +528,9 @@ class AnswerQualityTests(unittest.TestCase):
                 self.assertIn("没有检索到足够可靠的原文证据", answer["answer"])
                 self.assertNotIn("原文要点包括：。", answer["answer"])
 
-    def test_uncontained_derived_dosage_quote_cannot_make_unrelated_paragraph_evidence(self) -> None:
+    def test_uncontained_derived_dosage_quote_cannot_make_unrelated_paragraph_evidence(
+        self,
+    ) -> None:
         evidence = result("普通课程目录介绍。")
         evidence["matched_knowledge_units"] = [
             {
@@ -490,9 +549,7 @@ class AnswerQualityTests(unittest.TestCase):
 
     def test_source_citation_prefers_verified_contained_quote(self) -> None:
         evidence = result("课程前言。太阳中风，桂枝汤主之。后续说明。")
-        evidence["matched_knowledge_units"] = [
-            {"evidence_quote": "太阳中风，桂枝汤主之。"}
-        ]
+        evidence["matched_knowledge_units"] = [{"evidence_quote": "太阳中风，桂枝汤主之。"}]
 
         answer = pdf_vector.synthesize_pdf_rag_answer("桂枝汤出处", [evidence])
 
@@ -500,9 +557,7 @@ class AnswerQualityTests(unittest.TestCase):
 
     def test_cross_script_derived_quote_is_not_emitted_as_literal_original(self) -> None:
         evidence = result("太陽中風，桂枝湯主之。")
-        evidence["matched_knowledge_units"] = [
-            {"evidence_quote": "太阳中风，桂枝汤主之。"}
-        ]
+        evidence["matched_knowledge_units"] = [{"evidence_quote": "太阳中风，桂枝汤主之。"}]
 
         answer = pdf_vector.synthesize_pdf_rag_answer("桂枝汤出处", [evidence])
 
@@ -517,9 +572,7 @@ class AnswerQualityTests(unittest.TestCase):
             page=2,
         )
 
-        answer = pdf_vector.synthesize_pdf_rag_answer(
-            "白虎加人参汤出处", [unrelated, matching]
-        )
+        answer = pdf_vector.synthesize_pdf_rag_answer("白虎加人参汤出处", [unrelated, matching])
 
         self.assertEqual(answer["citations"][0]["paragraph_id"], "p-matching")
         self.assertIn("白虎加人参汤", answer["citations"][0]["evidence_quote"])
@@ -597,7 +650,14 @@ class AnswerQualityTests(unittest.TestCase):
             "患者下利",
             "clinical",
             [],
-            [{"subject": "某汤", "predicate": "主治", "object": "下利", "evidence_quote": "下利，某汤主之。"}],
+            [
+                {
+                    "subject": "某汤",
+                    "predicate": "主治",
+                    "object": "下利",
+                    "evidence_quote": "下利，某汤主之。",
+                }
+            ],
         )
         joined = "\n".join(questions)
 
@@ -614,6 +674,135 @@ class AnswerQualityTests(unittest.TestCase):
         )
 
         self.assertTrue(any("麻黄汤" in question for question in questions))
+
+
+class RetrievalAnswerabilityRegressionTests(unittest.TestCase):
+    def test_sweat_comparison_clinical_answer_is_direct_and_quotes_original(self) -> None:
+        evidence = result(
+            "病人时常发热自汗而不愈，卫气不和，宜桂枝汤。麻黄汤一定是无汗，身痛、恶寒较重。"
+        )
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "感冒后怕冷，有汗和无汗在课程里分别该看哪些分水岭？",
+            [evidence],
+        )
+
+        self.assertIn("有汗或汗出", answer["answer"])
+        self.assertIn("核对桂枝汤证", answer["answer"])
+        self.assertIn("核对麻黄汤证", answer["answer"])
+        self.assertIn("发热自汗", answer["answer_sections"]["key_points"][0]["text"])
+        self.assertIn("麻黄汤一定是无汗", answer["citations"][0]["evidence_quote"])
+        self.assertIn("不能据此", answer["answer"])
+
+    def test_three_grade_gap_names_primary_corpus_and_opt_in_reference_boundary(self) -> None:
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "《神农本草》课程里上中下三品的分类重点是什么？",
+            [],
+        )
+
+        self.assertIn("默认主课程语料", answer["answer"])
+        self.assertIn("同时解释上、中、下三品", answer["answer"])
+        self.assertIn("--include-references", answer["answer"])
+        self.assertIn("非倪海厦著作", answer["answer"])
+        self.assertEqual(answer["citations"], [])
+
+    def test_four_seasons_answer_states_supported_mapping_and_missing_scope(self) -> None:
+        long_summer = result(
+            "如果我们把它分成春夏秋冬，中间就是所谓长夏，长夏就是节气交换时。",
+            paragraph_id="p-long-summer",
+            page=31,
+        )
+        organs = result(
+            "春天就是肝脏，夏天就是心脏，秋天是肺脏，冬天是肾脏。",
+            paragraph_id="p-organs",
+            page=239,
+        )
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "《黄帝内经》课程怎样讲春夏秋冬与养生的对应关系？",
+            [long_summer, organs],
+        )
+
+        self.assertIn("春、夏、秋、冬依次联系到肝、心、肺、肾", answer["answer"])
+        self.assertIn("节气交换阶段称为“长夏”", answer["answer"])
+        self.assertIn("没有完整列出", answer["answer"])
+        self.assertIn("春天就是肝脏", answer["answer_sections"]["key_points"][0]["text"])
+        self.assertNotIn("针", answer["answer_sections"]["key_points"][0]["text"])
+        self.assertEqual(answer["answer_sections"]["citation_count"], 2)
+
+    def test_chest_bi_learning_mainline_prefers_chapter_evidence(self) -> None:
+        formula_detail = result(
+            "胸痹之病，喘息咳唾，胸背痛，短气。",
+            paragraph_id="p-formula",
+            page=106,
+        )
+        chapter = result(
+            "胸痹心痛短气病脉证第九篇，《金匮》第九篇。",
+            paragraph_id="p-chapter",
+            page=105,
+        )
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "《金匮要略》课程里胸痹的学习主线是什么？",
+            [formula_detail, chapter],
+        )
+
+        self.assertEqual(
+            [citation["paragraph_id"] for citation in answer["citations"]],
+            ["p-chapter"],
+        )
+        self.assertIn("学习起点", answer["answer"])
+        self.assertIn("第九篇", answer["answer_sections"]["key_points"][0]["text"])
+        self.assertIn("不是心血管疾病诊断", answer["safety_notice"])
+
+    def test_formula_comparison_answer_is_direct_and_citation_bound(self) -> None:
+        evidence = result(
+            "病人时常发热自汗而不愈，卫气不和，宜桂枝汤。麻黄汤一定是无汗，身痛、恶寒较重。"
+        )
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "桂枝汤和麻黄汤的方证如何鉴别？",
+            [evidence],
+        )
+
+        self.assertIn("首要分水岭是汗", answer["answer"])
+        self.assertIn("发热自汗", answer["citations"][0]["evidence_quote"])
+        self.assertIn("无汗", answer["citations"][0]["evidence_quote"])
+        self.assertIn("不是个人选方", answer["safety_notice"])
+
+    def test_combination_answer_requires_both_entities_and_names_four_gates(self) -> None:
+        incomplete = result("合谷是手阳明大肠经穴。", paragraph_id="p-incomplete")
+        grounded = result("四关就是太冲还有合谷，合谷和太冲叫四关。", paragraph_id="p-grounded")
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "合谷和太冲合称什么",
+            [incomplete, grounded],
+        )
+
+        self.assertEqual([item["paragraph_id"] for item in answer["citations"]], ["p-grounded"])
+        self.assertIn("合称“四关”", answer["answer"])
+        self.assertIn("合谷和太冲叫四关", answer["citations"][0]["evidence_quote"])
+
+    def test_urgent_symptoms_precede_insufficient_evidence(self) -> None:
+        answer = pdf_vector.synthesize_pdf_rag_answer("60岁胸痛、气短能否直接选方？", [])
+
+        self.assertTrue(answer["answer"].startswith(pdf_vector.EMERGENCY_SAFETY_NOTICE))
+        self.assertIn("不要等待课程资料检索结果", answer["safety_notice"])
+
+    def test_tianji_and_systematic_review_report_capability_gap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db_path = Path(tmpdir) / "rag.sqlite"
+            store = pdf_vector.LocalVectorStore(db_path)
+            store.recreate()
+            store.insert_paragraphs(
+                [pdf_vector.ParsedParagraph("p1", "doc", "/tmp/伤寒.pdf", "伤寒", 1, 1, "太阳病。")]
+            )
+
+            tianji_gap = pdf_vector.rag_capability_gap("天纪的先天卦与后天卦", db_path)
+            learning_gap = pdf_vector.rag_capability_gap("系统复习伤寒论应该按什么顺序", db_path)
+
+        self.assertIn("RAG PDF 语料不包含《天纪》", tianji_gap)
+        self.assertIn("references/learning-entry.md", learning_gap)
 
 
 if __name__ == "__main__":

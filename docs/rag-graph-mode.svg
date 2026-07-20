@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">RAG 与知识图谱模式的信息流</title>
+  <desc id="desc">用户问题经过任务识别后，分别进入 BM25、BGE-M3 与 FAISS、规则知识单元和受控图谱关系四路召回，再经过融合排序、核心实体和正文证据门控，最终输出带 PDF 原文、页码和安全边界的回答。语料缺失的问题转入能力缺口或轻量模块。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7f8ea3"/>
+    </marker>
+    <style>
+      .bg { fill: #0d1219; }
+      .panel { fill: #151d27; stroke: #314052; stroke-width: 1.5; }
+      .panel-strong { fill: #192433; stroke: #5f7896; stroke-width: 2; }
+      .gate { fill: #20291f; stroke: #7f9c69; stroke-width: 2; }
+      .evidence { fill: #2b2518; stroke: #c59a50; stroke-width: 2; }
+      .warning { fill: #281d21; stroke: #b96b76; stroke-width: 1.5; }
+      .line { fill: none; stroke: #7f8ea3; stroke-width: 2.2; marker-end: url(#arrow); }
+      .line-muted { fill: none; stroke: #586779; stroke-width: 1.6; stroke-dasharray: 7 7; marker-end: url(#arrow); }
+      .title { fill: #f4f7fb; font: 700 31px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .subtitle { fill: #9eacbd; font: 400 15px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .node-title { fill: #eef3f9; font: 700 19px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .node-copy { fill: #aebacc; font: 400 14px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .label { fill: #8da2ba; font: 600 12px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: 1.5px; }
+      .accent-blue { fill: #7eb3e6; }
+      .accent-green { fill: #9fbe82; }
+      .accent-gold { fill: #e1b766; }
+      .accent-red { fill: #d98a94; }
+      .chip { fill: #233143; stroke: #40556d; stroke-width: 1; }
+      .chip-text { fill: #bfd0e4; font: 600 12px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="900" rx="28"/>
+
+  <text class="title" x="72" y="68">RAG + 知识图谱：从问题到可追溯原文</text>
+  <text class="subtitle" x="72" y="98">检索组件负责找路，PDF 原始段落负责作证；高分候选不能绕过证据门控。</text>
+
+  <rect class="panel-strong" x="510" y="126" width="420" height="94" rx="18"/>
+  <text class="label" x="540" y="155">INPUT + ROUTING</text>
+  <text class="node-title" x="540" y="185">用户问题 → 任务识别与风险分流</text>
+  <text class="node-copy" x="540" y="207">规范化查询 · 抽取核心实体 · 判断语料能力</text>
+
+  <path class="line" d="M 720 220 L 720 267"/>
+  <path class="line-muted" d="M 930 173 L 1030 173"/>
+
+  <rect class="warning" x="1030" y="126" width="330" height="104" rx="16"/>
+  <text class="label accent-red" x="1058" y="155">CAPABILITY / SAFETY GATE</text>
+  <text class="node-title" x="1058" y="184">语料缺失或急症</text>
+  <text class="node-copy" x="1058" y="208">明确能力缺口 · 转轻量模块 · 急救提示前置</text>
+
+  <text class="label" x="72" y="283">FOUR RETRIEVAL CHANNELS</text>
+
+  <rect class="panel" x="72" y="304" width="284" height="176" rx="18"/>
+  <circle cx="105" cy="340" r="10" fill="#7eb3e6"/>
+  <text class="node-title" x="126" y="347">Text / BM25</text>
+  <text class="node-copy" x="98" y="382">精确方名、穴位、原句、出处</text>
+  <text class="node-copy" x="98" y="407">正文优先 · 完整短语 · 噪声降权</text>
+  <rect class="chip" x="98" y="432" width="142" height="28" rx="14"/>
+  <text class="chip-text" x="115" y="451">不需要 Embedding</text>
+
+  <rect class="panel" x="392" y="304" width="284" height="176" rx="18"/>
+  <circle cx="425" cy="340" r="10" fill="#9fbe82"/>
+  <text class="node-title" x="446" y="347">Vector</text>
+  <text class="node-copy" x="418" y="382">BGE-M3 表示查询和正文语义</text>
+  <text class="node-copy" x="418" y="407">FAISS 搜索 359,557 个 dense 向量</text>
+  <rect class="chip" x="418" y="432" width="174" height="28" rx="14"/>
+  <text class="chip-text" x="435" y="451">语义相似 ≠ 事实证据</text>
+
+  <rect class="panel" x="712" y="304" width="284" height="176" rx="18"/>
+  <circle cx="745" cy="340" r="10" fill="#c1a1dd"/>
+  <text class="node-title" x="766" y="347">Knowledge</text>
+  <text class="node-copy" x="738" y="382">方证、症状、比较、剂量线索</text>
+  <text class="node-copy" x="738" y="407">规则知识单元增加可解释候选</text>
+  <rect class="chip" x="738" y="432" width="158" height="28" rx="14"/>
+  <text class="chip-text" x="755" y="451">必须绑定原始段落</text>
+
+  <rect class="panel" x="1032" y="304" width="328" height="176" rx="18"/>
+  <circle cx="1065" cy="340" r="10" fill="#e1b766"/>
+  <text class="node-title" x="1086" y="347">Graph</text>
+  <text class="node-copy" x="1058" y="382">实体、别名与受控关系导航</text>
+  <text class="node-copy" x="1058" y="407">仅 accepted / reviewed 关系参与</text>
+  <rect class="chip" x="1058" y="432" width="185" height="28" rx="14"/>
+  <text class="chip-text" x="1075" y="451">图谱不是最终证据</text>
+
+  <path class="line" d="M 590 220 C 430 245, 214 250, 214 304"/>
+  <path class="line" d="M 660 220 C 610 254, 534 262, 534 304"/>
+  <path class="line" d="M 780 220 C 820 252, 854 265, 854 304"/>
+  <path class="line" d="M 860 220 C 1000 246, 1196 258, 1196 304"/>
+
+  <path class="line" d="M 214 480 C 214 548, 520 542, 520 594"/>
+  <path class="line" d="M 534 480 L 534 594"/>
+  <path class="line" d="M 854 480 C 854 548, 710 542, 710 594"/>
+  <path class="line" d="M 1196 480 C 1110 570, 922 600, 820 628"/>
+
+  <rect class="panel-strong" x="390" y="594" width="480" height="88" rx="18"/>
+  <text class="label" x="420" y="624">RANKING</text>
+  <text class="node-title" x="420" y="653">RRF 融合 + 可选 Reranker</text>
+  <text class="node-copy" x="690" y="653">Graph weight 0.35</text>
+
+  <path class="line" d="M 630 682 L 630 718"/>
+
+  <rect class="gate" x="334" y="718" width="592" height="78" rx="18"/>
+  <text class="label accent-green" x="364" y="747">ANSWERABILITY GATE</text>
+  <text class="node-title" x="364" y="776">核心实体 · 正文命中 · 来源分层 · 去重与噪声过滤</text>
+
+  <path class="line" d="M 926 757 L 990 757"/>
+
+  <rect class="evidence" x="990" y="690" width="370" height="134" rx="18"/>
+  <text class="label accent-gold" x="1020" y="720">AUTHORITATIVE EVIDENCE</text>
+  <text class="node-title" x="1020" y="750">PDF 原始段落</text>
+  <text class="node-copy" x="1020" y="777">原文摘录 · 文件名 · 页码 · 段落 ID</text>
+  <text class="node-copy" x="1020" y="801">前后文导航 · 来源层 · 安全边界</text>
+
+  <rect x="72" y="724" width="214" height="72" rx="16" fill="#111923" stroke="#314052"/>
+  <text class="label" x="96" y="751">NON-EVIDENCE</text>
+  <text class="node-copy" x="96" y="777">向量分数 / 图谱边 / 标题命中</text>
+  <path class="line-muted" d="M 286 760 L 334 760"/>
+
+  <text class="subtitle" x="72" y="858">原则：能回答时展示原文；证据不足时明确不足；语料缺失时不跨课程拼接。</text>
+</svg>

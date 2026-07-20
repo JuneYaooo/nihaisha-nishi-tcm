@@ -13,12 +13,12 @@ SAFETY_NOTICE = (
     "安全提示：以下仅为文献证据定位。涉及剂量、煎服、针灸、放血、外敷、"
     "急症或毒烈药内容时，不得作为个人医疗建议或自行操作依据。"
 )
-HIGH_RISK_RE = re.compile(
-    r"剂量|劑量|煎|服|内服|內服|外敷|处方|處方|抓药|抓藥|汤|湯|"
-    r"下针|下針|针刺|針刺|刺破|放血|火罐|艾灸|灸|"
-    r"附子|乌头|烏頭|细辛|細辛|硫磺|巴豆|甘遂|大戟|芫花|水蛭|虻虫|虻蟲|"
-    r"朱砂|雄黄|雄黃|铅丹|鉛丹|砒|癌|肿瘤|腫瘤|急救|中毒|毒蛇|破伤风|破傷風"
+ACTIONABLE_RISK_RE = re.compile(
+    r"剂量|劑量|煎服|煎煮|内服|內服|外敷|处方|處方|抓药|抓藥|"
+    r"下针|下針|针刺|針刺|刺破|放血|火罐|艾灸|灸法|"
+    r"用法用量|每日\s*\d|一日\s*\d|\d+(?:\.\d+)?\s*(?:克|钱|錢|两|兩|毫升|ml)"
 )
+SENTENCE_RE = re.compile(r"[^\n。！？!?；;]+(?:[。！？!?；;]|$)")
 FOLDED_NOTICE = (
     "[高风险内容已折叠：原摘录涉及可执行医疗、方药、针灸或急重症细节；"
     "默认只用于定位证据，不展开为操作说明。]"
@@ -66,9 +66,22 @@ def load_term_hits(path: Path, terms: list[str], module: str | None) -> dict[str
 
 
 def safe_excerpt(text: str, show_excerpt: bool) -> str:
-    if show_excerpt or not HIGH_RISK_RE.search(text):
+    """Keep safe source sentences visible and fold only actionable instructions."""
+    if show_excerpt or not ACTIONABLE_RISK_RE.search(text):
         return text
-    return FOLDED_NOTICE
+    visible: list[str] = []
+    folded = False
+    for match in SENTENCE_RE.finditer(text):
+        sentence = match.group(0).strip()
+        if not sentence:
+            continue
+        if ACTIONABLE_RISK_RE.search(sentence):
+            if not folded:
+                visible.append(FOLDED_NOTICE)
+                folded = True
+            continue
+        visible.append(sentence)
+    return " ".join(visible) if visible else FOLDED_NOTICE
 
 
 def is_supplement(card: dict) -> bool:
@@ -150,7 +163,9 @@ def limit_matches(cards: list[dict], limit: int, *, diversify_sources: bool = Fa
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("terms", nargs="+", help="Chinese terms to search, e.g. 大青龙汤 荥穴")
-    parser.add_argument("--evidence-dir", default="references/pdf-evidence", help="PDF evidence directory")
+    parser.add_argument(
+        "--evidence-dir", default="references/pdf-evidence", help="PDF evidence directory"
+    )
     parser.add_argument(
         "--text-evidence-dir",
         default="references/text-evidence",
@@ -162,7 +177,9 @@ def main() -> int:
         default=10,
         help="Maximum rows per evidence layer; use 0 for all matches",
     )
-    parser.add_argument("--module", help="Optional module index, e.g. shanghan, bencao, acupuncture")
+    parser.add_argument(
+        "--module", help="Optional module index, e.g. shanghan, bencao, acupuncture"
+    )
     parser.add_argument("--doc-id", help="Optional stable document ID from source-manifest.json")
     layer_group = parser.add_mutually_exclusive_group()
     layer_group.add_argument(
@@ -201,9 +218,6 @@ def main() -> int:
 
     def print_card(card: dict) -> None:
         full_page_text = card_text(card)
-        if is_supplement(card):
-            print(f"来源层级：{SUPPLEMENT_LABEL}")
-        print(f"{card['citation']} {card['source_name']} {card['locator']}")
         snippets = []
         for term in terms:
             for hit in term_hits.get(term, []):
@@ -216,7 +230,10 @@ def main() -> int:
             result_text = " / ".join(snippets)
         else:
             result_text = safe_excerpt(full_page_text, False)
-        print(result_text)
+        print(f"原文摘录：{result_text}")
+        print(f"来源：{card['citation']} {card['source_name']} {card['locator']}")
+        if is_supplement(card):
+            print(f"来源层级：{SUPPLEMENT_LABEL}")
         print()
 
     for card in limit_matches(primary_matches, args.limit):
