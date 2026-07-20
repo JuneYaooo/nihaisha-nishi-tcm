@@ -13,7 +13,9 @@ def test_skill_defaults_to_lightweight_retrieval() -> None:
     assert "### Default Retrieval Policy" in skill
     assert "The default path is the lightweight bundled Skill" in skill
     assert "Full-corpus RAG is explicit opt-in only" in skill
-    assert "obtain explicit confirmation" in skill
+    assert "A request to use RAG is not permission to download its data" in skill
+    assert "Stop without downloading" in skill
+    assert "data/pdf_rag_bge_m3/" in skill
 
 
 def test_ordinary_formula_and_source_queries_do_not_route_to_rag() -> None:
@@ -34,7 +36,8 @@ def test_agent_default_prompt_forbids_automatic_rag_download() -> None:
 
     assert "默认只使用 references" in agent_config
     assert "不自动安装、下载或调用 RAG" in agent_config
-    assert "明确同意时，才启用可选 RAG" in agent_config
+    assert "不得自动下载" in agent_config
+    assert "另行明确要求下载 RAG 数据时才可下载" in agent_config
 
 
 def test_skill_installer_excludes_heavy_and_local_artifacts() -> None:

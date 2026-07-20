@@ -27,7 +27,7 @@ The course distillation method used in this project comes from the author's [lin
 
 ### 2026-07-18
 
-- Added a RAG + knowledge-graph mode. Its required resources are relatively large and the mode is still under testing; download with caution if disk space is limited.
+- Added a RAG + knowledge-graph mode. The complete assets are about 3.68 GB and the mode is still under testing; download with caution if disk space is limited.
 
 ### 2026-07-16
 
@@ -52,6 +52,23 @@ The course distillation method used in this project comes from the author's [lin
 - **PDF source evidence**: supports module-, keyword-, and page-based lookup across course handouts and related classical sources, with a separate supplemental second pass after relevant course matches.
 - **Non-PDF text evidence**: recommended text sections can be located independently and remain separate from Ni Haisha's own material.
 - **Safety boundary**: defaults to course study and TCM theory organization. It does not provide personal diagnosis, prescriptions, or dosage guidance.
+
+## Optional RAG + Knowledge-Graph Mode (Testing)
+
+RAG + knowledge-graph retrieval is not the default. Ordinary course questions, formula
+comparisons, lesson review, screenshot search, and PDF page traceback first use the lightweight
+bundled material and search scripts.
+
+The mode is used only when the user explicitly requests RAG and complete verified data is already
+available locally. If data is missing, the agent only reports the required space, download source,
+and local path; it **must not download automatically**. Downloading starts only after the user
+separately and explicitly asks to download the RAG data.
+
+- Complete assets: about **3.68 GB**; the mode is still under testing, so use caution when disk space is limited.
+- Source: [Hugging Face Dataset — `JuneYao/nihaisha-rag-assets`](https://huggingface.co/datasets/JuneYao/nihaisha-rag-assets)
+- Pinned revision: `production-2026-07-15`
+- Local data path: `data/pdf_rag_bge_m3/`
+- Reuse: completed downloads are verified and retained locally, so they do not need to be downloaded again.
 
 ## Best-fit use cases
 
@@ -111,11 +128,8 @@ The course distillation method used in this project comes from the author's [lin
 Installation and ordinary use are lightweight by default. Course questions, formula comparisons,
 lesson review, screenshot search, and PDF page traceback use the bundled `references/`, `assets/`,
 and lightweight search scripts. They do not install Python RAG dependencies or automatically
-download models or the optional 3.68 GB RAG assets. Full semantic RAG is enabled only when the
-user explicitly requests it, or when lightweight retrieval is insufficient and the user approves
-the download after being told its cost. The optional data comes from the public
-[Hugging Face Dataset](https://huggingface.co/datasets/JuneYao/nihaisha-rag-assets), is verified
-after download, and is retained locally for reuse.
+download models or RAG assets. See “Optional RAG + Knowledge-Graph Mode” above for its approximately
+3.68 GB asset size, explicit-download rule, and local data path.
 
 Paste this prompt into your AI assistant:
 
