@@ -29,6 +29,11 @@ This skill is educational. Do not present content as diagnosis, prescription, or
   A request to use RAG is not permission to download its data; download only when the user
   separately and explicitly asks to download the RAG assets. Lightweight retrieval being
   insufficient never authorizes an automatic download.
+- After explicit RAG opt-in, treat full-corpus RAG as a composite product mode, not as a standalone
+  CLI answerer. For a covered PDF question, use optimized `hybrid` retrieval with reranker `auto`,
+  retain only original-paragraph evidence, and let the same agent-level answerer handle colloquial
+  intent, uncertainty, safety, and final synthesis. RAG opt-in never disables lightweight capability
+  fallback or screenshot search.
 - Formula-pattern comparisons stay on `references/formula-patterns.md` plus
   `references/six-channel.md` by default. Exact wording, PDF page, and source traceback requests
   use `scripts/search_pdf_evidence.py` first.
@@ -69,7 +74,7 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - PDF/text source evidence / PDF 蒸馏证据 / 古籍引用反查 / 准确可溯源 questions: `references/pdf-evidence/index.md` and, for non-PDF supplements, `references/text-evidence/index.md`; use `python scripts/search_pdf_evidence.py <term...> --module <module>`. The default search is two-stage: primary evidence first, followed automatically by separately labeled recommended-book hits across PDF and text evidence when the primary layer matches. Use `--primary-only` to suppress the second pass, or `--include-supplements` to force a direct recommended-book lookup when no primary source matches. Add `--show-full-page` only when the whole page/section is needed. Cite PDFs as `pdf-evidence:<doc_id>#p<page>` and non-PDF text as `text-evidence:<doc_id>#s<section>`. Do not open large evidence-card files wholesale. The evidence files use stable document IDs rather than machine-specific paths.
    - Optional full-corpus RAG: only after explicit user opt-in and only when verified local assets are already present, use the local `nihaisha_kg` runtime described in **Optional RAG Runtime Assets** below for cross-corpus semantic retrieval or deeper original-paragraph exploration. Prefer `text` for exact wording and `hybrid` for semantic questions. Keep `reference_secondary` results separate and label them `关联参考资料（非倪海厦著作）`.
    - Course overview or integrated lookup: `references/shanghanlun.md`.
-   - Board/PPT/source evidence: use `python scripts/search_screenshots.py <query or terms...>` for ranked results across all screenshot evidence files. The script normalizes natural-language queries and compound terms; use `--show-terms` when checking how a query was split.
+   - Board/PPT/source evidence: use `python scripts/search_screenshots.py <query or terms...>` for ranked results across all screenshot evidence files. This route is shared by lightweight and full RAG modes. Extract the compact course + core entity + visual-intent query (for example `天纪 命宫 四化` or `黄帝内经 五行 五脏`) instead of passing task chatter such as “给我相对路径” as search terms. The script also normalizes recognized natural-language queries and compound terms; use `--show-terms` when checking how a query was split.
 3. Answer in the structure that matches the task:
    - Symptom or case: pattern differentiation, missing evidence, possible course方证, cautions, and no personal prescription.
    - Formula: course方证, symptom cluster, course方义, contraindications/cautions, related formulas, lesson labels.
@@ -122,6 +127,11 @@ python3 -m nihaisha_kg search "麻黄汤对应什么方证" --mode graph --limit
 python3 -m nihaisha_kg answer "桂枝汤和麻黄汤的方证如何鉴别？" --mode hybrid --limit 8
 python3 -m nihaisha_kg answer "关联资料中的相关原文" --mode text --limit 8 --include-references
 ```
+
+In the full RAG composite mode, use `--reranker auto --json --trace` for covered semantic PDF
+questions. The CLI output is an evidence packet, not the final user-facing answer: graph relations
+remain navigation-only, visible claims must bind to original paragraphs, and the agent must still
+apply the normal lightweight fallbacks, screenshot route, and safety policy before answering.
 
 `text`, `knowledge`, and `graph` need no API key. `vector` and `hybrid` require FAISS plus a
 query embedding backend. Every visible answer citation must point to an original paragraph with

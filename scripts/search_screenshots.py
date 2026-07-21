@@ -61,6 +61,30 @@ DOMAIN_TERMS = [
     "督脉",
     "加减",
 ]
+COURSE_QUERY_TERMS = [
+    "黄帝内经",
+    "神农本草",
+    "伤寒论",
+    "金匮要略",
+    "仲景心法",
+    "临床案例",
+    "八纲辨证",
+    "扶阳论坛",
+    "易筋经",
+    "天纪",
+    "针灸",
+    "内经",
+    "本草",
+    "金匮",
+    "伤寒",
+]
+SCREENSHOT_ENTITY_TERMS = [
+    "内关穴",
+    "内关",
+    "五行",
+    "五脏",
+    "附子",
+]
 FORMULA_RE = re.compile(
     r"(?:小|大|桂枝|麻黄|葛根|柴胡|四逆|承气|白虎|真武|五苓|半夏|甘草|黄连|"
     r"黄芩|附子|茯苓|当归|吴茱萸|白通|建中|乌梅|苓桂|桃核|抵当|陷胸)"
@@ -153,6 +177,16 @@ def expand_compound_term(term: str) -> list[str]:
 
 
 def normalize_terms(raw_terms: list[str]) -> list[str]:
+    raw_text = " ".join(raw_terms)
+    strong_terms: list[str] = []
+    for match in FORMULA_RE.finditer(raw_text):
+        add_unique(strong_terms, match.group(0))
+    for term in [*COURSE_QUERY_TERMS, *SCREENSHOT_ENTITY_TERMS, *DOMAIN_TERMS]:
+        if term in raw_text:
+            add_unique(strong_terms, term)
+    if strong_terms:
+        return strong_terms
+
     parts: list[str] = []
     for raw in raw_terms:
         text = raw.strip()

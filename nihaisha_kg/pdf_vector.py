@@ -256,6 +256,72 @@ EMERGENCY_QUERY_TERMS = (
     "严重过敏",
     "嚴重過敏",
 )
+COLLOQUIAL_COMPARISON_MARKERS = (
+    "差在哪",
+    "差在哪里",
+    "差在哪儿",
+    "怎么分",
+    "怎麼分",
+    "如何分",
+    "分不清",
+    "老记混",
+    "我老记混",
+    "老記混",
+    "容易记混",
+    "容易記混",
+    "到底怎么选",
+    "到底怎麼選",
+    "怎么选",
+    "怎麼選",
+    "选哪个",
+    "選哪個",
+    "一个轻一个重",
+    "一個輕一個重",
+)
+SELF_NEEDLING_ACTION_MARKERS = (
+    "多深",
+    "深度",
+    "方向",
+    "朝哪",
+    "怎么扎",
+    "怎麼扎",
+    "怎么刺",
+    "怎麼刺",
+    "怎么下针",
+    "怎麼下針",
+    "进针",
+    "進針",
+)
+PEDIATRIC_QUERY_MARKERS = ("孩子", "小孩", "儿童", "兒童", "宝宝", "寶寶", "幼儿", "幼兒")
+PEDIATRIC_FEVER_MARKERS = ("高烧", "高燒", "高热", "高熱", "一直发烧", "一直發燒", "持续发烧", "持續發燒")
+PEDIATRIC_DANGER_MARKERS = (
+    "没精神",
+    "沒精神",
+    "精神差",
+    "嗜睡",
+    "叫不醒",
+    "反应差",
+    "反應差",
+    "意识",
+    "意識",
+    "抽搐",
+)
+CANCER_QUERY_MARKERS = ("癌症", "癌", "肿瘤", "腫瘤")
+CANCER_STANDARD_CARE_DENIAL_MARKERS = (
+    "不手术",
+    "不手術",
+    "不用手术",
+    "不用手術",
+    "不化疗",
+    "不化療",
+    "不用化疗",
+    "不用化療",
+    "不放疗",
+    "不放療",
+    "肯定能治好",
+    "保证治好",
+    "保證治好",
+)
 SOURCE_LOOKUP_MARKERS = ("出处", "哪本书", "哪一本书", "哪一页", "哪一段", "原文")
 REFERENCE_MATERIAL_QUERY_MARKERS = (
     "参考书",
@@ -400,6 +466,17 @@ FORMULA_RIGHT_QUERY_SUFFIXES = (
     "鉴别",
     "比较",
     "区别",
+    "差在哪",
+    "差在哪里",
+    "差在哪儿",
+    "怎么分",
+    "如何分",
+    "老记混",
+    "我老记混",
+    "容易记混",
+    "到底怎么选",
+    "怎么选",
+    "选哪个",
     "和",
     "与",
     "、",
@@ -1949,6 +2026,121 @@ class ClosingConnection(sqlite3.Connection):
         return bool(result)
 
 
+GRAPH_PREDICATE_RELEVANCE: dict[str, dict[str, float]] = {
+    "comparison": {
+        "differentiates_from": 1.25,
+        "indicates_pattern": 1.0,
+        "contraindicated_for": 0.8,
+        "supported_by": 0.35,
+    },
+    "clinical": {
+        "indicates_pattern": 1.15,
+        "contraindicated_for": 1.0,
+        "differentiates_from": 0.85,
+        "supported_by": 0.3,
+    },
+    "source_lookup": {
+        "supported_by": 0.9,
+        "indicates_pattern": 0.75,
+        "differentiates_from": 0.55,
+    },
+    "general": {
+        "indicates_pattern": 0.8,
+        "differentiates_from": 0.75,
+        "supported_by": 0.5,
+    },
+}
+
+
+def graph_relation_relevance(
+    query: str,
+    relation: dict[str, object],
+    paragraph_text: str,
+) -> float:
+    """Rank graph navigation by query fit and evidence quality, not extractor confidence alone."""
+    normalized_query = normalize_query_text(query)
+    intent = detect_answer_intent(query)
+    entity_name = normalize_query_text(str(relation.get("entity_name", "")))
+    object_entity_name = normalize_query_text(str(relation.get("object_entity_name", "")))
+    predicate = str(relation.get("predicate", ""))
+    literal_value = normalize_query_text(str(relation.get("literal_value", "")))
+    quote = normalize_query_text(str(relation.get("evidence_quote", "")))
+    paragraph = normalize_query_text(paragraph_text)
+    evidence = "\n".join((entity_name, object_entity_name, literal_value, quote, paragraph))
+
+    try:
+        confidence = float(relation.get("confidence", 0.0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    score = max(0.0, min(confidence, 1.0)) * 0.45
+    if entity_name and entity_name in normalized_query:
+        score += 1.6
+    if object_entity_name and object_entity_name in normalized_query:
+        score += 1.1
+    predicate_weights = GRAPH_PREDICATE_RELEVANCE.get(
+        intent, GRAPH_PREDICATE_RELEVANCE["general"]
+    )
+    score += predicate_weights.get(predicate, 0.2)
+
+    core_terms = query_core_entity_terms(query)
+    score += 0.32 * min(sum(normalize_query_text(term) in evidence for term in core_terms), 4)
+    lexical_terms = useful_query_terms(query, max_terms=12)
+    lexical_matches = sum(term in evidence for term in lexical_terms)
+    score += 0.16 * min(lexical_matches, 6)
+
+    quote_length = len(quote)
+    if "主之" in quote:
+        score += 1.0
+    direct_subject_pattern = re.compile(
+        re.escape(entity_name) + r"[^。！？!?；;]{0,8}主之"
+    ) if entity_name else None
+    if direct_subject_pattern and direct_subject_pattern.search(quote):
+        score += 0.9
+    elif "主之" in quote and entity_name:
+        named_main_formulas = {
+            formula
+            for formula in known_formula_terms_in_evidence(quote)
+            if re.search(re.escape(formula) + r"[^。！？!?；;]{0,8}主之", quote)
+        }
+        if named_main_formulas and entity_name not in named_main_formulas:
+            score -= 0.8
+    if predicate == "indicates_pattern":
+        pattern_clues = dedupe_keep_order(
+            [
+                *direct_present_terms(quote, SYMPTOM_TERMS),
+                *direct_present_terms(quote, SIX_CHANNEL_TERMS),
+                *(term for term in ("脉", "胸胁", "心下", "身疼", "骨节") if term in quote),
+            ]
+        )
+        score += 0.14 * min(len(pattern_clues), 6)
+    if 8 <= quote_length <= 180:
+        score += 0.45
+    elif quote_length > 500:
+        score -= min(0.8, (quote_length - 500) / 900)
+    if str(relation.get("review_status", "")) == "reviewed":
+        score += 0.2
+    if quote and quote not in paragraph:
+        score -= 1.0
+    if quote and len(set(quote)) / max(1, len(quote)) < 0.12:
+        score -= 0.45
+    if any(marker in quote for marker in ("□□", "�", "...", "……")):
+        score -= 0.25
+    score -= 0.8 * retrieval_noise_penalty("", quote)
+    score -= 0.35 * retrieval_noise_penalty("", paragraph)
+    return round(max(0.0, score), 6)
+
+
+def graph_query_lexical_terms(query: str, max_terms: int = 8) -> list[str]:
+    """Return bounded literal anchors for graph evidence fallback lookup."""
+    core = query_core_entity_terms(query)
+    terms = [
+        term
+        for term in useful_query_terms(query, max_terms=max_terms * 2)
+        if len(term) >= 3 and term not in core and term not in TASK_ONLY_QUERY_TERMS
+    ]
+    return dedupe_keep_order(terms)[:max_terms]
+
+
 class LocalVectorStore:
     def __init__(
         self,
@@ -3382,7 +3574,7 @@ class LocalVectorStore:
         query: str,
         limit: int = 8,
     ) -> list[dict[str, object]]:
-        """Navigate accepted entity relations back to their original paragraphs."""
+        """Navigate relevant accepted relations back to their original paragraphs."""
         validate_runtime_limit(limit, "limit", MAX_INTERNAL_SEARCH_LIMIT)
         normalized_query = normalize_query_text(query)
         entity_terms = dedupe_keep_order(
@@ -3394,7 +3586,8 @@ class LocalVectorStore:
                 *(term for term in ("一钱",) if term in normalized_query),
             ]
         )[:24]
-        if not entity_terms:
+        lexical_terms = graph_query_lexical_terms(query)
+        if not entity_terms and not lexical_terms:
             return []
 
         with self.connect() as conn:
@@ -3408,25 +3601,49 @@ class LocalVectorStore:
             relation_columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(relations)")}
             if "evidence_quote" not in relation_columns:
                 return []
-            placeholders = ",".join("?" for _ in entity_terms)
+            entity_clause = ""
+            query_params: list[object] = []
+            if entity_terms:
+                placeholders = ",".join("?" for _ in entity_terms)
+                entity_clause = (
+                    f"e.normalized_key IN ({placeholders}) "
+                    f"OR oe.normalized_key IN ({placeholders})"
+                )
+                normalized_entities = [
+                    normalize_whitespace(term).casefold() for term in entity_terms
+                ]
+                query_params.extend([*normalized_entities, *normalized_entities])
+            lexical_clauses: list[str] = []
+            for term in (() if entity_terms else lexical_terms):
+                lexical_clauses.append("(r.evidence_quote LIKE ? OR r.literal_value LIKE ?)")
+                pattern = f"%{term}%"
+                query_params.extend([pattern, pattern])
+            match_clause = " OR ".join(
+                clause for clause in (entity_clause, *lexical_clauses) if clause
+            )
+            candidate_limit = min(MAX_INTERNAL_SEARCH_LIMIT * 8, max(limit * 24, 96))
             rows = conn.execute(
                 f"""
                 SELECT r.relation_id, r.predicate, r.literal_value, r.evidence_quote, r.confidence,
                        r.extractor_version, r.review_status, r.source_layer,
                        e.entity_id, e.entity_type, e.canonical_name,
+                       oe.entity_id AS object_entity_id,
+                       oe.entity_type AS object_entity_type,
+                       oe.canonical_name AS object_entity_name,
                        ev.evidence_id, ev.previous_evidence_id, ev.next_evidence_id,
                        p.*
                 FROM entities e
                 JOIN relations r ON r.subject_entity_id = e.entity_id
+                LEFT JOIN entities oe ON oe.entity_id = r.object_entity_id
                 JOIN evidence_records ev ON ev.evidence_id = r.evidence_id
                 JOIN paragraphs p ON p.paragraph_id = ev.paragraph_id
-                WHERE e.normalized_key IN ({placeholders})
+                WHERE ({match_clause})
                   AND r.review_status IN ('auto_accepted', 'reviewed')
                 ORDER BY CASE r.review_status WHEN 'reviewed' THEN 0 ELSE 1 END,
                          r.confidence DESC, r.relation_id
                 LIMIT ?
                 """,
-                [*(normalize_whitespace(term).casefold() for term in entity_terms), limit * 8],
+                [*query_params, candidate_limit],
             ).fetchall()
 
             grouped: dict[str, dict[str, object]] = {}
@@ -3437,6 +3654,9 @@ class LocalVectorStore:
                     "entity_id": row["entity_id"],
                     "entity_type": row["entity_type"],
                     "entity_name": row["canonical_name"],
+                    "object_entity_id": row["object_entity_id"] or "",
+                    "object_entity_type": row["object_entity_type"] or "",
+                    "object_entity_name": row["object_entity_name"] or "",
                     "predicate": row["predicate"],
                     "literal_value": row["literal_value"],
                     "evidence_quote": row["evidence_quote"],
@@ -3446,6 +3666,8 @@ class LocalVectorStore:
                     "source_layer": row["source_layer"],
                     "evidence_id": row["evidence_id"],
                 }
+                relation_score = graph_relation_relevance(query, relation, str(row["text"]))
+                relation["relevance_score"] = relation_score
                 item = grouped.setdefault(
                     paragraph_id,
                     {
@@ -3468,6 +3690,7 @@ class LocalVectorStore:
                         "matched_text_terms": [],
                         "matched_knowledge_units": [],
                         "matched_graph_relations": [],
+                        "matched_query_entities": [],
                         "previous_evidence_id": row["previous_evidence_id"] or "",
                         "next_evidence_id": row["next_evidence_id"] or "",
                     },
@@ -3476,7 +3699,12 @@ class LocalVectorStore:
                 assert isinstance(matched, list)
                 matched.append(relation)
                 item["hit_count"] = len(matched)
-                item["graph_score"] = max(float(item["graph_score"]), float(row["confidence"]))
+                matched_entities = item["matched_query_entities"]
+                assert isinstance(matched_entities, list)
+                for entity_name in (row["canonical_name"], row["object_entity_name"] or ""):
+                    if entity_name in entity_terms and entity_name not in matched_entities:
+                        matched_entities.append(entity_name)
+                item["graph_score"] = max(float(item["graph_score"]), relation_score)
                 item["score"] = item["graph_score"]
 
         core_terms = query_core_entity_terms(query)
@@ -3489,15 +3717,55 @@ class LocalVectorStore:
                 for term in core_terms
             )
         ]
+        for item in grounded:
+            relations = item["matched_graph_relations"]
+            assert isinstance(relations, list)
+            relations.sort(
+                key=lambda relation: (
+                    -float(relation.get("relevance_score", 0.0)),
+                    str(relation.get("relation_id", "")),
+                )
+            )
+            item["graph_score"] = round(
+                float(item["graph_score"]) + 0.08 * min(max(0, len(relations) - 1), 4),
+                6,
+            )
+            item["score"] = item["graph_score"]
+
         ranked = sorted(
             grounded,
             key=lambda item: (
-                -len(item["matched_graph_relations"]),
+                -len(item.get("matched_query_entities", [])),
                 -float(item["graph_score"]),
+                -len(item["matched_graph_relations"]),
                 str(item["paragraph_id"]),
             ),
         )
-        return ranked[:limit]
+        if detect_answer_intent(query) != "comparison" or len(entity_terms) < 2:
+            return ranked[:limit]
+
+        balanced: list[dict[str, object]] = []
+        selected_ids: set[str] = set()
+        for entity in entity_terms:
+            candidate = next(
+                (
+                    item
+                    for item in ranked
+                    if str(item["paragraph_id"]) not in selected_ids
+                    and entity in item.get("matched_query_entities", [])
+                ),
+                None,
+            )
+            if candidate is None:
+                continue
+            balanced.append(candidate)
+            selected_ids.add(str(candidate["paragraph_id"]))
+            if len(balanced) >= limit:
+                return balanced
+        balanced.extend(
+            item for item in ranked if str(item["paragraph_id"]) not in selected_ids
+        )
+        return balanced[:limit]
 
     def search_hybrid(
         self,
@@ -3582,7 +3850,15 @@ def detect_answer_intent(query: str) -> str:
         marker in normalized for marker in SOURCE_LOOKUP_MARKERS
     ):
         return "source_lookup"
-    if any(marker in normalized for marker in ("鉴别", "比较", "区别")):
+    colloquial_comparison = any(
+        (
+            re.search(re.escape(marker) + r"(?!析)", normalized) is not None
+            if marker in {"怎么分", "怎麼分", "如何分"}
+            else marker in normalized
+        )
+        for marker in COLLOQUIAL_COMPARISON_MARKERS
+    )
+    if any(marker in normalized for marker in ("鉴别", "比较", "区别")) or colloquial_comparison:
         return "comparison"
     clinical_markers = (
         "病人",
@@ -3889,6 +4165,19 @@ def reliable_source_anchors(query: str) -> list[str]:
     return dedupe_keep_order([*formulas, *named])[:8]
 
 
+def source_lookup_literal_terms(query: str) -> list[str]:
+    """Keep user-quoted source phrases as exact lexical anchors."""
+    quoted_parts = re.findall(r"[“\"「『]([^”\"」』]{2,80})[”\"」』]", query)
+    terms: list[str] = []
+    for part in quoted_parts:
+        terms.extend(
+            normalize_query_text(fragment)
+            for fragment in TERM_SPLIT_RE.split(part)
+            if len(normalize_query_text(fragment)) >= 3
+        )
+    return dedupe_keep_order(terms)[:6]
+
+
 def useful_query_terms(text: str, max_terms: int = 24) -> list[str]:
     terms: list[str] = []
     terms.extend(MEASURE_TERM_RE.findall(text))
@@ -4017,6 +4306,12 @@ def build_query_plan(
         if query != normalized:
             exact_first.append(query)
         return dedupe_keep_order(exact_first)[:max_queries]
+    literal_source_terms = source_lookup_literal_terms(query)
+    if resolved_intent == "source_lookup" and literal_source_terms:
+        exact_first = [" ".join(literal_source_terms), normalized]
+        if query != normalized:
+            exact_first.append(query)
+        return dedupe_keep_order(exact_first)[:max_queries]
 
     if (
         resolved_intent == "general"
@@ -4094,6 +4389,8 @@ def fuse_query_rewrites(
     merge_fields = (
         "matched_units",
         "matched_knowledge_units",
+        "matched_graph_relations",
+        "matched_query_entities",
         "matched_text_terms",
         "unit_types",
     )
@@ -4943,6 +5240,19 @@ def citation_evidence_for_result(
                     return anchor_evidence_snippet(quote, anchors)
             if paragraph and evidence_contains_source_anchors(paragraph, anchors):
                 return anchor_evidence_snippet(paragraph, anchors)
+        literal_terms = source_lookup_literal_terms(query) if not anchors else []
+        if literal_terms:
+            for quote in unit_quotes:
+                snippet = core_terms_evidence_snippet(
+                    quote, literal_terms, require_all=True, max_chars=320
+                )
+                if snippet:
+                    return snippet
+            snippet = core_terms_evidence_snippet(
+                paragraph, literal_terms, require_all=True, max_chars=320
+            )
+            if snippet:
+                return snippet
         explicit_terms = explicit_query_formula_terms(query) if not anchors else []
         if explicit_terms:
             for quote in unit_quotes:
@@ -4975,14 +5285,20 @@ def citation_evidence_for_result(
     return evidence_quote(paragraph, max_chars=220).strip()
 
 
+def logical_retrieval_channel(value: object) -> str:
+    if not isinstance(value, str):
+        return ""
+    return "vector" if value == "faiss" else value
+
+
 def citation_retrieval_provenance(result: dict[str, object]) -> dict[str, object]:
     allowed_channels = {"vector", "text", "knowledge", "graph"}
     raw_sources = result.get("retrieval_sources")
     channels = (
         dedupe_keep_order(
-            source
+            logical_retrieval_channel(source)
             for source in raw_sources[:12]
-            if isinstance(source, str) and source in allowed_channels
+            if logical_retrieval_channel(source) in allowed_channels
         )
         if type(raw_sources) in {list, tuple}
         else []
@@ -4990,8 +5306,13 @@ def citation_retrieval_provenance(result: dict[str, object]) -> dict[str, object
     raw_ranks = result.get("channel_ranks")
     channel_ranks: dict[str, int] = {}
     if type(raw_ranks) is dict:
+        normalized_ranks = {
+            logical_retrieval_channel(channel): rank
+            for channel, rank in raw_ranks.items()
+            if logical_retrieval_channel(channel) in allowed_channels
+        }
         for channel in sorted(allowed_channels):
-            rank = raw_ranks.get(channel)
+            rank = normalized_ranks.get(channel)
             if isinstance(rank, int) and not isinstance(rank, bool) and 0 < rank <= 1_000_000:
                 channel_ranks[channel] = rank
     channels = dedupe_keep_order([*channels, *channel_ranks])
@@ -5140,6 +5461,17 @@ def filter_results_for_intent(
         anchors = reliable_source_anchors(query)
         if not anchors:
             explicit_terms = explicit_query_formula_terms(query)
+            literal_terms = source_lookup_literal_terms(query)
+            if not explicit_terms and literal_terms:
+                return [
+                    result
+                    for result in results
+                    if all(
+                        normalize_query_text(term)
+                        in normalize_query_text(primary_evidence_text(result))
+                        for term in literal_terms
+                    )
+                ]
             if not explicit_terms:
                 return results
             return [
@@ -5164,6 +5496,36 @@ def filter_results_for_intent(
                     primary_evidence_text(result),
                     formula_anchors,
                 )
+            )
+        ]
+    elif intent == "comparison":
+        core_terms = query_core_entity_terms(query)
+        if not core_terms:
+            return results
+        matched: list[tuple[int, dict[str, object]]] = []
+        covered: set[str] = set()
+        for result in results:
+            evidence = normalize_query_text(primary_evidence_text(result))
+            result_terms = {
+                term for term in core_terms if normalize_query_text(term) in evidence
+            }
+            if not result_terms:
+                continue
+            covered.update(result_terms)
+            matched.append((len(result_terms), result))
+        if not matched:
+            return []
+        if len(core_terms) > 1 and not set(core_terms) <= covered:
+            return [result for count, result in matched if count == len(core_terms)]
+        return [
+            result
+            for _, result in sorted(
+                matched,
+                key=lambda item: (
+                    -item[0],
+                    -float(item[1].get("score", 0.0)),
+                    str(item[1].get("paragraph_id", "")),
+                ),
             )
         ]
     elif intent == "clinical":
@@ -5309,6 +5671,40 @@ def collect_matched_knowledge_units(results: list[dict[str, object]]) -> list[di
                 enriched.setdefault("label", f"{Path(source_path).name} p{page_start}")
             units.append(enriched)
     return units
+
+
+def collect_matched_graph_relations(
+    results: list[dict[str, object]],
+    limit: int = 16,
+) -> list[dict[str, object]]:
+    """Expose bounded graph navigation while retaining its original-paragraph provenance."""
+    relations: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for result in results:
+        paragraph = str(result.get("text", "")).strip()
+        for raw in result.get("matched_graph_relations", []) or []:
+            if not isinstance(raw, dict):
+                continue
+            relation_id = str(raw.get("relation_id", ""))
+            quote = str(raw.get("evidence_quote", "")).strip()
+            if (
+                not relation_id
+                or relation_id in seen
+                or str(raw.get("review_status", "")) not in {"auto_accepted", "reviewed"}
+                or not quote
+                or quote not in paragraph
+            ):
+                continue
+            seen.add(relation_id)
+            relation = dict(raw)
+            relation["paragraph_id"] = str(result.get("paragraph_id", ""))
+            relation["source_path"] = public_source_path(result.get("source_path", ""))
+            relation["page_start"] = result.get("page_start")
+            relation["page_end"] = result.get("page_end", result.get("page_start"))
+            relations.append(relation)
+            if len(relations) >= limit:
+                return relations
+    return relations
 
 
 def mermaid_label(text: str, max_chars: int = 42) -> str:
@@ -5491,6 +5887,110 @@ def combine_safety_notices(*notices: str) -> str:
     return " ".join(dedupe_keep_order(notice for notice in notices if notice.strip()))
 
 
+def safety_preflight_answer(query: str) -> dict[str, object] | None:
+    """Stop high-risk operational or urgent requests before retrieval can leak instructions."""
+    normalized = normalize_query_text(query)
+    self_marker = any(marker in normalized for marker in ("自己", "自我", "给自己", "幫自己"))
+    needling_marker = any(
+        marker in normalized
+        for marker in ("针刺", "針刺", "下针", "下針", "扎针", "扎針", "自己扎", "自我扎")
+    )
+    if self_marker and needling_marker and any(
+        marker in normalized for marker in SELF_NEEDLING_ACTION_MARKERS
+    ):
+        answer = (
+            "不能提供自我针刺的深度、方向或操作步骤，也请勿自行针刺。"
+            "操作不当可能造成出血、感染、神经血管损伤，胸背部还可能发生气胸；"
+            "如需针灸，请由具备资质的专业人员当面评估和操作。"
+        )
+        notice = "这是安全拦截，不是针灸操作指导；请勿自行针刺。"
+        reason = "self_needling"
+    elif (
+        any(marker in normalized for marker in PEDIATRIC_QUERY_MARKERS)
+        and any(marker in normalized for marker in PEDIATRIC_FEVER_MARKERS)
+        and any(marker in normalized for marker in PEDIATRIC_DANGER_MARKERS)
+    ):
+        answer = (
+            "请立即前往急诊或联系当地急救。儿童持续高热并伴精神差、嗜睡、反应差或意识异常"
+            "属于需要尽快排查的危险信号；不要先按课程内容自行选方、用药，也不要等待检索结果。"
+        )
+        notice = "儿童高热伴精神状态异常应立即急诊评估。"
+        reason = "pediatric_fever_emergency"
+    elif any(
+        marker in normalized
+        for marker in ("生附子", "生乌头", "生烏頭", "巴豆", "甘遂", "大戟", "芫花")
+    ) and any(
+        marker in normalized
+        for marker in ("网上买", "網上買", "自己煮", "自己用", "自己吃", "怎么买", "怎麼買")
+    ):
+        answer = (
+            "不靠谱，也不要网购后自行煎煮或试用。生附子等药材具有显著中毒风险，"
+            "炮制、来源、质量控制、适应证和合并用药都需要专业判断；这里不提供购买、剂量或煎煮步骤。"
+            "如果只是学习，可以比较课程中“生品与炮制品用途不同”的概念，但不能把它转成自用方案。"
+        )
+        notice = "有毒药材不得自行购买、炮制、煎煮或服用；疑似中毒请立即联系急救。"
+        reason = "toxic_herb_self_use"
+    elif any(marker in normalized for marker in CANCER_QUERY_MARKERS) and any(
+        marker in normalized for marker in CANCER_STANDARD_CARE_DENIAL_MARKERS
+    ):
+        answer = (
+            "这种说法不靠谱：现有证据不能保证中医单独治愈癌症，也不能据此放弃手术、化疗、"
+            "放疗或其他由肿瘤专科制定的规范治疗。课程观点只能作为学习材料，不能替代标准治疗；"
+            "请与肿瘤专科医生讨论具体方案，如希望结合中医，应由正规医疗团队协同评估。"
+        )
+        notice = "不要停用、延误或以课程资料替代癌症规范治疗。"
+        reason = "cancer_standard_care_denial"
+    elif (
+        any(marker in normalized for marker in CANCER_QUERY_MARKERS)
+        and any(marker in normalized for marker in ("眼诊", "眼睛", "眼白"))
+        and any(marker in normalized for marker in ("看出", "诊断", "診斷", "判断", "判斷"))
+    ):
+        answer = (
+            "不能靠看眼睛诊断或排除癌症。课程里的眼诊只能作为其理论观察框架来学习，"
+            "不等于经过验证的癌症筛查或诊断方法；真实风险应由正规医疗机构通过临床评估、"
+            "影像、内镜或病理等适当检查判断，不要据此延误就医。"
+        )
+        notice = "眼诊不能替代癌症筛查、影像检查或病理诊断。"
+        reason = "cancer_eye_diagnosis"
+    elif any(marker in normalized for marker in ("突然晕倒", "突然昏倒", "突然昏厥", "叫不醒")) or (
+        any(marker in normalized for marker in ("晕倒", "昏倒", "昏厥"))
+        and any(marker in normalized for marker in ("怎么办", "怎麼辦", "先做什么", "先做什麼", "该先", "該先"))
+    ):
+        answer = (
+            "请立即联系当地急救。先确认现场安全和呼吸；如无正常呼吸，按急救调度员指导进行"
+            "心肺复苏并尽快使用 AED；不要喂药、喂水或等待课程资料检索。"
+        )
+        notice = EMERGENCY_SAFETY_NOTICE
+        reason = "immediate_emergency"
+    else:
+        return None
+
+    return {
+        "query": query,
+        "intent": "clinical",
+        "answer": answer,
+        "answer_sections": {
+            "summary": answer,
+            "key_points": [],
+            "citation_count": 0,
+            "has_context_navigation": False,
+        },
+        "citations": [],
+        "related_knowledge_units": [],
+        "related_graph_relations": [],
+        "safety_notice": notice,
+        "results": [],
+        "safety_preflight": reason,
+        "capability_gap": False,
+        "linked_reference_materials": [],
+        "reference_secondary_included": False,
+        "rerank": {"model": "none", "degraded_feature": "", "error": ""},
+        "related_guide_nodes": [],
+        "differentiation_flow": {"text_steps": [], "mermaid": ""},
+        "followup_questions": [],
+    }
+
+
 def rag_capability_gap(query: str, db_path: Path) -> str:
     """Refuse known out-of-corpus tasks instead of borrowing unrelated paragraphs."""
     normalized = normalize_query_text(query)
@@ -5591,6 +6091,9 @@ def synthesize_pdf_rag_answer(
     results: list[dict[str, object]],
     max_citations: int = 6,
 ) -> dict[str, object]:
+    preflight = safety_preflight_answer(query)
+    if preflight is not None:
+        return preflight
     intent = detect_answer_intent(query)
     emergency_notice = emergency_notice_for_query(query)
     relevant_results = filter_results_for_intent(query, intent, results)
@@ -5611,6 +6114,7 @@ def synthesize_pdf_rag_answer(
         query=query,
     )
     related_knowledge_units = collect_matched_knowledge_units(relevant_results)[:12]
+    related_graph_relations = collect_matched_graph_relations(relevant_results)
     cited = citations if intent == "dosage" else citations[:3]
     citation_refs = "、".join(f"[{citation['index']}]" for citation in cited)
 
@@ -5661,6 +6165,7 @@ def synthesize_pdf_rag_answer(
             },
             "citations": [],
             "related_knowledge_units": [],
+            "related_graph_relations": [],
             "safety_notice": safety_notice,
         }
 
@@ -5731,7 +6236,7 @@ def synthesize_pdf_rag_answer(
             ]
             safety_notice = ""
         else:
-            anchors = answer_anchor_terms(query)
+            anchors = source_lookup_literal_terms(query) or answer_anchor_terms(query)
             topic = "、".join(anchors[:3]) or normalize_query_text(query).rstrip("。！？!?；;，,")
             locations = "；".join(
                 f"{citation['label']}[{citation['index']}]" for citation in citations[:4]
@@ -5802,15 +6307,13 @@ def synthesize_pdf_rag_answer(
     elif (
         intent == "comparison"
         and {"桂枝汤", "麻黄汤"} <= set(query_core_entity_terms(query))
+        and "桂枝汤" in "\n".join(str(item.get("evidence_quote", "")) for item in citations)
+        and "麻黄汤" in "\n".join(str(item.get("evidence_quote", "")) for item in citations)
         and any(
-            "桂枝汤" in str(citation.get("evidence_quote", ""))
-            and "麻黄汤" in str(citation.get("evidence_quote", ""))
-            and any(
-                clue in str(citation.get("evidence_quote", "")) for clue in ("自汗", "汗出", "有汗")
-            )
-            and "无汗" in str(citation.get("evidence_quote", ""))
-            for citation in citations
+            clue in "\n".join(str(item.get("evidence_quote", "")) for item in citations)
+            for clue in ("自汗", "汗出", "有汗")
         )
+        and "无汗" in "\n".join(str(item.get("evidence_quote", "")) for item in citations)
     ):
         answer = (
             "按当前检索到的课程原文，首要分水岭是汗："
@@ -5818,7 +6321,49 @@ def synthesize_pdf_rag_answer(
             "麻黄汤放在无汗，且身痛、恶寒较重一侧。"
             f"证据见 {citation_refs}。"
         )
+        detail_points = _citation_detail_points(citations)
         safety_notice = with_formula_dosage_safety("这是课程方证比较，不是个人选方或用药建议。")
+    elif intent == "comparison":
+        entities = query_core_entity_terms(query)
+        entity_points: list[str] = []
+        detail_points = []
+        for entity in entities:
+            citation = next(
+                (
+                    item
+                    for item in citations
+                    if normalize_query_text(entity)
+                    in normalize_query_text(str(item.get("evidence_quote", "")))
+                ),
+                None,
+            )
+            if citation is None:
+                continue
+            quote = evidence_quote(str(citation.get("evidence_quote", "")), max_chars=150)
+            entity_points.append(f"{entity}：{quote}[{citation['index']}] ")
+            detail_points.append(
+                {
+                    "text": quote,
+                    "citation_indices": [citation["index"]],
+                    "source_label": str(citation.get("label", "")),
+                }
+            )
+        if len(entity_points) >= 2:
+            answer = (
+                "这两个概念容易混，先把两边的原文证据分开核对："
+                + "".join(entity_points)
+                + "当前图谱关系只用于定位这些原文，具体差异以引文为准。"
+            )
+        else:
+            answer = (
+                "当前只检索到比较双方中的一侧可靠原文，证据不足以完整下结论。"
+                + "".join(entity_points)
+            )
+        safety_notice = (
+            with_formula_dosage_safety("这是课程原文比较，不是个人选方或用药建议。")
+            if any(entity in KNOWN_FORMULA_ANCHORS for entity in entities)
+            else ""
+        )
     elif (
         intent == "general"
         and "学习主线" in normalize_query_text(query)
@@ -5930,6 +6475,7 @@ def synthesize_pdf_rag_answer(
         },
         "citations": citations,
         "related_knowledge_units": related_knowledge_units,
+        "related_graph_relations": related_graph_relations,
         "safety_notice": safety_notice,
         "results": results,
     }
@@ -5939,7 +6485,7 @@ TRACE_MAX_QUERY_CHARS = 500
 TRACE_MAX_PLAN_ITEMS = 8
 TRACE_MAX_OBSERVATIONS_PER_QUERY = 12
 TRACE_MAX_SELECTED_IDS = 50
-TRACE_CHANNELS = frozenset({"vector", "text", "knowledge"})
+TRACE_CHANNELS = frozenset({"vector", "text", "knowledge", "graph"})
 TRACE_MAX_LATENCY_MS = 3_600_000.0
 
 
@@ -5998,14 +6544,19 @@ def _trace_channels(result: dict[str, object]) -> list[str]:
     raw_sources = _trace_dict_get(result, "retrieval_sources")
     if type(raw_sources) in {list, tuple}:
         channels.update(
-            source
+            logical_retrieval_channel(source)
             for source in raw_sources[:12]
-            if isinstance(source, str) and source in TRACE_CHANNELS
+            if logical_retrieval_channel(source) in TRACE_CHANNELS
         )
     raw_ranks = _trace_dict_get(result, "channel_ranks")
     if isinstance(raw_ranks, dict):
+        normalized_ranks = {
+            logical_retrieval_channel(channel): rank
+            for channel, rank in raw_ranks.items()
+            if logical_retrieval_channel(channel) in TRACE_CHANNELS
+        }
         for channel in TRACE_CHANNELS:
-            rank = _trace_dict_get(raw_ranks, channel)
+            rank = normalized_ranks.get(channel)
             if isinstance(rank, int) and not isinstance(rank, bool) and 0 < rank <= 1_000_000:
                 channels.add(channel)
     return sorted(channels)
@@ -6076,6 +6627,10 @@ def answer_pdf_rag(
         raise TypeError("trace_enabled must be a boolean")
     if not isinstance(include_reference_secondary, bool):
         raise TypeError("include_reference_secondary must be a boolean")
+    preflight = safety_preflight_answer(query)
+    if preflight is not None:
+        preflight["reference_secondary_included"] = include_reference_secondary
+        return preflight
     latency_ms = {
         "planning": 0.0,
         "retrieval": 0.0,
@@ -6240,6 +6795,24 @@ def answer_pdf_rag(
         )
         model_value = rerank_outcome.model if rerank_outcome is not None else "none"
         degraded_value = rerank_outcome.degraded_feature if rerank_outcome is not None else ""
+        graph_observations: list[dict[str, str]] = []
+        for result in results[:TRACE_MAX_SELECTED_IDS]:
+            for relation in result.get("matched_graph_relations", []) or []:
+                if not isinstance(relation, dict) or len(graph_observations) >= 24:
+                    continue
+                graph_observations.append(
+                    {
+                        "relation_id": _safe_trace_string(
+                            relation.get("relation_id", ""), max_chars=120
+                        ),
+                        "entity": _safe_trace_string(
+                            relation.get("entity_name", ""), max_chars=80
+                        ),
+                        "predicate": _safe_trace_string(
+                            relation.get("predicate", ""), max_chars=80
+                        ),
+                    }
+                )
         answer["trace"] = {
             "normalized_query": _safe_trace_string(
                 normalize_query_text(query),
@@ -6250,6 +6823,11 @@ def answer_pdf_rag(
             "followup_plan": _trace_query_plan(followup_plan, followup_results),
             "retrieval_channels": retrieval_channels,
             "selected_paragraph_ids": selected_ids,
+            "selected_graph_relation_count": sum(
+                len(result.get("matched_graph_relations", []) or [])
+                for result in results[:TRACE_MAX_SELECTED_IDS]
+            ),
+            "selected_graph_relations": graph_observations,
             "reranker": model_value,
             "degraded_features": [degraded_value] if degraded_value else [],
             "latency_ms": {

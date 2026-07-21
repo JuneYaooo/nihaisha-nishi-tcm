@@ -20,6 +20,7 @@ from .pdf_vector import (
     build_pdf_vector_store,
     create_embedding_backend_for_db,
     load_faiss_module,
+    logical_retrieval_channel,
     siliconflow_api_key_available,
 )
 from .rerank import (
@@ -34,7 +35,7 @@ from .rerank import (
 
 DEFAULT_DB = Path("data/pdf_rag_bge_m3/rag.sqlite")
 DEFAULT_EVAL_CASES = Path("evals/golden_v1.jsonl")
-TRACE_CHANNELS = frozenset({"vector", "text", "knowledge"})
+TRACE_CHANNELS = frozenset({"vector", "text", "knowledge", "graph"})
 TRACE_MAX_IDS = 50
 MAX_PUBLIC_LIMIT = 100
 
@@ -84,17 +85,23 @@ def _search_trace(
         entry: dict[str, object] = {"paragraph_id": paragraph_id}
         raw_ranks = _dict_get(row, "channel_ranks")
         if isinstance(raw_ranks, dict):
+            normalized_ranks = {
+                logical_retrieval_channel(channel): rank
+                for channel, rank in raw_ranks.items()
+                if logical_retrieval_channel(channel) in TRACE_CHANNELS
+            }
             for channel in sorted(TRACE_CHANNELS):
-                rank = _dict_get(raw_ranks, channel)
+                rank = normalized_ranks.get(channel)
                 if isinstance(rank, int) and not isinstance(rank, bool) and 0 < rank <= 1_000_000:
                     entry[channel] = rank
                     channels.add(channel)
         raw_sources = _dict_get(row, "retrieval_sources")
         if type(raw_sources) in {list, tuple}:
             for source in raw_sources[:12]:
-                if isinstance(source, str) and source in TRACE_CHANNELS:
-                    channels.add(source)
-                    entry.setdefault(source, selected_rank)
+                channel = logical_retrieval_channel(source)
+                if channel in TRACE_CHANNELS:
+                    channels.add(channel)
+                    entry.setdefault(channel, selected_rank)
         channel_ranks.append(entry)
     degraded = safe_rerank_metadata_value(
         degraded_feature,

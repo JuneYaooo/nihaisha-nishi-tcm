@@ -36,6 +36,7 @@ def fuse_ranked_channels(
         "matched_units",
         "matched_knowledge_units",
         "matched_graph_relations",
+        "matched_query_entities",
         "matched_text_terms",
         "unit_types",
     )
