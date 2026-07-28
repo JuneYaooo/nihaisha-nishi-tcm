@@ -34,6 +34,13 @@ This skill is educational. Do not present content as diagnosis, prescription, or
   retain only original-paragraph evidence, and let the same agent-level answerer handle colloquial
   intent, uncertainty, safety, and final synthesis. RAG opt-in never disables lightweight capability
   fallback or screenshot search.
+- A RAG final answer must preserve the evidence advantage in the user-visible text. Every primary
+  claim needs a short, safe verbatim excerpt followed inline by its stable
+  `pdf-evidence:<doc_id>#p<page>` citation when available. Do not leave quotations or stable
+  citations only in JSON `citations`, an `evidence` field, hidden metadata, or a tool trace. For a
+  comparison, include at least one original excerpt for each side; for layered sources, show primary
+  course evidence and any external reference evidence in separate labeled sections. If actionable
+  medical details occur in the source, fold those sentences rather than omitting the entire source.
 - Formula-pattern comparisons stay on `references/formula-patterns.md` plus
   `references/six-channel.md` by default. Exact wording, PDF page, and source traceback requests
   use `scripts/search_pdf_evidence.py` first.
@@ -79,7 +86,7 @@ This skill is educational. Do not present content as diagnosis, prescription, or
    - Symptom or case: pattern differentiation, missing evidence, possible course方证, cautions, and no personal prescription.
    - Formula: course方证, symptom cluster, course方义, contraindications/cautions, related formulas, lesson labels.
    - Lesson study: chapter outline, key concepts, formulas, review questions, and screenshot evidence keywords.
-   - Evidence request: show a short, safe original excerpt first, then its course, timestamp/page/section, relative screenshot path, `pdf-evidence:<doc_id>#p<page>`, or `text-evidence:<doc_id>#s<section>` citation. Prefer results that match all important query terms. Do not return a bare file/page locator without the supporting excerpt.
+   - Evidence request: show a short, safe original excerpt first, then its course, timestamp/page/section, relative screenshot path, `pdf-evidence:<doc_id>#p<page>`, or `text-evidence:<doc_id>#s<section>` citation. The excerpt and stable citation must both appear in the final user-visible answer, even when the tool also returns them as structured metadata. Prefer results that match all important query terms. Do not return a bare file/page locator without the supporting excerpt.
    - Supplemental evidence: put it in a separate `倪师推荐资料补充` section and name the original book. Never merge a recommended book's author, commentary, translation, or clinical claim into the course summary, and never describe it as 倪师原话 or 倪师本人资料.
    - Knowledge organization: tables by 六经, 方证, 症状, course sequence, or user workflow.
 4. Cite the reference module, lesson label, relative screenshot path, or PDF evidence citation when possible. Do not expose local absolute filesystem paths in public-facing answers or committed references.
@@ -132,6 +139,9 @@ In the full RAG composite mode, use `--reranker auto --json --trace` for covered
 questions. The CLI output is an evidence packet, not the final user-facing answer: graph relations
 remain navigation-only, visible claims must bind to original paragraphs, and the agent must still
 apply the normal lightweight fallbacks, screenshot route, and safety policy before answering.
+The final synthesis must copy safe `evidence_quote` text and `stable_citation` values into an explicit
+`原文依据` section; merely mentioning a PDF filename/page or keeping citations in structured JSON does
+not satisfy the answer contract.
 
 `text`, `knowledge`, and `graph` need no API key. `vector` and `hybrid` require FAISS plus a
 query embedding backend. Every visible answer citation must point to an original paragraph with

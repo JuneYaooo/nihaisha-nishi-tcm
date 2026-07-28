@@ -292,6 +292,10 @@ class AnswerQualityTests(unittest.TestCase):
         for query in ("桂枝汤和麻黄汤的鉴别", "桂枝汤与麻黄汤比较", "二者有什么区别"):
             with self.subTest(query=query):
                 self.assertEqual(pdf_vector.detect_answer_intent(query), "comparison")
+        self.assertEqual(
+            pdf_vector.detect_answer_intent("桂枝汤和麻黄汤如何鉴别？请给原文页码"),
+            "comparison",
+        )
         self.assertEqual(pdf_vector.detect_answer_intent("患者咳嗽、怕冷、无汗"), "clinical")
         self.assertEqual(pdf_vector.detect_answer_intent("古时候一钱是多少克？"), "dosage")
 
@@ -351,6 +355,68 @@ class AnswerQualityTests(unittest.TestCase):
 
         self.assertIn("桂枝汤", excerpt)
         self.assertLessEqual(len(excerpt), 220)
+
+    def test_rag_answer_visibly_preserves_original_excerpt_and_stable_citation(self) -> None:
+        source_path = "pdfs/人纪04伤寒视频同步文稿 2024新版.pdf"
+        original = "太阳中风，阳浮而阴弱，发热汗出，桂枝汤主之。"
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "桂枝汤原文",
+            [result(original, source_path=source_path, page=68)],
+        )
+
+        self.assertIn("原文依据：", answer["answer"])
+        self.assertIn(original, answer["answer"])
+        self.assertIn("pdf-evidence:58423f817a06#p68", answer["answer"])
+        self.assertEqual(
+            answer["citations"][0]["stable_citation"],
+            "pdf-evidence:58423f817a06#p68",
+        )
+        self.assertEqual(answer["original_evidence"], answer["answer_sections"]["original_evidence"])
+
+    def test_comparison_answer_visibly_preserves_original_evidence_for_both_sides(self) -> None:
+        source_path = "pdfs/人纪04伤寒视频同步文稿 2024新版.pdf"
+        guizhi = "桂枝汤这一侧，课程原文说太阳中风，发热汗出。"
+        mahuang = "麻黄汤这一侧，课程原文说太阳伤寒，无汗而喘，恶寒身痛。"
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "桂枝汤和麻黄汤如何鉴别",
+            [
+                result(guizhi, source_path=source_path, page=68, paragraph_id="p-guizhi"),
+                result(mahuang, source_path=source_path, page=72, paragraph_id="p-mahuang"),
+            ],
+        )
+
+        visible = answer["answer"]
+        self.assertIn("原文依据：", visible)
+        self.assertIn(guizhi, visible)
+        self.assertIn(mahuang, visible)
+        self.assertIn("pdf-evidence:58423f817a06#p68", visible)
+        self.assertIn("pdf-evidence:58423f817a06#p72", visible)
+
+    def test_actionable_source_sentence_is_folded_without_hiding_safe_original_context(self) -> None:
+        source_path = "pdfs/人纪04伤寒视频同步文稿 2024新版.pdf"
+        evidence = (
+            "太阳中风，桂枝汤主之。"
+            "煮取二升，去滓，温服，每日3次。"
+            "太阳中风可见发热汗出。"
+        )
+
+        answer = pdf_vector.synthesize_pdf_rag_answer(
+            "这段课程说了什么",
+            [result(evidence, source_path=source_path, page=68)],
+        )
+
+        original_section = answer["original_evidence"][0]["text"]
+        self.assertIn("太阳中风，桂枝汤主之", original_section)
+        self.assertIn("太阳中风可见发热汗出", original_section)
+        self.assertNotIn("每日3次", original_section)
+        self.assertNotIn("煮取二升", original_section)
+        self.assertNotIn("去滓", original_section)
+        self.assertNotIn("温服", original_section)
+        self.assertIn(pdf_vector.FOLDED_INLINE_EVIDENCE, original_section)
+        self.assertIn(original_section, answer["answer"])
+        self.assertIn("pdf-evidence:58423f817a06#p68", answer["answer"])
 
     def test_source_citation_budget_retains_all_distant_query_anchors(self) -> None:
         formulas = ("桂枝汤", "麻黄汤", "四逆汤", "真武汤", "葛根汤", "小柴胡汤")

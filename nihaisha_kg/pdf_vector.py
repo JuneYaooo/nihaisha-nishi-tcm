@@ -516,6 +516,18 @@ MAX_REFERENCE_LINK_EVIDENCE = 200
 MAX_LINKED_REFERENCE_MATERIALS = 12
 MAX_EVIDENCE_CONTEXT_TEXT_CHARS = 2_400
 MAX_EVIDENCE_CONTEXT_RESULTS = 100
+PDF_EVIDENCE_SOURCE_MANIFEST = (
+    Path(__file__).resolve().parents[1] / "references" / "pdf-evidence" / "source-manifest.json"
+)
+MAX_PDF_EVIDENCE_SOURCE_MANIFEST_BYTES = 2_000_000
+PDF_EVIDENCE_DOC_ID_RE = re.compile(r"[0-9a-f]{12,64}")
+ACTIONABLE_INLINE_EVIDENCE_RE = re.compile(
+    r"剂量|劑量|煎服|煎煮|水煎|先煎|后下|後下|煮取|去滓|"
+    r"温服|溫服|顿服|頓服|分服|服用|内服|內服|外敷|抓药|抓藥|"
+    r"下针|下針|进针|進針|针刺|針刺|刺破|放血|火罐|艾灸|灸法|"
+    r"每日\s*\d|一日\s*\d|\d+(?:\.\d+)?\s*(?:克|钱|錢|两|兩|毫升|ml)"
+)
+FOLDED_INLINE_EVIDENCE = "[原文含可执行医疗细节，已折叠；请按来源定位核对。]"
 REFERENCE_RELATION_LABELS = {
     "recommended_title_match_unverified_edition": "课程推荐书目（具体版本未核实）",
     "course_cited_reference": "课程引用资料",
@@ -766,6 +778,64 @@ def public_source_path(source_path: object) -> str:
     if is_absolute or is_unsafe_relative:
         return f"pdfs/{basename}"
     return "/".join([*normalized_parts[:-1], basename])
+
+
+def _normalized_source_basename(value: object) -> str:
+    source_path = public_source_path(value)
+    if not source_path:
+        return ""
+    return unicodedata.normalize("NFC", Path(source_path).name).casefold()
+
+
+def pdf_evidence_doc_ids_by_source_name(
+    manifest_path: Path = PDF_EVIDENCE_SOURCE_MANIFEST,
+) -> dict[str, str]:
+    """Load stable lightweight evidence IDs keyed by normalized PDF basename."""
+    try:
+        path = Path(manifest_path)
+        if not path.is_file() or path.stat().st_size > MAX_PDF_EVIDENCE_SOURCE_MANIFEST_BYTES:
+            return {}
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError, MemoryError, RecursionError, ValueError):
+        return {}
+    if not isinstance(payload, list):
+        return {}
+
+    mapping: dict[str, str] = {}
+    ambiguous: set[str] = set()
+    for raw in payload:
+        if not isinstance(raw, dict):
+            continue
+        source_name = raw.get("source_name")
+        doc_id = raw.get("doc_id")
+        if not isinstance(source_name, str) or not isinstance(doc_id, str):
+            continue
+        key = _normalized_source_basename(source_name)
+        normalized_doc_id = doc_id.strip().casefold()
+        if not key or PDF_EVIDENCE_DOC_ID_RE.fullmatch(normalized_doc_id) is None:
+            continue
+        if key in mapping and mapping[key] != normalized_doc_id:
+            ambiguous.add(key)
+            mapping.pop(key, None)
+            continue
+        if key not in ambiguous:
+            mapping[key] = normalized_doc_id
+    return mapping
+
+
+def stable_pdf_evidence_citation(
+    source_path: object,
+    page_start: object,
+    source_doc_ids: dict[str, str] | None = None,
+) -> str:
+    """Return the repo-stable citation for a RAG source page when a mapping exists."""
+    if isinstance(page_start, bool) or not isinstance(page_start, Integral) or int(page_start) <= 0:
+        return ""
+    mapping = source_doc_ids if source_doc_ids is not None else pdf_evidence_doc_ids_by_source_name()
+    doc_id = mapping.get(_normalized_source_basename(source_path), "")
+    if PDF_EVIDENCE_DOC_ID_RE.fullmatch(doc_id) is None:
+        return ""
+    return f"pdf-evidence:{doc_id}#p{int(page_start)}"
 
 
 def is_guide_source_text(text: str) -> bool:
@@ -3846,10 +3916,6 @@ def detect_answer_intent(query: str) -> str:
     normalized = normalize_query_text(query)
     if "一钱" in normalized and ("克" in normalized or "多少" in normalized or "几" in normalized):
         return "dosage"
-    if is_reference_material_query(normalized) or any(
-        marker in normalized for marker in SOURCE_LOOKUP_MARKERS
-    ):
-        return "source_lookup"
     colloquial_comparison = any(
         (
             re.search(re.escape(marker) + r"(?!析)", normalized) is not None
@@ -3860,6 +3926,10 @@ def detect_answer_intent(query: str) -> str:
     )
     if any(marker in normalized for marker in ("鉴别", "比较", "区别")) or colloquial_comparison:
         return "comparison"
+    if is_reference_material_query(normalized) or any(
+        marker in normalized for marker in SOURCE_LOOKUP_MARKERS
+    ):
+        return "source_lookup"
     clinical_markers = (
         "病人",
         "患者",
@@ -5223,6 +5293,20 @@ def citation_evidence_for_result(
                     return anchor_evidence_snippet(quote, formula_anchors)
             if evidence_contains_source_anchors(paragraph, formula_anchors):
                 return anchor_evidence_snippet(paragraph, formula_anchors)
+        paragraph_sentences = split_sentences(paragraph)
+        valid_formula_sentences = [
+            sentence
+            for sentence in paragraph_sentences
+            if known_formula_terms_in_evidence(sentence)
+        ]
+        malformed_formula_sentences = [
+            sentence
+            for sentence in paragraph_sentences
+            if not known_formula_terms_in_evidence(sentence)
+            and len(extract_formula_terms(sentence)) >= 2
+        ]
+        if valid_formula_sentences and malformed_formula_sentences:
+            return evidence_quote(" ".join(valid_formula_sentences), max_chars=280)
     if intent == "source_lookup":
         if is_reference_material_query(query) and paragraph:
             offsets = [
@@ -5327,6 +5411,7 @@ def build_citations(
 ) -> list[dict[str, object]]:
     citations: list[dict[str, object]] = []
     seen: set[tuple[str, object, str]] = set()
+    source_doc_ids = pdf_evidence_doc_ids_by_source_name()
     for result in results:
         evidence = citation_evidence_for_result(result, intent=intent, query=query)
         if not evidence:
@@ -5336,6 +5421,11 @@ def build_citations(
         if key in seen:
             continue
         seen.add(key)
+        stable_citation = stable_pdf_evidence_citation(
+            source_path,
+            result.get("page_start"),
+            source_doc_ids,
+        )
         citations.append(
             {
                 "index": len(citations) + 1,
@@ -5345,6 +5435,7 @@ def build_citations(
                 "page_start": result.get("page_start", ""),
                 "page_end": result.get("page_end", result.get("page_start", "")),
                 "label": citation_label({**result, "source_path": source_path}),
+                "stable_citation": stable_citation,
                 "evidence_quote": evidence,
                 "paragraph_text": str(result.get("text", "")),
                 "evidence_id": result.get("evidence_id", ""),
@@ -6043,6 +6134,29 @@ def capability_gap_answer(query: str, message: str) -> dict[str, object]:
     }
 
 
+def _safe_inline_original_excerpt(value: object, max_chars: int = 280) -> str:
+    """Keep a short verbatim source excerpt while folding actionable medical instructions."""
+    text = clean_guide_evidence_text(str(value))
+    if not text:
+        return ""
+    if not ACTIONABLE_INLINE_EVIDENCE_RE.search(text):
+        return evidence_quote(text, max_chars=max_chars)
+    excerpt_parts: list[str] = []
+    folded = False
+    clauses = re.findall(r"[^，,；;。！？!?]+[，,；;。！？!?]?", text)
+    for clause in clauses:
+        clause = clause.strip()
+        if not clause:
+            continue
+        if ACTIONABLE_INLINE_EVIDENCE_RE.search(clause):
+            if not folded:
+                excerpt_parts.append(FOLDED_INLINE_EVIDENCE)
+                folded = True
+            continue
+        excerpt_parts.append(clause)
+    return evidence_quote("".join(excerpt_parts), max_chars=max_chars)
+
+
 def _citation_detail_points(
     citations: list[dict[str, object]],
     limit: int = 4,
@@ -6052,26 +6166,52 @@ def _citation_detail_points(
         index = citation.get("index")
         if not isinstance(index, int) or isinstance(index, bool):
             continue
-        quote = clean_guide_evidence_text(str(citation.get("evidence_quote", "")))
-        quote = evidence_quote(quote, max_chars=280)
+        quote = _safe_inline_original_excerpt(citation.get("evidence_quote", ""))
         if not quote:
             continue
         points.append(
             {
                 "text": quote,
                 "citation_indices": [index],
-                "source_label": str(citation.get("label", "")),
+                "source_label": str(
+                    citation.get("stable_citation") or citation.get("label", "")
+                ),
+                "original_excerpt": True,
             }
         )
     return points
+
+
+def _merge_original_evidence_points(
+    detail_points: list[dict[str, object]],
+    original_points: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    merged = [dict(point) for point in detail_points]
+    seen = {
+        (
+            normalize_whitespace(str(point.get("text", ""))),
+            tuple(point.get("citation_indices", []) or []),
+        )
+        for point in merged
+    }
+    for point in original_points:
+        key = (
+            normalize_whitespace(str(point.get("text", ""))),
+            tuple(point.get("citation_indices", []) or []),
+        )
+        if key not in seen:
+            merged.append(dict(point))
+            seen.add(key)
+    return merged
 
 
 def _render_detailed_answer(
     summary: str,
     detail_points: list[dict[str, object]],
 ) -> str:
-    lines: list[str] = []
-    for offset, point in enumerate(detail_points, start=1):
+    explanatory_lines: list[str] = []
+    original_lines: list[str] = []
+    for point in detail_points:
         text = normalize_whitespace(str(point.get("text", "")))
         indices = [
             index
@@ -6079,11 +6219,23 @@ def _render_detailed_answer(
             if isinstance(index, int) and not isinstance(index, bool)
         ]
         refs = "、".join(f"[{index}]" for index in indices)
-        if text:
-            lines.append(f"{offset}. {text}{refs}")
-    if not lines:
+        source_label = normalize_whitespace(str(point.get("source_label", "")))
+        if not text:
+            continue
+        if point.get("original_excerpt") is True:
+            source = f" — {source_label}" if source_label else (f" {refs}" if refs else "")
+            original_lines.append(f"- “{text}”{source}")
+        else:
+            reference = f"{refs}" if refs else ""
+            explanatory_lines.append(f"- {text}{reference}")
+    if not explanatory_lines and not original_lines:
         return summary
-    return f"{summary}\n\n详细依据：\n" + "\n".join(lines)
+    sections = [summary, "详细依据："]
+    if explanatory_lines:
+        sections.append("整理要点：\n" + "\n".join(explanatory_lines))
+    if original_lines:
+        sections.append("原文依据：\n" + "\n".join(original_lines))
+    return "\n\n".join(sections)
 
 
 def synthesize_pdf_rag_answer(
@@ -6457,10 +6609,11 @@ def synthesize_pdf_rag_answer(
             else ""
         )
 
-    if not detail_points:
-        detail_points = _citation_detail_points(citations)
+    original_evidence = _citation_detail_points(citations)
+    rendered_points = _merge_original_evidence_points(detail_points, original_evidence)
+    key_points = detail_points or original_evidence
     summary = answer
-    answer = _render_detailed_answer(summary, detail_points)
+    answer = _render_detailed_answer(summary, rendered_points)
     has_context_navigation = any(bool(citation.get("context_navigation")) for citation in citations)
 
     return {
@@ -6469,11 +6622,13 @@ def synthesize_pdf_rag_answer(
         "answer": answer,
         "answer_sections": {
             "summary": summary,
-            "key_points": detail_points,
+            "key_points": key_points,
+            "original_evidence": original_evidence,
             "citation_count": len(citations),
             "has_context_navigation": has_context_navigation,
         },
         "citations": citations,
+        "original_evidence": original_evidence,
         "related_knowledge_units": related_knowledge_units,
         "related_graph_relations": related_graph_relations,
         "safety_notice": safety_notice,

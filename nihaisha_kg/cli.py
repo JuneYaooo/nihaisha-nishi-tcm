@@ -512,7 +512,12 @@ def main(argv: list[str] | None = None) -> int:
         print()
         print("引用：")
         for citation in payload.get("citations", []):
-            print(f"[{citation['index']}] {citation['label']}")
+            stable_citation = str(citation.get("stable_citation", "")).strip()
+            source_label = str(citation["label"])
+            if stable_citation:
+                print(f"[{citation['index']}] {stable_citation} · {source_label}")
+            else:
+                print(f"[{citation['index']}] {source_label}")
             print(str(citation["evidence_quote"])[:260])
             evidence_id = str(citation.get("evidence_id", "")).strip()
             paragraph_id = str(citation.get("paragraph_id", "")).strip()

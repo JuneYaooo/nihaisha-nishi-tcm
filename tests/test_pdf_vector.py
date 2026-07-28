@@ -128,6 +128,56 @@ class FakeFaiss:
 
 
 class PdfVectorTests(unittest.TestCase):
+    def test_pdf_evidence_source_manifest_maps_only_unambiguous_valid_basenames(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            manifest = Path(tmpdir) / "source-manifest.json"
+            manifest.write_text(
+                json.dumps(
+                    [
+                        {"source_name": "课程甲.pdf", "doc_id": "0123456789ab"},
+                        {"source_name": "/private/课程乙.pdf", "doc_id": "abcdef123456"},
+                        {"source_name": "课程乙.pdf", "doc_id": "fedcba654321"},
+                        {"source_name": "非法.pdf", "doc_id": "not-a-doc-id"},
+                    ],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            mapping = pdf_vector.pdf_evidence_doc_ids_by_source_name(manifest)
+
+        self.assertEqual(mapping, {"课程甲.pdf": "0123456789ab"})
+
+    def test_pdf_evidence_source_manifest_fails_closed_for_invalid_or_oversized_data(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            manifest = Path(tmpdir) / "source-manifest.json"
+            for content in ("not-json", "{}", json.dumps([{"source_name": 1, "doc_id": []}])):
+                with self.subTest(content=content[:20]):
+                    manifest.write_text(content, encoding="utf-8")
+                    self.assertEqual(pdf_vector.pdf_evidence_doc_ids_by_source_name(manifest), {})
+            manifest.write_bytes(
+                b"x" * (pdf_vector.MAX_PDF_EVIDENCE_SOURCE_MANIFEST_BYTES + 1)
+            )
+            self.assertEqual(pdf_vector.pdf_evidence_doc_ids_by_source_name(manifest), {})
+
+    def test_build_citations_adds_repo_stable_pdf_evidence_citation(self) -> None:
+        evidence = {
+            "paragraph_id": "p-1",
+            "source_path": "pdfs/课程甲.pdf",
+            "title": "课程甲 p9",
+            "page_start": 9,
+            "page_end": 9,
+            "text": "太阳病原文证据。",
+            "matched_knowledge_units": [],
+        }
+        with patch(
+            "nihaisha_kg.pdf_vector.pdf_evidence_doc_ids_by_source_name",
+            return_value={"课程甲.pdf": "0123456789ab"},
+        ):
+            citation = pdf_vector.build_citations([evidence])[0]
+
+        self.assertEqual(citation["stable_citation"], "pdf-evidence:0123456789ab#p9")
+
     def setUp(self) -> None:
         pdf_vector.clear_faiss_caches()
 
