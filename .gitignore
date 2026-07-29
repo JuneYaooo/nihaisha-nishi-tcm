@@ -185,7 +185,10 @@ cython_debug/
 docs/superpowers/
 references/source-corrections/
 scripts/deep_source_correction.py
-tests/test_deep_source_correction.py
+
+# Local tests and evaluation fixtures
+/tests/
+/evals/
 
 # PyCharm
 #   JetBrains specific template is maintained in a separate JetBrains.gitignore that can
