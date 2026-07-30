@@ -188,7 +188,14 @@ scripts/deep_source_correction.py
 
 # Local tests and evaluation fixtures
 /tests/
-/evals/
+/evals/*
+
+# Public, redacted answer-evaluation baseline
+!/evals/README.md
+!/evals/answer_eval_v1.jsonl
+!/evals/answer_eval_rubric_v1.md
+!/evals/answer_eval_judgments_v1.jsonl
+!/evals/answer_eval_summary_v1.json
 
 # PyCharm
 #   JetBrains specific template is maintained in a separate JetBrains.gitignore that can

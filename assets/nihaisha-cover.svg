@@ -1,0 +1,106 @@
+<svg width="1280" height="500" viewBox="0 0 1280 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="coverGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1112 58) rotate(137) scale(580 700)">
+      <stop stop-color="#C66A4A" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#C66A4A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="coverLine" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#C9DDCF" stop-opacity="0.44"/>
+      <stop offset="1" stop-color="#C9DDCF" stop-opacity="0.06"/>
+    </linearGradient>
+    <pattern id="coverGrid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" stroke="#DDE8E0" stroke-opacity="0.038"/>
+    </pattern>
+    <filter id="coverShadow" x="-50" y="-50" width="650" height="510" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#07100C" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="500" rx="28" fill="#17231D"/>
+  <rect width="1280" height="500" rx="28" fill="url(#coverGrid)"/>
+  <rect width="1280" height="500" rx="28" fill="url(#coverGlow)"/>
+
+  <g opacity="0.12">
+    <circle cx="1134" cy="404" r="170" stroke="#AFC9B9"/>
+    <circle cx="1134" cy="404" r="132" stroke="#AFC9B9"/>
+    <path d="M1002 404H1266M1134 272V500" stroke="#AFC9B9"/>
+    <circle cx="1002" cy="404" r="5" fill="#D17B5D"/>
+    <circle cx="1134" cy="272" r="5" fill="#D17B5D"/>
+    <circle cx="1266" cy="404" r="5" fill="#D17B5D"/>
+  </g>
+
+  <g transform="translate(538 72)" opacity="0.19" stroke="#AFC9B9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 348C54 286 48 235 65 180C77 141 97 104 118 70"/>
+    <path d="M61 196C37 190 20 176 12 154C37 153 57 164 67 181"/>
+    <path d="M70 163C90 154 106 137 111 116C87 117 72 130 65 147"/>
+    <path d="M48 255C25 250 8 237 0 216C24 214 43 225 53 242"/>
+    <path d="M53 229C74 221 90 204 96 183C72 184 56 197 49 214"/>
+    <path d="M81 132C62 122 50 105 48 84C70 88 84 101 88 118"/>
+    <path d="M101 98C118 88 130 73 133 54C113 56 99 67 94 83"/>
+    <circle cx="119" cy="69" r="5" fill="#C66A4A" stroke="none"/>
+    <circle cx="128" cy="56" r="3" fill="#C66A4A" stroke="none"/>
+    <circle cx="110" cy="59" r="3.5" fill="#C66A4A" stroke="none"/>
+  </g>
+
+  <g transform="translate(72 58)">
+    <rect width="58" height="58" rx="17" fill="#EAE3D5"/>
+    <path d="M16 18.5C21.5 18.5 25.8 20 29 23.1C32.2 20 36.5 18.5 42 18.5V39C36.6 39 32.4 40.5 29 43.2C25.6 40.5 21.4 39 16 39V18.5Z" stroke="#243A2F" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M29 23V43" stroke="#243A2F" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M19 31C20 26.5 23 24 27 23.5C26.6 27.7 24.1 30.5 19 31Z" fill="#C66A4A"/>
+    <path d="M39 31C38 26.5 35 24 31 23.5C31.4 27.7 33.9 30.5 39 31Z" fill="#6E9A82"/>
+    <path d="M20.5 30L26 25M37.5 30L32 25" stroke="#819C8C" stroke-width="1.4" stroke-linecap="round"/>
+  </g>
+
+  <text x="72" y="160" fill="#9FC2AD" font-family="'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="16" font-weight="600" letter-spacing="2.4">倪海厦中医课程 · SOURCE-GROUNDED AGENT SKILL</text>
+  <text x="72" y="226" fill="#F5F0E7" font-family="'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="48" font-weight="700" letter-spacing="-1.6">让中医课程可检索</text>
+  <text x="72" y="286" fill="#F5F0E7" font-family="'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="48" font-weight="700" letter-spacing="-1.6">让每个结论可追溯</text>
+  <text x="72" y="338" fill="#AEC0B5" font-family="'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="19">白话提问 · 方证辨析 · 原文溯源 · 安全边界</text>
+
+  <g transform="translate(72 383)">
+    <rect width="132" height="42" rx="21" fill="#24382E"/>
+    <circle cx="22" cy="21" r="5" fill="#C66A4A"/>
+    <text x="36" y="27" fill="#E6EEE9" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="14" font-weight="600">13 个课程模块</text>
+    <rect x="144" width="150" height="42" rx="21" fill="#24382E"/>
+    <text x="164" y="27" fill="#E6EEE9" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="14" font-weight="600">2986 条截图证据</text>
+    <rect x="306" width="112" height="42" rx="21" fill="#24382E"/>
+    <text x="328" y="27" fill="#E6EEE9" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="14" font-weight="600">RAG 可选</text>
+  </g>
+
+  <g transform="translate(690 50)" filter="url(#coverShadow)">
+    <rect x="-6" y="-6" width="530" height="412" rx="26" fill="#263A31" stroke="url(#coverLine)" stroke-width="2"/>
+    <rect width="518" height="400" rx="21" fill="#F4F1E9"/>
+    <rect width="518" height="58" rx="21" fill="#E6EBE3"/>
+    <rect y="38" width="518" height="20" fill="#E6EBE3"/>
+    <circle cx="28" cy="29" r="7" fill="#527B66"/>
+    <path d="M25 29H31M28 26V32" stroke="#F4F1E9" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="46" y="34" fill="#294035" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="14" font-weight="700">Agent session</text>
+    <rect x="394" y="17" width="102" height="24" rx="12" fill="#D3E3D8"/>
+    <circle cx="410" cy="29" r="4" fill="#527B66"/>
+    <text x="421" y="33" fill="#486A59" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="11" font-weight="600">Skill 已启用</text>
+
+    <text x="24" y="89" fill="#7A8C82" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">YOU</text>
+    <rect x="24" y="101" width="465" height="64" rx="16" fill="#FFFFFF"/>
+    <text x="44" y="128" fill="#294035" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="14">乌梅丸在《伤寒论》和《金匮要略》中</text>
+    <text x="44" y="150" fill="#294035" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="14">有什么不同？请逐项给出处。</text>
+
+    <g transform="translate(24 188)">
+      <circle cx="14" cy="14" r="14" fill="#17231D"/>
+      <path d="M8.5 10.5C11 10.5 12.8 11.2 14 12.6C15.2 11.2 17 10.5 19.5 10.5V18.6C17.1 18.6 15.3 19.2 14 20.5C12.7 19.2 10.9 18.6 8.5 18.6V10.5Z" stroke="#A9CCB8" stroke-width="1.4" stroke-linejoin="round"/>
+      <text x="38" y="19" fill="#294035" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="13" font-weight="700">nihaisha Skill</text>
+    </g>
+
+    <rect x="24" y="230" width="470" height="142" rx="18" fill="#203229"/>
+    <text x="46" y="258" fill="#9BB5A6" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="11" font-weight="600" letter-spacing="1.3">课程语境对照 · 原文可追溯</text>
+
+    <rect x="46" y="275" width="54" height="26" rx="13" fill="#D5E5DA"/>
+    <text x="59" y="293" fill="#3F6652" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="12" font-weight="700">伤寒</text>
+    <text x="115" y="293" fill="#F1F4F0" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="13">厥阴病 · 蛔厥 · 久利</text>
+
+    <rect x="46" y="310" width="54" height="26" rx="13" fill="#E8D2C8"/>
+    <text x="59" y="328" fill="#8A4F3B" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="12" font-weight="700">金匮</text>
+    <text x="115" y="328" fill="#F1F4F0" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="13">虫病篇 · 方证比较</text>
+
+    <path d="M46 348H468" stroke="#D5E5DA" stroke-opacity="0.13"/>
+    <text x="46" y="365" fill="#9BB5A6" font-family="'Avenir Next', 'PingFang SC', sans-serif" font-size="12">课程原文、资料层级与综合推论分别标注</text>
+  </g>
+</svg>
