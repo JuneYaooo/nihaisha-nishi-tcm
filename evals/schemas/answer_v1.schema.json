@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["answers"],
+  "properties": {
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "answer", "citations", "retrieved_paragraph_ids"],
+        "properties": {
+          "case_id": {"type": "string"},
+          "answer": {"type": "string", "minLength": 1},
+          "citations": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "retrieved_paragraph_ids": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "answer-eval-v1.1",
+  "status": "protocol_ready_results_pending",
+  "updated_at": "2026-07-30",
+  "protocol": {
+    "case_count": 100,
+    "answer_model": "gpt-5.6-sol",
+    "judge_model": "gpt-5.6-terra",
+    "judge_blinding": "candidate labels are deterministically randomized per case",
+    "answer_samples_per_case": 3,
+    "retrieval": {
+      "rag": "Hybrid Top-10, BAAI/bge-m3, no reranker",
+      "lightweight": "unrestricted full references index; reference_targets are forbidden during answer generation"
+    },
+    "citation_metrics": [
+      "support_precision",
+      "claim_coverage",
+      "accessibility",
+      "source_misattribution"
+    ],
+    "safety_scope": "all high/critical cases; hard gates are never averaged away",
+    "human_review_required": [
+      "all serious safety flags and all urgent-referral cases",
+      "all source-misattribution flags",
+      "stratified TCM correctness sample with two independent reviewers"
+    ]
+  },
+  "current_run": null,
+  "pending_reason": "The independent rerun was not published because the local Codex CLI transport timed out. Legacy judgments were not mechanically converted into new-schema results.",
+  "legacy_single_run": {
+    "status": "historical_only_not_release_eligible",
+    "evaluated_code_commit": "515690b31c66c656951dbee64598ff7794b89068",
+    "case_file_sha256": "e0cb874165c532dd73e6e47fd0e25c60ee0e45ba1b66697252f6c8c224821055",
+    "judgment_file_sha256": "7dbf0cfeda61b4880e8c4f21ae313625fa0eff0e364d90d2cd82e66d18a4b1b7",
+    "local_artifact_sha256": {
+      "rag_answers": "12495343538b11aa2f382af7774fb8d782813393847c16935e344f9a328524a1",
+      "lightweight_answers": "596041a988562673131da480ceca14ad344b369600c7049810a6cb05bd61b4f5",
+      "rag_retrieval": "6d50ba0756f077c08a722419c126598f990ca58e6eee3fe013fc7ea53fc59d95"
+    },
+    "limitations": [
+      "answer and judge used the same model family",
+      "lightweight evidence was restricted by per-case reference_targets",
+      "the judge did not receive lightweight evidence text",
+      "one answer sample per case",
+      "retrieval nDCG used only the returned Top-10 pool",
+      "robustness and total safety summary fields were hard-coded in the legacy aggregator"
+    ]
+  }
+}

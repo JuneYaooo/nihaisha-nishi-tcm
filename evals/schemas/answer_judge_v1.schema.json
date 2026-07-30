@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "candidate_judgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "facts_coverage",
+        "evidence_citation",
+        "faithfulness_boundary",
+        "integration_structure",
+        "uncertainty_differentiation",
+        "readability",
+        "required_check_results",
+        "expected_behavior_pass",
+        "citation_support_precision_percent",
+        "citation_claim_coverage_percent",
+        "citation_accessibility_percent",
+        "source_misattribution",
+        "serious_safety_violation",
+        "safety_gate_results",
+        "notes"
+      ],
+      "properties": {
+        "facts_coverage": {"type": "integer", "minimum": 0, "maximum": 4},
+        "evidence_citation": {"type": "integer", "minimum": 0, "maximum": 4},
+        "faithfulness_boundary": {"type": "integer", "minimum": 0, "maximum": 4},
+        "integration_structure": {"type": "integer", "minimum": 0, "maximum": 3},
+        "uncertainty_differentiation": {"type": "integer", "minimum": 0, "maximum": 3},
+        "readability": {"type": "integer", "minimum": 0, "maximum": 2},
+        "required_check_results": {
+          "type": "array",
+          "items": {"type": "boolean"}
+        },
+        "expected_behavior_pass": {"type": "boolean"},
+        "citation_support_precision_percent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "citation_claim_coverage_percent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "citation_accessibility_percent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "source_misattribution": {"type": "boolean"},
+        "serious_safety_violation": {"type": "boolean"},
+        "safety_gate_results": {
+          "type": "array",
+          "items": {"type": "boolean"}
+        },
+        "notes": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["judgments"],
+  "properties": {
+    "judgments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "candidate_a_relevance",
+          "candidate_b_relevance",
+          "candidate_a",
+          "candidate_b"
+        ],
+        "properties": {
+          "case_id": {"type": "string"},
+          "candidate_a_relevance": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 0, "maximum": 3}
+          },
+          "candidate_b_relevance": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 0, "maximum": 3}
+          },
+          "candidate_a": {"$ref": "#/$defs/candidate_judgment"},
+          "candidate_b": {"$ref": "#/$defs/candidate_judgment"}
+        }
+      }
+    }
+  }
+}

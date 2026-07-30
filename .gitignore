@@ -196,6 +196,12 @@ scripts/deep_source_correction.py
 !/evals/answer_eval_rubric_v1.md
 !/evals/answer_eval_judgments_v1.jsonl
 !/evals/answer_eval_summary_v1.json
+!/evals/answer_eval_pairs_v1.jsonl
+!/evals/answer_eval_run_v1.json
+!/evals/scripts/
+!/evals/scripts/*.py
+!/evals/schemas/
+!/evals/schemas/*.json
 
 # PyCharm
 #   JetBrains specific template is maintained in a separate JetBrains.gitignore that can
