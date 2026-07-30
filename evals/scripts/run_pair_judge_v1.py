@@ -8,15 +8,27 @@ from pathlib import Path
 from typing import Any
 
 from v1_common import EVAL_DIR, ROOT, read_jsonl, validate_cases, write_jsonl
+from v1_evidence import normalize_provider_sensitive_text
 
 
-def rag_first(pair_id: str) -> bool:
-    return hashlib.sha256(f"nihaisha-v1-pair:{pair_id}".encode()).digest()[0] % 2 == 0
+def rag_first(pair_id: str, sample_id: str = "sample-01") -> bool:
+    return hashlib.sha256(f"nihaisha-v1-pair:{sample_id}:{pair_id}".encode()).digest()[0] % 2 == 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gpt-5.6-terra")
+    parser.add_argument("--sample-id", default="sample-01")
+    parser.add_argument(
+        "--use-user-config",
+        action="store_true",
+        help="Use the configured Codex provider; record the provider in run metadata.",
+    )
+    parser.add_argument(
+        "--provider-safe-normalization",
+        action="store_true",
+        help="Apply the documented substitutions to the blind pair prompt.",
+    )
     parser.add_argument("--local-dir", type=Path, default=ROOT / ".local-evals" / "v1")
     parser.add_argument(
         "--output",
@@ -58,7 +70,9 @@ def main() -> int:
             }
             for case in cases
         ]
-        first, second = (rag, lightweight) if rag_first(pair_id) else (lightweight, rag)
+        first, second = (
+            (rag, lightweight) if rag_first(pair_id, args.sample_id) else (lightweight, rag)
+        )
         blocks.append(
             f"### {pair_id}\n候选A：{json.dumps(first, ensure_ascii=False)}\n"
             f"候选B：{json.dumps(second, ensure_ascii=False)}"
@@ -70,11 +84,14 @@ def main() -> int:
 
 {chr(10).join(blocks)}
 """.strip()
+    if args.provider_safe_normalization:
+        prompt = normalize_provider_sensitive_text(prompt)
     raw_output = args.output.with_suffix(".blind.json")
     command = [
         "codex",
         "exec",
-        "--ignore-user-config",
+        *([] if args.use_user_config else ["--ignore-user-config"]),
+        "--ignore-rules",
         "--ephemeral",
         "-m",
         args.model,
@@ -98,9 +115,10 @@ def main() -> int:
     rows = []
     for row in payload["pairs"]:
         pair_id = str(row["pair_id"])
-        candidate_a_is_rag = rag_first(pair_id)
+        candidate_a_is_rag = rag_first(pair_id, args.sample_id)
         rows.append(
             {
+                "sample_id": args.sample_id,
                 "pair_id": pair_id,
                 "case_ids": [case["case_id"] for case in groups[pair_id]],
                 "rag_consistent": row["candidate_a_consistent"]

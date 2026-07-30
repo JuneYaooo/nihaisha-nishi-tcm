@@ -14,6 +14,7 @@ from v1_common import EVAL_DIR, ROOT, read_jsonl, validate_cases, write_jsonl
 from v1_evidence import (
     build_reference_index,
     lightweight_evidence,
+    normalize_provider_sensitive_text,
     render_lightweight_evidence,
     render_rag_evidence,
 )
@@ -23,8 +24,8 @@ DEFAULT_LOCAL = ROOT / ".local-evals" / "v1"
 DEFAULT_OUTPUT = DEFAULT_LOCAL / "judge-batches"
 
 
-def blind_rag_first(case_id: str) -> bool:
-    return hashlib.sha256(f"nihaisha-v1:{case_id}".encode()).digest()[0] % 2 == 0
+def blind_rag_first(case_id: str, sample_id: str = "sample-01") -> bool:
+    return hashlib.sha256(f"nihaisha-v1:{sample_id}:{case_id}".encode()).digest()[0] % 2 == 0
 
 
 def candidate_block(
@@ -46,7 +47,9 @@ def build_prompt(
     reference_index: list[dict[str, Any]],
     document_frequency: dict[str, int],
     *,
+    sample_id: str,
     lightweight_oracle_targets: bool,
+    provider_safe_normalization: bool,
 ) -> str:
     blocks = []
     for case in batch:
@@ -59,18 +62,23 @@ def build_prompt(
             oracle_targets=lightweight_oracle_targets,
             limit=6 if lightweight_oracle_targets else 10,
         )
+        rag_evidence = render_rag_evidence(rag_rows)
+        light_evidence = render_lightweight_evidence(light_rows)
+        if provider_safe_normalization:
+            rag_evidence = normalize_provider_sensitive_text(rag_evidence)
+            light_evidence = normalize_provider_sensitive_text(light_evidence)
         rag_block = candidate_block(
-            "A" if blind_rag_first(case_id) else "B",
+            "A" if blind_rag_first(case_id, sample_id) else "B",
             rag_answers[case_id],
-            render_rag_evidence(rag_rows),
+            rag_evidence,
         )
         light_block = candidate_block(
-            "B" if blind_rag_first(case_id) else "A",
+            "B" if blind_rag_first(case_id, sample_id) else "A",
             lightweight_answers[case_id],
-            render_lightweight_evidence(light_rows),
+            light_evidence,
         )
         candidates = [rag_block, light_block]
-        if not blind_rag_first(case_id):
+        if not blind_rag_first(case_id, sample_id):
             candidates.reverse()
         blocks.append(
             "\n".join(
@@ -86,7 +94,7 @@ def build_prompt(
             )
         )
     ids = [str(case["case_id"]) for case in batch]
-    return f"""
+    prompt = f"""
 你是 nihaisha 课程学习与资料检索评测的独立裁判。不要调用工具。候选 A/B 已按题目稳定随机化，
 不得猜测其系统名称，也不得因为答案较长或措辞流畅给高分。按顺序返回 {ids} 的 JSON。
 
@@ -111,6 +119,7 @@ rag_retrieval_relevance 与 lightweight_retrieval_relevance 字段名只是输�
 
 {chr(10).join(blocks)}
 """.strip()
+    return normalize_provider_sensitive_text(prompt) if provider_safe_normalization else prompt
 
 
 def stop(process: subprocess.Popen[Any]) -> None:
@@ -146,13 +155,14 @@ def canonicalize(
     reference_index: list[dict[str, Any]],
     document_frequency: dict[str, int],
     *,
+    sample_id: str,
     lightweight_oracle_targets: bool,
 ) -> list[dict[str, Any]]:
     result = []
     for row in rows:
         case_id = str(row["case_id"])
         case = cases[case_id]
-        rag_first = blind_rag_first(case_id)
+        rag_first = blind_rag_first(case_id, sample_id)
         rag = row["candidate_a"] if rag_first else row["candidate_b"]
         lightweight = row["candidate_b"] if rag_first else row["candidate_a"]
         rag_relevance = row["candidate_a_relevance"] if rag_first else row["candidate_b_relevance"]
@@ -175,6 +185,7 @@ def canonicalize(
             raise ValueError(f"{case_id}: lightweight relevance length mismatch")
         result.append(
             {
+                "sample_id": sample_id,
                 "case_id": case_id,
                 "rag_retrieval_relevance": rag_relevance,
                 "lightweight_retrieval_relevance": lightweight_relevance,
@@ -188,9 +199,15 @@ def canonicalize(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gpt-5.6-terra")
+    parser.add_argument("--sample-id", default="sample-01")
     parser.add_argument("--batch-size", type=int, default=5)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--retries", type=int, default=2)
+    parser.add_argument(
+        "--use-user-config",
+        action="store_true",
+        help="Use the configured Codex provider; record the provider in run metadata.",
+    )
     parser.add_argument("--start-batch", type=int, default=1)
     parser.add_argument("--max-batches", type=int, default=0)
     parser.add_argument(
@@ -198,7 +215,17 @@ def main() -> int:
         action="store_true",
         help="Legacy-only: restrict lightweight evidence to case reference_targets.",
     )
+    parser.add_argument(
+        "--provider-safe-normalization",
+        action="store_true",
+        help="Apply the same documented substitutions used during answer generation.",
+    )
     parser.add_argument("--local-dir", type=Path, default=DEFAULT_LOCAL)
+    parser.add_argument(
+        "--retrieval",
+        type=Path,
+        help="Frozen RAG retrieval JSONL; defaults to <local-dir>/rag_retrieval.jsonl.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument(
         "--merged-output",
@@ -215,9 +242,8 @@ def main() -> int:
     lightweight_answers = {
         str(row["case_id"]): row for row in read_jsonl(args.local_dir / "lightweight_answers.jsonl")
     }
-    rag_retrieval = {
-        str(row["case_id"]): row for row in read_jsonl(args.local_dir / "rag_retrieval.jsonl")
-    }
+    retrieval_path = args.retrieval or args.local_dir / "rag_retrieval.jsonl"
+    rag_retrieval = {str(row["case_id"]): row for row in read_jsonl(retrieval_path)}
     expected_ids = set(cases)
     for name, artifact in (
         ("rag answers", rag_answers),
@@ -250,12 +276,15 @@ def main() -> int:
             rag_retrieval,
             reference_index,
             document_frequency,
+            sample_id=args.sample_id,
             lightweight_oracle_targets=args.lightweight_oracle_targets,
+            provider_safe_normalization=args.provider_safe_normalization,
         )
         command = [
             "codex",
             "exec",
-            "--ignore-user-config",
+            *([] if args.use_user_config else ["--ignore-user-config"]),
+            "--ignore-rules",
             "--ephemeral",
             "-m",
             args.model,
@@ -317,6 +346,7 @@ def main() -> int:
             rag_retrieval,
             reference_index,
             document_frequency,
+            sample_id=args.sample_id,
             lightweight_oracle_targets=args.lightweight_oracle_targets,
         ),
     )

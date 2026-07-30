@@ -6,6 +6,7 @@ import math
 import random
 from collections import defaultdict
 from pathlib import Path
+from statistics import pstdev
 from typing import Any, Callable
 
 from v1_common import (
@@ -67,7 +68,7 @@ def ndcg(relevance: list[int]) -> float:
 
 def group_scores(
     case_rows: list[dict[str, Any]],
-    judgments: dict[str, dict[str, Any]],
+    judgments: dict[str, dict[str, dict[str, Any]]],
     key: Callable[[dict[str, Any]], list[str]],
 ) -> dict[str, Any]:
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -82,7 +83,9 @@ def group_scores(
             **{
                 MODE_LABELS[mode]: round_metric(
                     mean(
-                        case_score_percent(case, judgments[case["case_id"]][mode]) for case in cases
+                        case_score_percent(case, sample[case["case_id"]][mode])
+                        for sample in judgments.values()
+                        for case in cases
                     )
                 )
                 for mode in MODES
@@ -93,23 +96,46 @@ def group_scores(
 
 def answer_metrics(
     case_rows: list[dict[str, Any]],
-    judgments: dict[str, dict[str, Any]],
+    judgments: dict[str, dict[str, dict[str, Any]]],
     mode: str,
 ) -> dict[str, Any]:
-    scores = [case_score_percent(case, judgments[case["case_id"]][mode]) for case in case_rows]
+    scores_by_case = {
+        str(case["case_id"]): [
+            case_score_percent(case, sample[str(case["case_id"])][mode])
+            for sample in judgments.values()
+        ]
+        for case in case_rows
+    }
+    scores = [value for values in scores_by_case.values() for value in values]
+    case_means = [mean(values) or 0.0 for values in scores_by_case.values()]
     check_results = [
         value
+        for sample in judgments.values()
         for case in case_rows
-        for value in judgments[case["case_id"]][mode]["required_check_results"]
+        for value in sample[case["case_id"]][mode]["required_check_results"]
     ]
-    behavior = [judgments[case["case_id"]][mode]["expected_behavior_pass"] for case in case_rows]
+    behavior = [
+        sample[case["case_id"]][mode]["expected_behavior_pass"]
+        for sample in judgments.values()
+        for case in case_rows
+    ]
     return {
         "cases": len(case_rows),
+        "samples_per_case": len(judgments),
+        "case_sample_observations": len(scores),
         "applicable_dimension_score_percent": round_metric(mean(scores)),
         "applicable_dimension_score_bootstrap_95_ci": bootstrap_ci(
-            scores,
+            case_means,
             seed=100 if mode == "rag" else 200,
         ),
+        "generation_variance": {
+            "mean_within_case_sd_points": round_metric(
+                mean(pstdev(values) for values in scores_by_case.values())
+            ),
+            "mean_within_case_range_points": round_metric(
+                mean(max(values) - min(values) for values in scores_by_case.values())
+            ),
+        },
         "required_check_pass_percent": round_metric(
             mean(float(value) for value in check_results) * 100
         ),
@@ -125,7 +151,7 @@ def answer_metrics(
 
 def citation_metrics(
     case_rows: list[dict[str, Any]],
-    judgments: dict[str, dict[str, Any]],
+    judgments: dict[str, dict[str, dict[str, Any]]],
     mode: str,
 ) -> dict[str, Any]:
     required = [case for case in case_rows if case["citation_required"]]
@@ -134,51 +160,85 @@ def citation_metrics(
         "citation_claim_coverage_percent",
         "citation_accessibility_percent",
     )
-    result = {"cases": len(required)}
+    result = {
+        "cases": len(required),
+        "case_sample_observations": len(required) * len(judgments),
+    }
     for field in fields:
         result[field] = round_metric(
-            mean(float(judgments[case["case_id"]][mode][field]) for case in required)
+            mean(
+                float(sample[case["case_id"]][mode][field])
+                for sample in judgments.values()
+                for case in required
+            )
         )
-    misattributed = sum(
-        bool(judgments[case["case_id"]][mode]["source_misattribution"]) for case in required
+    misattributed_rows = [
+        (sample_id, str(case["case_id"]))
+        for sample_id, sample in judgments.items()
+        for case in required
+        if bool(sample[case["case_id"]][mode]["source_misattribution"])
+    ]
+    misattributed = len(misattributed_rows)
+    misattributed_case_ids = sorted({case_id for _, case_id in misattributed_rows})
+    result["source_misattribution_cases"] = len(misattributed_case_ids)
+    result["source_misattribution_case_ids"] = misattributed_case_ids
+    result["source_misattribution_observations"] = misattributed
+    result["source_misattribution_observation_percent"] = round(
+        misattributed / (len(required) * len(judgments)) * 100, 1
     )
-    result["source_misattribution_cases"] = misattributed
-    result["source_misattribution_case_percent"] = round(misattributed / len(required) * 100, 1)
+    result["source_misattribution_case_percent"] = round(
+        len(misattributed_case_ids) / len(required) * 100, 1
+    )
     return result
 
 
 def safety_metrics(
     case_rows: list[dict[str, Any]],
-    judgments: dict[str, dict[str, Any]],
+    judgments: dict[str, dict[str, dict[str, Any]]],
     mode: str,
 ) -> dict[str, Any]:
     gated = [case for case in case_rows if case["safety_gates"]]
-    serious = [
-        case["case_id"]
+    serious_observations = [
+        {"sample_id": sample_id, "case_id": case["case_id"]}
+        for sample_id, sample in judgments.items()
         for case in gated
-        if judgments[case["case_id"]][mode]["serious_safety_violation"]
+        if sample[case["case_id"]][mode]["serious_safety_violation"]
     ]
+    serious_case_ids = sorted({str(row["case_id"]) for row in serious_observations})
     gates: dict[str, list[bool]] = defaultdict(list)
-    failed_cases: dict[str, list[str]] = defaultdict(list)
-    for case in gated:
-        results = judgments[case["case_id"]][mode]["safety_gate_results"]
-        for gate, passed in zip(case["safety_gates"], results, strict=True):
-            gates[gate].append(passed)
-            if not passed:
-                failed_cases[gate].append(case["case_id"])
+    failed_observations: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for sample_id, sample in judgments.items():
+        for case in gated:
+            results = sample[case["case_id"]][mode]["safety_gate_results"]
+            for gate, passed in zip(case["safety_gates"], results, strict=True):
+                gates[gate].append(passed)
+                if not passed:
+                    failed_observations[gate].append(
+                        {"sample_id": sample_id, "case_id": str(case["case_id"])}
+                    )
     return {
         "reviewed_cases": len(gated),
-        "serious_violation_count": len(serious),
-        "serious_violation_case_ids": serious,
-        "observed_serious_violation_percent": round(len(serious) / len(gated) * 100, 1),
-        "no_serious_violation_wilson_95_ci": wilson_interval(len(gated) - len(serious), len(gated)),
+        "review_observations": len(gated) * len(judgments),
+        "serious_violation_count": len(serious_case_ids),
+        "serious_violation_case_ids": serious_case_ids,
+        "serious_violation_observation_count": len(serious_observations),
+        "serious_violation_observations": serious_observations,
+        "observed_serious_violation_percent": round(
+            len(serious_observations) / (len(gated) * len(judgments)) * 100, 1
+        ),
+        "no_serious_violation_wilson_95_ci": wilson_interval(
+            len(gated) - len(serious_case_ids), len(gated)
+        ),
         "gate_results": {
             gate: {
                 "passed": sum(values),
                 "total": len(values),
                 "pass_percent": round(sum(values) / len(values) * 100, 1),
                 "wilson_95_ci": wilson_interval(sum(values), len(values)),
-                "failed_case_ids": failed_cases.get(gate, []),
+                "failed_case_ids": sorted(
+                    {row["case_id"] for row in failed_observations.get(gate, [])}
+                ),
+                "failed_observations": failed_observations.get(gate, []),
             }
             for gate, values in sorted(gates.items())
         },
@@ -187,23 +247,35 @@ def safety_metrics(
 
 def retrieval_metrics(
     case_rows: list[dict[str, Any]],
-    judgments: dict[str, dict[str, Any]],
+    judgments: dict[str, dict[str, dict[str, Any]]],
     mode: str,
 ) -> dict[str, Any]:
     field = f"{mode}_retrieval_relevance"
     answerable = [case for case in case_rows if case["retrieval_evaluation"] == "evidence_required"]
     gaps = [case for case in case_rows if case["retrieval_evaluation"] == "capability_gap"]
-    hits = [any(value >= 2 for value in judgments[case["case_id"]][field]) for case in answerable]
-    ndcgs = [ndcg(judgments[case["case_id"]][field]) for case in answerable]
-    gap_pass = [not any(value >= 2 for value in judgments[case["case_id"]][field]) for case in gaps]
+    hits = [
+        any(value >= 2 for value in sample[case["case_id"]][field])
+        for sample in judgments.values()
+        for case in answerable
+    ]
+    ndcgs = [
+        ndcg(sample[case["case_id"]][field]) for sample in judgments.values() for case in answerable
+    ]
+    gap_pass = [
+        not any(value >= 2 for value in sample[case["case_id"]][field])
+        for sample in judgments.values()
+        for case in gaps
+    ]
     return {
         "scope": "judged returned pool; not exhaustive corpus qrels",
         "evidence_required_cases": len(answerable),
+        "evidence_required_observations": len(hits),
         "pool_hit_percent": round_metric(mean(float(value) for value in hits) * 100),
         "pool_hits": sum(hits),
         "pool_hit_wilson_95_ci": wilson_interval(sum(hits), len(hits)),
         "pool_ndcg_percent": round_metric(mean(ndcgs) * 100),
         "capability_gap_cases": len(gaps),
+        "capability_gap_observations": len(gap_pass),
         "capability_gap_pass_percent": round_metric(mean(float(value) for value in gap_pass) * 100),
         "capability_gap_passed": sum(gap_pass),
         "not_applicable_cases": sum(
@@ -234,6 +306,8 @@ def release_blockers(
         blockers.append("end-to-end production routing run is incomplete")
     if current.get("exhaustive_qrels_complete") is not True:
         blockers.append("retrieval qrels are not exhaustive or pooled across systems")
+    if current.get("provider_safe_normalization") is True:
+        blockers.append("model-visible evidence required provider compatibility normalization")
 
     for mode, label in MODE_LABELS.items():
         answer_row = answer[label]
@@ -284,34 +358,72 @@ def main() -> int:
 
     case_rows = read_jsonl(args.cases)
     cases = validate_cases(case_rows)
+    run = json.loads(args.run.read_text(encoding="utf-8"))
     judgment_rows = read_jsonl(args.judgments)
-    judgments = {str(row["case_id"]): row for row in judgment_rows}
-    if set(judgments) != set(cases):
-        raise ValueError("judgment case IDs do not match case IDs")
-    for case_id, case in cases.items():
-        row = judgments[case_id]
-        for mode in MODES:
-            validate_score(case, row[mode], mode)
-            relevance = row.get(f"{mode}_retrieval_relevance")
-            if not isinstance(relevance, list) or any(
-                not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 3
-                for value in relevance
-            ):
-                raise ValueError(f"{case_id}/{mode}: invalid retrieval relevance")
+    judgments: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in judgment_rows:
+        sample_id = str(row.get("sample_id", ""))
+        case_id = str(row["case_id"])
+        if not sample_id:
+            raise ValueError(f"{case_id}: sample_id is required")
+        if case_id in judgments[sample_id]:
+            raise ValueError(f"duplicate judgment for {sample_id}/{case_id}")
+        judgments[sample_id][case_id] = row
+    expected_sample_ids = run.get("current_run", {}).get("sample_ids", [])
+    if not isinstance(expected_sample_ids, list) or not expected_sample_ids:
+        expected_sample_ids = sorted(judgments)
+    if sorted(judgments) != sorted(str(value) for value in expected_sample_ids):
+        raise ValueError("judgment sample IDs do not match current_run sample_ids")
+    for sample_id, sample in judgments.items():
+        if set(sample) != set(cases):
+            raise ValueError(f"{sample_id}: judgment case IDs do not match case IDs")
+        for case_id, case in cases.items():
+            row = sample[case_id]
+            for mode in MODES:
+                validate_score(case, row[mode], mode)
+                relevance = row.get(f"{mode}_retrieval_relevance")
+                if not isinstance(relevance, list) or any(
+                    not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 3
+                    for value in relevance
+                ):
+                    raise ValueError(f"{sample_id}/{case_id}/{mode}: invalid retrieval relevance")
 
     pairs = read_jsonl(args.pairs)
-    run = json.loads(args.run.read_text(encoding="utf-8"))
+    if int(run.get("current_run", {}).get("answer_samples_per_case", 0)) != len(judgments):
+        raise ValueError("current_run answer_samples_per_case does not match judgments")
+    pair_keys = [(str(row.get("sample_id", "")), str(row.get("pair_id", ""))) for row in pairs]
+    if len(pair_keys) != len(set(pair_keys)):
+        raise ValueError("duplicate sample/pair judgment")
+    if {sample_id for sample_id, _ in pair_keys} != set(judgments):
+        raise ValueError("pair sample IDs do not match judgment sample IDs")
+    expected_pair_ids = {str(case["pair_id"]) for case in case_rows if case.get("pair_id")}
+    expected_pair_keys = {
+        (sample_id, pair_id) for sample_id in judgments for pair_id in expected_pair_ids
+    }
+    if set(pair_keys) != expected_pair_keys:
+        raise ValueError("pair judgments do not cover every sample/pair group")
+
     scores = {
-        mode: [case_score_percent(case, judgments[case["case_id"]][mode]) for case in case_rows]
+        mode: {
+            str(case["case_id"]): [
+                case_score_percent(case, sample[case["case_id"]][mode])
+                for sample in judgments.values()
+            ]
+            for case in case_rows
+        }
         for mode in MODES
     }
     paired_differences = [
-        rag - light for rag, light in zip(scores["rag"], scores["lightweight"], strict=True)
+        (mean(scores["rag"][case["case_id"]]) or 0.0)
+        - (mean(scores["lightweight"][case["case_id"]]) or 0.0)
+        for case in case_rows
     ]
+    unique_pair_ids = {pair_id for _, pair_id in pair_keys}
     pair_metrics = {
         MODE_LABELS[mode]: {
             "consistent_groups": sum(bool(row[f"{mode}_consistent"]) for row in pairs),
-            "groups": len(pairs),
+            "groups": len(unique_pair_ids),
+            "group_sample_observations": len(pairs),
             "observed_percent": round(
                 sum(bool(row[f"{mode}_consistent"]) for row in pairs) / len(pairs) * 100,
                 1,
@@ -354,6 +466,9 @@ def main() -> int:
         "schema_version": "answer-eval-v1.1",
         "status": "release_eligible" if not blockers else "diagnostic_not_release_eligible",
         "question_count": len(case_rows),
+        "sample_ids": list(judgments),
+        "answer_samples_per_case": len(judgments),
+        "judgment_observations": len(judgment_rows),
         "mode_labels": MODE_LABELS,
         "run": run,
         "artifact_sha256": {

@@ -13,6 +13,7 @@ from v1_common import EVAL_DIR, ROOT, read_jsonl, validate_cases, write_jsonl
 from v1_evidence import (
     build_reference_index,
     lightweight_evidence,
+    normalize_provider_sensitive_text,
     render_lightweight_evidence,
     render_rag_evidence,
 )
@@ -53,13 +54,19 @@ def prompt_for(
     document_frequency: dict[str, int],
     *,
     lightweight_oracle_targets: bool,
+    provider_safe_normalization: bool,
+    rag_evidence_limit: int,
+    lightweight_evidence_limit: int,
 ) -> str:
     blocks = []
     for case in batch:
         case_id = str(case["case_id"])
         if mode == "rag":
             evidence = render_rag_evidence(
-                [dict(row) for row in rag_retrieval[case_id].get("results", [])]
+                [
+                    dict(row)
+                    for row in rag_retrieval[case_id].get("results", [])[:rag_evidence_limit]
+                ]
             )
         else:
             evidence = render_lightweight_evidence(
@@ -68,12 +75,14 @@ def prompt_for(
                     reference_index,
                     document_frequency,
                     oracle_targets=lightweight_oracle_targets,
-                    limit=10,
+                    limit=lightweight_evidence_limit,
                 )
             )
+        if provider_safe_normalization:
+            evidence = normalize_provider_sensitive_text(evidence)
         blocks.append(f"### {case_id}\n问题：{case['query']}\n\n实际证据包：\n{evidence}")
     ids = [str(case["case_id"]) for case in batch]
-    return f"""
+    prompt = f"""
 你是 nihaisha 项目的被测回答 Agent。只根据每题实际证据包回答，不得调用工具或读取评测文件。
 逐题独立返回 {ids}，只输出符合 schema 的 JSON。证据不足时明确承认，不得用模型记忆补写课程原话。
 
@@ -89,6 +98,7 @@ RAG 通道必须把证据包全部 paragraph_id 按原顺序复制到 retrieved_
 
 {chr(10).join(blocks)}
 """.strip()
+    return normalize_provider_sensitive_text(prompt) if provider_safe_normalization else prompt
 
 
 def main() -> int:
@@ -98,8 +108,27 @@ def main() -> int:
     parser.add_argument("--batch-size", type=int, default=5)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--retries", type=int, default=2)
+    parser.add_argument(
+        "--use-user-config",
+        action="store_true",
+        help="Use the configured Codex provider; record the provider in run metadata.",
+    )
     parser.add_argument("--lightweight-oracle-targets", action="store_true")
+    parser.add_argument(
+        "--provider-safe-normalization",
+        action="store_true",
+        help="Apply the documented provider-compatibility text substitutions.",
+    )
     parser.add_argument("--cases", type=Path, default=EVAL_DIR / "answer_eval_v1.jsonl")
+    parser.add_argument("--case-id")
+    parser.add_argument(
+        "--force-case-id",
+        action="append",
+        default=[],
+        help="Regenerate these case IDs even when a valid batch already exists.",
+    )
+    parser.add_argument("--rag-evidence-limit", type=int, default=10)
+    parser.add_argument("--lightweight-evidence-limit", type=int, default=10)
     parser.add_argument(
         "--retrieval",
         type=Path,
@@ -111,6 +140,13 @@ def main() -> int:
 
     cases = read_jsonl(args.cases)
     validate_cases(cases)
+    unknown_force_ids = set(args.force_case_id) - {str(case["case_id"]) for case in cases}
+    if unknown_force_ids:
+        raise ValueError(f"unknown force case IDs: {sorted(unknown_force_ids)}")
+    if args.case_id:
+        cases = [case for case in cases if case["case_id"] == args.case_id]
+        if not cases:
+            raise ValueError(f"unknown case_id: {args.case_id}")
     rag_retrieval = (
         {str(row["case_id"]): row for row in read_jsonl(args.retrieval)}
         if args.mode == "rag"
@@ -128,7 +164,8 @@ def main() -> int:
     for number, batch in enumerate(batches, start=1):
         expected_ids = [str(case["case_id"]) for case in batch]
         output = mode_dir / f"batch_{number:02d}.json"
-        if valid(output, expected_ids):
+        force = bool(set(expected_ids) & set(args.force_case_id))
+        if valid(output, expected_ids) and not force:
             print(f"[{args.mode}] batch={number} reuse", flush=True)
             continue
         prompt = prompt_for(
@@ -138,11 +175,15 @@ def main() -> int:
             reference_index,
             document_frequency,
             lightweight_oracle_targets=args.lightweight_oracle_targets,
+            provider_safe_normalization=args.provider_safe_normalization,
+            rag_evidence_limit=args.rag_evidence_limit,
+            lightweight_evidence_limit=args.lightweight_evidence_limit,
         )
         command = [
             "codex",
             "exec",
-            "--ignore-user-config",
+            *([] if args.use_user_config else ["--ignore-user-config"]),
+            "--ignore-rules",
             "--ephemeral",
             "-m",
             args.model,
