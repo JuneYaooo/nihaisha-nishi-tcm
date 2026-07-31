@@ -6,19 +6,32 @@ V1 共 100 题，覆盖知识检索、跨源整合、引用与溯源、推论与
 
 ## 当前状态
 
-**协议和运行器已就绪，新口径结果待重跑。** 2026-07-30 尝试独立盲评时，本地 Codex CLI
-连续发生传输超时；项目没有把旧裁判结果机械补字段后冒充新结果。
+**三轮自动重跑已完成，但结果仅为自动化诊断，不具备发布资格。** 2026-07-31 使用
+`gpt-5.6-sol` 生成答案、`gpt-5.6-terra` 独立盲评；每题每通道三次，共 600 个回答、300 条逐题裁判和
+12 个配对组观察。轻量通道使用完整 references Top-10，没有读取每题 `reference_targets`。
 
-旧版单轮数字仍保存在 `answer_eval_summary_v1.json` 的 `legacy_single_run`，仅用于历史定位：
+| 指标 | RAG Hybrid Top-10 | 轻量 references Top-10 |
+| --- | ---: | ---: |
+| 适用维度总分 | 91.9（case bootstrap 95% CI 89.8–94.0） | 90.1（87.8–92.1） |
+| 预期行为通过率 | 82.0% | 85.0% |
+| 必须检查项通过率 | 87.3% | 87.5% |
+| 引用支持精确率 / 覆盖率 / 可访问率 | 91.9% / 89.6% / 99.8% | 94.8% / 93.7% / 97.4% |
+| returned-pool hit / nDCG | 94.9% / 77.6% | 87.0% / 68.7% |
+| 能力边界通过率 | 40.7% | 11.1% |
+| 鲁棒性一致率 | 75.0%（9/12） | 100.0%（12/12） |
 
-- 它比较的是两种不同检索辅助条件下的冻结证据回答，不是公平端到端 A/B；
-- 普通轻量证据曾被每题 `reference_targets` 限定，相当于 Oracle 路由；
-- 旧裁判没有看到轻量证据正文，因此轻量引用支持率不可验证；
-- 答案和裁判使用同一模型，每题只生成一次；
-- nDCG 只在 RAG 自己返回的 Top-10 内计算；
-- 旧汇总器把鲁棒结果和总安全违规率写死。
+RAG 比轻量通道高 1.9 分，但 case bootstrap 95% CI 为 -1.2 至 5.1，不能据此认定稳定领先；这仍是
+冻结证据组件比较，不是端到端 Agent 路由 A/B。
 
-所以旧版 `87.6%` 与 `88.3%` 不能解释为产品性能差异，`0/25` 也不能证明安全违规率为零。
+自动裁判在 RAG 上标出 1 次严重安全违规（`sample-01/I010`）和 1 次
+`no_individualized_treatment` 门槛失败（`sample-03/K009`）；紧急转介为 24/24，两通道均通过。
+初步文本核查显示 I010 可能是裁判把证据包中的针刺内容误当成答案复述，K009 则没有给题目要求的
+附子安全提示；在独立临床安全复核前，两项都保留为失败，不作人工消除。RAG 来源误归属涉及
+`I005`、`I015`、`I019`、`K003`，轻量通道涉及 `K003`。
+
+结果状态为 `diagnostic_not_release_eligible`。除上述自动失败外，独立中医复核、临床安全复核、端到端
+生产路由和完整 qrels 尚未完成；鲁棒组只有 4 组。由于 OpenAI 直连超时，本次使用配置的 `krill`
+provider，并对模型可见文本应用了有记录的兼容替换，这也被明确列为发布阻断项。
 
 ## 题集字段
 
@@ -77,9 +90,10 @@ V1 共 100 题，覆盖知识检索、跨源整合、引用与溯源、推论与
 | --- | --- |
 | `answer_eval_v1.jsonl` | 100 道题及适用维度、检索口径、安全门槛 |
 | `answer_eval_rubric_v1.md` | 新评分、引用、安全、统计和发布规则 |
-| `answer_eval_run_v1.json` | 新协议与历史运行 provenance/hash |
-| `answer_eval_summary_v1.json` | 当前状态和明确降级的历史单轮结果 |
-| `answer_eval_judgments_v1.jsonl` | 旧版逐题结果；新独立裁判完成后由运行器原位替换 |
+| `answer_eval_run_v1.json` | 协议、当前三轮运行与历史运行 provenance/hash |
+| `answer_eval_summary_v1.json` | 当前三轮自动诊断汇总、区间、分组和发布阻断项 |
+| `answer_eval_judgments_v1.jsonl` | 3 × 100 条独立盲评结果 |
+| `answer_eval_pairs_v1.jsonl` | 4 个配对组 × 3 轮的鲁棒性裁判结果 |
 | `scripts/` | 检索、回答、盲评、鲁棒性、聚合和校验脚本 |
 | `schemas/` | Codex 结构化输出 schema |
 
@@ -100,11 +114,16 @@ python3 evals/scripts/validate_v1.py --protocol-only
 python3 evals/scripts/run_retrieval_v1.py
 ```
 
-分别生成三轮答案。下面展示单轮命令；每轮必须使用独立输出目录并记录 seed/运行信息：
+分别生成三轮答案。每轮必须使用独立输出目录；以下以第一轮为例：
 
 ```bash
-python3 evals/scripts/run_answers_v1.py --mode rag
-python3 evals/scripts/run_answers_v1.py --mode lightweight
+python3 evals/scripts/run_answers_v1.py --mode rag --batch-size 1 \
+  --retrieval .local-evals/v1/rag_retrieval.jsonl \
+  --output-dir .local-evals/v1/sample-01/answer-batches \
+  --merged-output .local-evals/v1/sample-01/rag_answers.jsonl
+python3 evals/scripts/run_answers_v1.py --mode lightweight --batch-size 1 \
+  --output-dir .local-evals/v1/sample-01/answer-batches \
+  --merged-output .local-evals/v1/sample-01/lightweight_answers.jsonl
 ```
 
 轻量模式默认搜索全部 references。不得在正式结果中加入 `--lightweight-oracle-targets`。
@@ -113,17 +132,29 @@ python3 evals/scripts/run_answers_v1.py --mode lightweight
 
 ```bash
 python3 evals/scripts/run_answer_judge_v1.py \
-  --local-dir .local-evals/v1 \
-  --output-dir .local-evals/v1/judge-batches
-python3 evals/scripts/run_pair_judge_v1.py --local-dir .local-evals/v1
+  --sample-id sample-01 \
+  --local-dir .local-evals/v1/sample-01 \
+  --retrieval .local-evals/v1/rag_retrieval.jsonl \
+  --output-dir .local-evals/v1/sample-01/judge-batches \
+  --merged-output .local-evals/v1/sample-01/answer_judgments.jsonl
+python3 evals/scripts/run_pair_judge_v1.py \
+  --sample-id sample-01 \
+  --local-dir .local-evals/v1/sample-01 \
+  --output .local-evals/v1/sample-01/answer_pairs.jsonl
 ```
 
-人工复核完成并更新 `answer_eval_run_v1.json` 后，再聚合和校验：
+三轮均完成后，先合并裁判产物，再更新 `answer_eval_run_v1.json`、聚合和校验：
 
 ```bash
+python3 evals/scripts/merge_v1_runs.py \
+  --judgments .local-evals/v1/sample-{01,02,03}/answer_judgments.jsonl \
+  --pairs .local-evals/v1/sample-{01,02,03}/answer_pairs.jsonl
 python3 evals/scripts/aggregate_v1.py
 python3 evals/scripts/validate_v1.py
 ```
+
+若 provider 对旧医学、生殖或解剖词发生误判，可显式加入 `--provider-safe-normalization`；它会使用
+`v1_evidence.py` 中的固定替换表，必须记录 hash，并自动令该次运行不具备发布资格。
 
 ## 发布检查
 

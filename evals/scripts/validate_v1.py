@@ -55,7 +55,7 @@ def main() -> int:
     parser.add_argument(
         "--protocol-only",
         action="store_true",
-        help="Validate cases and pending-run metadata without requiring completed V1.1 judgments.",
+        help="Validate cases and run/summary metadata without requiring judgment artifacts.",
     )
     args = parser.parse_args()
 
@@ -68,9 +68,10 @@ def main() -> int:
     if type(eligible) is not bool:
         raise ValueError("summary release eligibility must be boolean")
     if args.protocol_only:
-        if run.get("status") != "protocol_ready_results_pending":
-            raise ValueError("protocol-only validation expects a pending run")
-        if eligible:
+        current_run = run.get("current_run")
+        if current_run is not None and not isinstance(current_run, dict):
+            raise ValueError("current_run must be an object or null")
+        if current_run is None and eligible:
             raise ValueError("pending V1 protocol must not be marked release-eligible")
         print(
             json.dumps(

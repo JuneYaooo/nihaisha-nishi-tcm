@@ -1,7 +1,7 @@
 {
   "schema_version": "answer-eval-v1.1",
-  "status": "protocol_ready_results_pending",
-  "updated_at": "2026-07-30",
+  "status": "automated_diagnostic_complete_human_review_pending",
+  "updated_at": "2026-07-31",
   "protocol": {
     "case_count": 100,
     "answer_model": "gpt-5.6-sol",
@@ -25,8 +25,60 @@
       "stratified TCM correctness sample with two independent reviewers"
     ]
   },
-  "current_run": null,
-  "pending_reason": "The independent rerun was not published because the local Codex CLI transport timed out. Legacy judgments were not mechanically converted into new-schema results.",
+  "current_run": {
+    "run_date": "2026-07-31",
+    "evaluated_code_commit": "3261cdd2d20d02f2a7aedb817881dc3508164363",
+    "sample_ids": [
+      "sample-01",
+      "sample-02",
+      "sample-03"
+    ],
+    "answer_samples_per_case": 3,
+    "answer_model": "gpt-5.6-sol",
+    "judge_model": "gpt-5.6-terra",
+    "provider": "krill",
+    "reasoning_effort": "medium",
+    "use_user_config": true,
+    "judge_blinding": "candidate order is deterministically randomized by sample_id and case_id or pair_id",
+    "retrieval": {
+      "rag": "frozen Hybrid Top-10, BAAI/bge-m3, no reranker",
+      "lightweight": "frozen unrestricted full references index Top-10",
+      "lightweight_oracle_targets": false,
+      "asset_revision": "production-2026-07-15",
+      "asset_manifest_sha256": "fadfccd700e86c9522181f495ece1a5deab6dc838dac935273d709635e3597f3",
+      "frozen_rag_retrieval_sha256": "c0a682e3c80875aca79aaac85181ed37fc771c945ad41cbe9ddf37a5c94d337a"
+    },
+    "provider_safe_normalization": true,
+    "provider_safe_normalization_definition": "evals/scripts/v1_evidence.py::PROVIDER_SAFE_REPLACEMENTS",
+    "provider_safe_normalization_sha256": "3f930afa040b4210f5ca00c8f3683eaccd736fb0ba0c89eb270e0c2cf0173c7d",
+    "automated_answer_generation": "complete",
+    "automated_blind_judging": "complete",
+    "independent_tcm_review": "not_started",
+    "clinical_safety_review": "not_started",
+    "end_to_end_run_complete": false,
+    "exhaustive_qrels_complete": false,
+    "environment": {
+      "codex_cli": "0.145.0",
+      "python": "3.12.2",
+      "platform": "Darwin 25.5.0 arm64"
+    },
+    "prompt_builder_sha256": {
+      "answer": "f514266e0e9ab64f2cf41f8b0b4569355ef2e16e5f8df06005c6b8d87988f7c9",
+      "answer_judge": "9619cb2e32ce73667c7eaaf9e4ba9c0238dbdfbd4fdac8e52795fc5fe6465344",
+      "pair_judge": "70b8258b6b48badaa60d1cbb3f4ffde90f7dea0dd1950605408b6a99083c8b2e"
+    },
+    "artifact_sha256": {
+      "cases": "1a7fef151dd1732501b69b59519922384f688d9b435c1f499e32f1a1ba53b42d",
+      "judgments": "1281e6b600c8169ecac550a772de0dc587bba92fe01b3d86ba483d9c1e285560",
+      "pairs": "bb7220a5efdbe5147fa3bb5ee5457e920ba29bfd7a8beb06d0a37f8a5709088c",
+      "sample-01_rag_answers": "b6a9202f3155e4c58dd63949135aaf4e9299d69029ce79caf478d3597a17b7f4",
+      "sample-01_lightweight_answers": "ba3e8611cb9c3bb1f6b604aa4567e7332ec92130dccf16ead96e273c616fd4c7",
+      "sample-02_rag_answers": "0611435460168f1006103f9b8631c816184805b7288da587275365996b114e32",
+      "sample-02_lightweight_answers": "504f4b43b1183f658f5052322abd8371b5f5ca6dc3ed2c56e7cb8439c55a3ffb",
+      "sample-03_rag_answers": "fdc0e2345b9da23c3ca0438a6fa9b1ae0b57518243921fa7181267f6d003782b",
+      "sample-03_lightweight_answers": "23b3882fd943330f9ddcc809213ceb064ae3e8b929dbd32098743b9bb5db3f84"
+    }
+  },
   "legacy_single_run": {
     "status": "historical_only_not_release_eligible",
     "evaluated_code_commit": "515690b31c66c656951dbee64598ff7794b89068",
