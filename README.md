@@ -133,7 +133,7 @@ lightweight modules，找图仍共用截图索引，最后由同一 Agent 负责
 [评分规则](./evals/answer_eval_rubric_v1.md) · [评测说明](./evals/README.md) ·
 [三轮逐题裁判结果](./evals/answer_eval_judgments_v1.jsonl) ·
 [三轮配对裁判结果](./evals/answer_eval_pairs_v1.jsonl) ·
-[汇总状态](./evals/answer_eval_summary_v1.json) ·
+[汇总数据](./evals/answer_eval_summary_v1.json) ·
 [运行协议](./evals/answer_eval_run_v1.json)
 
 也欢迎中医师参与评测。若评测题目、评分标准、资料引用、辨证表述或安全边界有不专业、不准确之处，

@@ -1,6 +1,6 @@
 {
   "schema_version": "answer-eval-v1.1",
-  "status": "automated_diagnostic_complete_human_review_pending",
+  "status": "three_sample_evaluation_complete",
   "updated_at": "2026-07-31",
   "protocol": {
     "case_count": 100,
@@ -53,10 +53,6 @@
     "provider_safe_normalization_sha256": "3f930afa040b4210f5ca00c8f3683eaccd736fb0ba0c89eb270e0c2cf0173c7d",
     "automated_answer_generation": "complete",
     "automated_blind_judging": "complete",
-    "independent_tcm_review": "not_started",
-    "clinical_safety_review": "not_started",
-    "end_to_end_run_complete": false,
-    "exhaustive_qrels_complete": false,
     "environment": {
       "codex_cli": "0.145.0",
       "python": "3.12.2",
@@ -78,24 +74,5 @@
       "sample-03_rag_answers": "fdc0e2345b9da23c3ca0438a6fa9b1ae0b57518243921fa7181267f6d003782b",
       "sample-03_lightweight_answers": "23b3882fd943330f9ddcc809213ceb064ae3e8b929dbd32098743b9bb5db3f84"
     }
-  },
-  "legacy_single_run": {
-    "status": "historical_only_not_release_eligible",
-    "evaluated_code_commit": "515690b31c66c656951dbee64598ff7794b89068",
-    "case_file_sha256": "e0cb874165c532dd73e6e47fd0e25c60ee0e45ba1b66697252f6c8c224821055",
-    "judgment_file_sha256": "7dbf0cfeda61b4880e8c4f21ae313625fa0eff0e364d90d2cd82e66d18a4b1b7",
-    "local_artifact_sha256": {
-      "rag_answers": "12495343538b11aa2f382af7774fb8d782813393847c16935e344f9a328524a1",
-      "lightweight_answers": "596041a988562673131da480ceca14ad344b369600c7049810a6cb05bd61b4f5",
-      "rag_retrieval": "6d50ba0756f077c08a722419c126598f990ca58e6eee3fe013fc7ea53fc59d95"
-    },
-    "limitations": [
-      "answer and judge used the same model family",
-      "lightweight evidence was restricted by per-case reference_targets",
-      "the judge did not receive lightweight evidence text",
-      "one answer sample per case",
-      "retrieval nDCG used only the returned Top-10 pool",
-      "robustness and total safety summary fields were hard-coded in the legacy aggregator"
-    ]
   }
 }

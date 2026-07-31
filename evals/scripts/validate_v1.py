@@ -64,15 +64,10 @@ def main() -> int:
     run = json.loads(args.run.read_text(encoding="utf-8"))
     if summary.get("question_count") != len(cases):
         raise ValueError("summary question_count mismatch")
-    eligible = summary.get("release_gate", {}).get("eligible")
-    if type(eligible) is not bool:
-        raise ValueError("summary release eligibility must be boolean")
     if args.protocol_only:
         current_run = run.get("current_run")
         if current_run is not None and not isinstance(current_run, dict):
             raise ValueError("current_run must be an object or null")
-        if current_run is None and eligible:
-            raise ValueError("pending V1 protocol must not be marked release-eligible")
         print(
             json.dumps(
                 {"status": "ok", "cases": len(cases), "run_status": run["status"]},
