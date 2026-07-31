@@ -135,7 +135,13 @@ def stop(process: subprocess.Popen[Any]) -> None:
             pass
 
 
-def valid_batch(path: Path, batch: list[dict[str, Any]]) -> bool:
+def valid_batch(
+    path: Path,
+    batch: list[dict[str, Any]],
+    relevance_lengths: dict[str, tuple[int, int]],
+    *,
+    sample_id: str,
+) -> bool:
     if not path.is_file():
         return False
     try:
@@ -145,7 +151,27 @@ def valid_batch(path: Path, batch: list[dict[str, Any]]) -> bool:
     judgments = payload.get("judgments")
     if not isinstance(judgments, list) or len(judgments) != len(batch):
         return False
-    return [row.get("case_id") for row in judgments] == [row["case_id"] for row in batch]
+    if [row.get("case_id") for row in judgments] != [row["case_id"] for row in batch]:
+        return False
+    for row in judgments:
+        case_id = str(row["case_id"])
+        rag_length, lightweight_length = relevance_lengths[case_id]
+        candidate_a_length, candidate_b_length = (
+            (rag_length, lightweight_length)
+            if blind_rag_first(case_id, sample_id)
+            else (lightweight_length, rag_length)
+        )
+        if (
+            not isinstance(row.get("candidate_a_relevance"), list)
+            or len(row["candidate_a_relevance"]) != candidate_a_length
+        ):
+            return False
+        if (
+            not isinstance(row.get("candidate_b_relevance"), list)
+            or len(row["candidate_b_relevance"]) != candidate_b_length
+        ):
+            return False
+    return True
 
 
 def canonicalize(
@@ -254,6 +280,21 @@ def main() -> int:
             raise ValueError(f"{name} case IDs do not match the case set")
 
     reference_index, document_frequency = build_reference_index()
+    relevance_lengths = {
+        case_id: (
+            len(rag_retrieval[case_id].get("results", [])),
+            len(
+                lightweight_evidence(
+                    case,
+                    reference_index,
+                    document_frequency,
+                    oracle_targets=args.lightweight_oracle_targets,
+                    limit=6 if args.lightweight_oracle_targets else 10,
+                )
+            ),
+        )
+        for case_id, case in cases.items()
+    }
     batches = [
         case_rows[index : index + args.batch_size]
         for index in range(0, len(case_rows), args.batch_size)
@@ -266,7 +307,7 @@ def main() -> int:
     for number in range(args.start_batch, end + 1):
         batch = batches[number - 1]
         output = args.output_dir / f"batch_{number:02d}.json"
-        if valid_batch(output, batch):
+        if valid_batch(output, batch, relevance_lengths, sample_id=args.sample_id):
             print(f"[judge] batch={number} reuse", flush=True)
             continue
         prompt = build_prompt(
@@ -321,21 +362,26 @@ def main() -> int:
                 deadline = time.monotonic() + args.timeout
                 try:
                     while time.monotonic() < deadline and process.poll() is None:
-                        if valid_batch(output, batch):
+                        if valid_batch(
+                            output,
+                            batch,
+                            relevance_lengths,
+                            sample_id=args.sample_id,
+                        ):
                             break
                         time.sleep(1)
                 finally:
                     stop(process)
-            if valid_batch(output, batch):
+            if valid_batch(output, batch, relevance_lengths, sample_id=args.sample_id):
                 print(f"[judge] batch={number} attempt={attempt} ok", flush=True)
                 break
-        if not valid_batch(output, batch):
+        if not valid_batch(output, batch, relevance_lengths, sample_id=args.sample_id):
             raise RuntimeError(f"judge batch {number} failed")
 
     merged_blind = []
     for number, batch in enumerate(batches, start=1):
         output = args.output_dir / f"batch_{number:02d}.json"
-        if not valid_batch(output, batch):
+        if not valid_batch(output, batch, relevance_lengths, sample_id=args.sample_id):
             raise RuntimeError(f"missing valid judge batch {number}")
         merged_blind.extend(json.loads(output.read_text(encoding="utf-8"))["judgments"])
     write_jsonl(
