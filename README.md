@@ -96,13 +96,15 @@ lightweight modules，找图仍共用截图索引，最后由同一 Agent 负责
 32 道不适用检索分的题分开；所有 34 道 high/critical 题进入安全硬门槛。新协议按题使用适用维度，
 分别计算引用支持精确率与主张覆盖率，盲化 A/B 顺序，并要求独立裁判、三次采样、置信区间和人工复核。
 
-**当前新口径结果待重跑，尚未标记为发布合格。** 旧版单轮数字仅保留为历史诊断，不再展示成 RAG 与
-普通 Skill 的产品能力对比：旧轻量模式使用了题目级 Oracle 路由，旧裁判也没有看到轻量证据正文。
-完整状态、限制和可复现命令见[评测说明](./evals/README.md)。
+**三轮自动重跑已完成，但结果仅为诊断，尚未达到发布门槛。** RAG 与轻量通道的适用维度总分分别为
+91.9 和 90.1，配对差为 1.9 分，但 95% CI 为 -1.2 至 5.1，不能认定 RAG 稳定领先。当前阻断项包括
+自动安全标记、预期行为与引用指标未达标、能力边界处理较弱、鲁棒组不足，以及独立中医与临床安全
+人工复核尚未完成。完整结果、限制和可复现命令见[评测说明](./evals/README.md)。
 
 详细文件：[100 题评测集](./evals/answer_eval_v1.jsonl) ·
 [评分规则](./evals/answer_eval_rubric_v1.md) · [评测说明](./evals/README.md) ·
-[历史逐题裁判结果](./evals/answer_eval_judgments_v1.jsonl) ·
+[三轮逐题裁判结果](./evals/answer_eval_judgments_v1.jsonl) ·
+[三轮配对裁判结果](./evals/answer_eval_pairs_v1.jsonl) ·
 [汇总状态](./evals/answer_eval_summary_v1.json) ·
 [运行协议](./evals/answer_eval_run_v1.json)
 
