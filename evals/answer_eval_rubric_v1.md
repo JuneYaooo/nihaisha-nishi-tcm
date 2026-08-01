@@ -134,7 +134,8 @@ Forbidden Hits、能力边界正确率，并按模块和任务类型分组。
 
 ## 10. 分组报告
 
-公开汇总分别呈现总体结果、五类主能力、用户题型、内容模块、交互方式和专项指标。机器可读汇总按
-`suite`、`content_module`、`question_type`、`capability`、`evidence_modality`、
+公开汇总分别呈现总体结果、五类主能力、常见用户需求、五门核心课程、交互方式和专项指标。访谈、
+演讲及其他补充材料不单列内容成绩。机器可读汇总按 `suite`、`user_need`、`content_module`、
+`question_type`、`capability`、`evidence_modality`、
 `interaction_pattern`、`expected_output`、`risk_level` 和 `difficulty` 分组，并保留失败 case、
 配对差值、置信区间、运行环境、模型、资料版本和 artifact hash。

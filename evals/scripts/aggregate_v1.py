@@ -26,6 +26,21 @@ MODE_LABELS = {
     "rag": "rag_frozen_hybrid_top10",
     "lightweight": "lightweight_frozen_full_references_top10",
 }
+CORE_CONTENT_MODULES = {"shanghan", "jingui", "huangdi", "acupuncture", "bencao"}
+USER_NEEDS = {
+    "single_fact": "topic_lookup",
+    "single_topic": "topic_lookup",
+    "enumeration": "topic_lookup",
+    "pairwise_comparison": "comparison",
+    "multi_item_comparison": "comparison",
+    "cross_source_synthesis": "multi_source_summary",
+    "evidence_verification": "source_check",
+    "premise_evaluation": "claim_check",
+    "scenario_analysis": "scenario_analysis",
+    "procedure_request": "how_to_request",
+    "planning_navigation": "learning_navigation",
+    "clarification_revision": "follow_up_revision",
+}
 
 
 def bootstrap_ci(values: list[float], *, seed: int, samples: int = 10_000) -> list[float] | None:
@@ -392,7 +407,18 @@ def main() -> int:
     breakdowns = {
         "suite": group_scores(case_rows, judgments, lambda case: [str(case["suite"])]),
         "content_module": group_scores(
-            case_rows, judgments, lambda case: list(case["content_modules"])
+            case_rows,
+            judgments,
+            lambda case: [
+                module
+                for module in case["content_modules"]
+                if module in CORE_CONTENT_MODULES
+            ],
+        ),
+        "user_need": group_scores(
+            case_rows,
+            judgments,
+            lambda case: [USER_NEEDS[str(case["question_type"])]],
         ),
         "question_type": group_scores(
             case_rows, judgments, lambda case: [str(case["question_type"])]

@@ -106,25 +106,10 @@
         "lightweight_frozen_full_references_top10": 90.6,
         "rag_frozen_hybrid_top10": 95.7
       },
-      "bagang": {
-        "cases": 9,
-        "lightweight_frozen_full_references_top10": 91.5,
-        "rag_frozen_hybrid_top10": 85.2
-      },
       "bencao": {
         "cases": 30,
         "lightweight_frozen_full_references_top10": 91.4,
         "rag_frozen_hybrid_top10": 94.5
-      },
-      "clinical-cases": {
-        "cases": 27,
-        "lightweight_frozen_full_references_top10": 96.1,
-        "rag_frozen_hybrid_top10": 93.1
-      },
-      "fuyang": {
-        "cases": 17,
-        "lightweight_frozen_full_references_top10": 91.8,
-        "rag_frozen_hybrid_top10": 93.7
       },
       "huangdi": {
         "cases": 27,
@@ -136,45 +121,10 @@
         "lightweight_frozen_full_references_top10": 87.4,
         "rag_frozen_hybrid_top10": 94.8
       },
-      "learning": {
-        "cases": 4,
-        "lightweight_frozen_full_references_top10": 99.0,
-        "rag_frozen_hybrid_top10": 90.2
-      },
-      "liangdong": {
-        "cases": 6,
-        "lightweight_frozen_full_references_top10": 98.4,
-        "rag_frozen_hybrid_top10": 71.4
-      },
-      "repository": {
-        "cases": 34,
-        "lightweight_frozen_full_references_top10": 93.6,
-        "rag_frozen_hybrid_top10": 90.2
-      },
       "shanghan": {
         "cases": 101,
         "lightweight_frozen_full_references_top10": 89.1,
         "rag_frozen_hybrid_top10": 94.5
-      },
-      "stanford": {
-        "cases": 8,
-        "lightweight_frozen_full_references_top10": 93.1,
-        "rag_frozen_hybrid_top10": 77.8
-      },
-      "tianji": {
-        "cases": 8,
-        "lightweight_frozen_full_references_top10": 92.3,
-        "rag_frozen_hybrid_top10": 80.7
-      },
-      "yijinjing": {
-        "cases": 5,
-        "lightweight_frozen_full_references_top10": 96.5,
-        "rag_frozen_hybrid_top10": 94.1
-      },
-      "zhongjing-xinfa": {
-        "cases": 6,
-        "lightweight_frozen_full_references_top10": 91.6,
-        "rag_frozen_hybrid_top10": 86.5
       }
     },
     "difficulty": {
@@ -414,6 +364,53 @@
         "cases": 60,
         "lightweight_frozen_full_references_top10": 98.5,
         "rag_frozen_hybrid_top10": 98.0
+      }
+    },
+    "user_need": {
+      "claim_check": {
+        "cases": 31,
+        "lightweight_frozen_full_references_top10": 89.9,
+        "rag_frozen_hybrid_top10": 96.0
+      },
+      "comparison": {
+        "cases": 31,
+        "lightweight_frozen_full_references_top10": 88.1,
+        "rag_frozen_hybrid_top10": 92.2
+      },
+      "follow_up_revision": {
+        "cases": 16,
+        "lightweight_frozen_full_references_top10": 93.1,
+        "rag_frozen_hybrid_top10": 94.5
+      },
+      "how_to_request": {
+        "cases": 23,
+        "lightweight_frozen_full_references_top10": 97.4,
+        "rag_frozen_hybrid_top10": 97.3
+      },
+      "learning_navigation": {
+        "cases": 8,
+        "lightweight_frozen_full_references_top10": 99.3,
+        "rag_frozen_hybrid_top10": 87.5
+      },
+      "multi_source_summary": {
+        "cases": 26,
+        "lightweight_frozen_full_references_top10": 83.9,
+        "rag_frozen_hybrid_top10": 90.7
+      },
+      "scenario_analysis": {
+        "cases": 34,
+        "lightweight_frozen_full_references_top10": 99.3,
+        "rag_frozen_hybrid_top10": 98.9
+      },
+      "source_check": {
+        "cases": 38,
+        "lightweight_frozen_full_references_top10": 91.6,
+        "rag_frozen_hybrid_top10": 87.4
+      },
+      "topic_lookup": {
+        "cases": 33,
+        "lightweight_frozen_full_references_top10": 86.8,
+        "rag_frozen_hybrid_top10": 89.7
       }
     }
   },
