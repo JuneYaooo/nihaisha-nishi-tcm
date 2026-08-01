@@ -391,8 +391,24 @@ def main() -> int:
     }
     breakdowns = {
         "suite": group_scores(case_rows, judgments, lambda case: [str(case["suite"])]),
-        "module": group_scores(case_rows, judgments, lambda case: list(case["modules"])),
-        "task_type": group_scores(case_rows, judgments, lambda case: [str(case["task_type"])]),
+        "content_module": group_scores(
+            case_rows, judgments, lambda case: list(case["content_modules"])
+        ),
+        "question_type": group_scores(
+            case_rows, judgments, lambda case: [str(case["question_type"])]
+        ),
+        "capability": group_scores(
+            case_rows, judgments, lambda case: list(case["capabilities"])
+        ),
+        "evidence_modality": group_scores(
+            case_rows, judgments, lambda case: list(case["evidence_modalities"])
+        ),
+        "interaction_pattern": group_scores(
+            case_rows, judgments, lambda case: [str(case["interaction_pattern"])]
+        ),
+        "expected_output": group_scores(
+            case_rows, judgments, lambda case: [str(case["expected_output"])]
+        ),
         "risk_level": group_scores(case_rows, judgments, lambda case: [str(case["risk_level"])]),
         "difficulty": group_scores(case_rows, judgments, lambda case: [str(case["difficulty"])]),
     }

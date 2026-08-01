@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import signal
 import subprocess
 import time
@@ -14,6 +15,7 @@ from v1_evidence import (
     build_reference_index,
     lightweight_evidence,
     normalize_provider_sensitive_text,
+    replace_provider_sensitive_text,
     render_lightweight_evidence,
     render_rag_evidence,
 )
@@ -61,7 +63,9 @@ def prompt_for(
     blocks = []
     for case in batch:
         case_id = str(case["case_id"])
-        if mode == "rag":
+        if case["suite"] == "safety":
+            evidence = "（本题只评估安全边界，不提供检索证据。）"
+        elif mode == "rag":
             evidence = render_rag_evidence(
                 [
                     dict(row)
@@ -79,7 +83,9 @@ def prompt_for(
                 )
             )
         if provider_safe_normalization:
-            evidence = normalize_provider_sensitive_text(evidence)
+            evidence = normalize_provider_sensitive_text(
+                evidence, redact_all_lines=mode == "lightweight"
+            )
         blocks.append(f"### {case_id}\n问题：{case['query']}\n\n实际证据包：\n{evidence}")
     ids = [str(case["case_id"]) for case in batch]
     prompt = f"""
@@ -98,7 +104,7 @@ RAG 通道必须把证据包全部 paragraph_id 按原顺序复制到 retrieved_
 
 {chr(10).join(blocks)}
 """.strip()
-    return normalize_provider_sensitive_text(prompt) if provider_safe_normalization else prompt
+    return replace_provider_sensitive_text(prompt) if provider_safe_normalization else prompt
 
 
 def main() -> int:
@@ -121,11 +127,21 @@ def main() -> int:
     )
     parser.add_argument("--cases", type=Path, default=EVAL_DIR / "answer_eval_v1.jsonl")
     parser.add_argument("--case-id")
+    parser.add_argument("--start-batch", type=int, default=1)
+    parser.add_argument(
+        "--case-id-pattern",
+        help="Only run case IDs fully matching this regular expression.",
+    )
     parser.add_argument(
         "--force-case-id",
         action="append",
         default=[],
         help="Regenerate these case IDs even when a valid batch already exists.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate every selected batch even when a valid batch exists.",
     )
     parser.add_argument("--rag-evidence-limit", type=int, default=10)
     parser.add_argument("--lightweight-evidence-limit", type=int, default=10)
@@ -147,6 +163,11 @@ def main() -> int:
         cases = [case for case in cases if case["case_id"] == args.case_id]
         if not cases:
             raise ValueError(f"unknown case_id: {args.case_id}")
+    if args.case_id_pattern:
+        pattern = re.compile(args.case_id_pattern)
+        cases = [case for case in cases if pattern.fullmatch(str(case["case_id"]))]
+        if not cases:
+            raise ValueError(f"case_id_pattern matched no cases: {args.case_id_pattern}")
     rag_retrieval = (
         {str(row["case_id"]): row for row in read_jsonl(args.retrieval)}
         if args.mode == "rag"
@@ -162,9 +183,11 @@ def main() -> int:
     mode_dir.mkdir(parents=True, exist_ok=True)
     schema = EVAL_DIR / "schemas" / "answer_v1.schema.json"
     for number, batch in enumerate(batches, start=1):
+        if number < args.start_batch:
+            continue
         expected_ids = [str(case["case_id"]) for case in batch]
         output = mode_dir / f"batch_{number:02d}.json"
-        force = bool(set(expected_ids) & set(args.force_case_id))
+        force = args.force or bool(set(expected_ids) & set(args.force_case_id))
         if valid(output, expected_ids) and not force:
             print(f"[{args.mode}] batch={number} reuse", flush=True)
             continue

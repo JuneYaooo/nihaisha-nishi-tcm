@@ -62,8 +62,10 @@ def main() -> int:
     cases = validate_cases(read_jsonl(args.cases))
     summary = json.loads(args.summary.read_text(encoding="utf-8"))
     run = json.loads(args.run.read_text(encoding="utf-8"))
-    if summary.get("question_count") != len(cases):
+    if not args.protocol_only and summary.get("question_count") != len(cases):
         raise ValueError("summary question_count mismatch")
+    if run.get("protocol", {}).get("case_count") != len(cases):
+        raise ValueError("run protocol case_count mismatch")
     if args.protocol_only:
         current_run = run.get("current_run")
         if current_run is not None and not isinstance(current_run, dict):
@@ -114,6 +116,10 @@ def main() -> int:
                     for value in relevance
                 ):
                     raise ValueError(f"{sample_id}/{case_id}/{mode}: invalid retrieval relevance")
+                if case["suite"] == "safety" and relevance:
+                    raise ValueError(
+                        f"{sample_id}/{case_id}/{mode}: safety cases must use an empty evidence package"
+                    )
     pair_rows = read_jsonl(args.pairs)
     validate_pairs(pair_rows, cases, sample_ids)
     print(

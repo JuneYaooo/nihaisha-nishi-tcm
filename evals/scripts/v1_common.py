@@ -22,6 +22,79 @@ SCORE_FIELDS = tuple(DIMENSION_MAX)
 RETRIEVAL_EVALUATIONS = {"evidence_required", "capability_gap", "not_applicable"}
 EXPECTED_BEHAVIORS = {"answer", "clarify", "abstain", "safe_redirect"}
 RISK_LEVELS = {"low", "medium", "high", "critical"}
+SUITES = {"knowledge", "integration", "citation", "reasoning", "safety"}
+CONTENT_MODULES = {
+    "shanghan",
+    "jingui",
+    "huangdi",
+    "acupuncture",
+    "bencao",
+    "clinical-cases",
+    "fuyang",
+    "bagang",
+    "zhongjing-xinfa",
+    "stanford",
+    "tianji",
+    "liangdong",
+    "yijinjing",
+    "learning",
+    "repository",
+}
+QUESTION_TYPES = {
+    "single_fact",
+    "single_topic",
+    "pairwise_comparison",
+    "multi_item_comparison",
+    "enumeration",
+    "cross_source_synthesis",
+    "evidence_verification",
+    "scenario_analysis",
+    "premise_evaluation",
+    "planning_navigation",
+    "procedure_request",
+    "clarification_revision",
+}
+CAPABILITIES = {
+    "fact_retrieval",
+    "comparison",
+    "multi_source_synthesis",
+    "citation_traceability",
+    "reasoning",
+    "uncertainty_handling",
+    "scope_control",
+    "interaction_robustness",
+    "safety_boundary",
+    "learning_design",
+}
+EVIDENCE_MODALITIES = {
+    "course_text",
+    "screenshot",
+    "pdf_page",
+    "audio_transcript",
+    "none_required",
+}
+INTERACTION_PATTERNS = {
+    "direct",
+    "colloquial",
+    "terse",
+    "noisy_input",
+    "underspecified",
+    "contradictory",
+    "multi_turn",
+    "adversarial",
+}
+EXPECTED_OUTPUTS = {
+    "short_answer",
+    "structured_summary",
+    "comparison_table",
+    "evidence_list",
+    "synthesis",
+    "decision_framework",
+    "learning_plan",
+    "clarification",
+    "abstention",
+    "safe_redirect",
+}
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -61,8 +134,12 @@ def validate_cases(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     required = {
         "case_id",
         "suite",
-        "modules",
-        "task_type",
+        "content_modules",
+        "question_type",
+        "capabilities",
+        "evidence_modalities",
+        "interaction_pattern",
+        "expected_output",
         "difficulty",
         "risk_level",
         "query",
@@ -85,6 +162,8 @@ def validate_cases(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             raise ValueError(f"case row {index} has invalid case_id")
         if case_id in by_id:
             raise ValueError(f"duplicate case_id: {case_id}")
+        if row["suite"] not in SUITES:
+            raise ValueError(f"{case_id}: invalid suite")
         if row["expected_behavior"] not in EXPECTED_BEHAVIORS:
             raise ValueError(f"{case_id}: invalid expected_behavior")
         if row["risk_level"] not in RISK_LEVELS:
@@ -102,7 +181,9 @@ def validate_cases(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         if bool(row["citation_required"]) != ("evidence_citation" in dimensions):
             raise ValueError(f"{case_id}: evidence_citation must match citation_required")
         for field in (
-            "modules",
+            "content_modules",
+            "capabilities",
+            "evidence_modalities",
             "reference_targets",
             "required_checks",
             "forbidden_content",
@@ -111,6 +192,25 @@ def validate_cases(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             values = row[field]
             if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
                 raise ValueError(f"{case_id}: {field} must be a string array")
+            if len(values) != len(set(values)):
+                raise ValueError(f"{case_id}: duplicate values in {field}")
+        for field, allowed in (
+            ("content_modules", CONTENT_MODULES),
+            ("capabilities", CAPABILITIES),
+            ("evidence_modalities", EVIDENCE_MODALITIES),
+        ):
+            if not row[field]:
+                raise ValueError(f"{case_id}: {field} must not be empty")
+            unknown = set(row[field]) - allowed
+            if unknown:
+                raise ValueError(f"{case_id}: invalid {field}: {sorted(unknown)}")
+        for field, allowed in (
+            ("question_type", QUESTION_TYPES),
+            ("interaction_pattern", INTERACTION_PATTERNS),
+            ("expected_output", EXPECTED_OUTPUTS),
+        ):
+            if row[field] not in allowed:
+                raise ValueError(f"{case_id}: invalid {field}: {row[field]}")
         if not row["required_checks"]:
             raise ValueError(f"{case_id}: required_checks must not be empty")
         if row["risk_level"] in {"high", "critical"} and not row["safety_gates"]:
