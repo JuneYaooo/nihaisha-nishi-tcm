@@ -1,5 +1,9 @@
 <div align="center">
 
+<p align="center">
+  <img src="../assets/nihaisha-cover.svg" alt="nihaisha: searchable TCM courses with traceable evidence" width="100%" />
+</p>
+
 # nihaisha
 
 **Turn Ni Haisha's Traditional Chinese Medicine course materials into a searchable, traceable Agent Skill with clear safety boundaries.**
@@ -25,6 +29,11 @@ The course distillation method used in this project comes from the author's [lin
 
 ## Update Log
 
+### 2026-08-02
+
+- Added a 240-question multidimensional evaluation set covering 5 primary capabilities, 9 common user needs, and 5 core course modules.
+- For every question, RAG and the standard Skill each produced 3 independently generated answers that were blind-judged, yielding 720 answers per channel and 120 equivalent-question consistency observations.
+
 ### 2026-07-18
 
 - Added a RAG + knowledge-graph mode. The complete assets are about 3.68 GB and the mode is still under testing; download with caution if disk space is limited.
@@ -33,6 +42,11 @@ The course distillation method used in this project comes from the author's [lin
 
 - Added a separately labeled search layer for books recommended by Ni Haisha; these sources are not presented as Ni-authored material.
 - Relevant primary course matches now automatically trigger a separate supplemental second pass.
+
+### 2026-07-15
+
+- Moved executable dosage, decoction, acupuncture, bloodletting, moxibustion, and toxic-herb instructions out of the distilled text layer and back into the PDF/screenshot evidence layer; source images and text remain available but are explicitly marked as not instructions to follow.
+- Corrected earlier ASR and distillation errors involving Mai Dong, Wa Leng Zi, ALS, Zhizi Chi Tang, Yu Jin, classical formulas, Jingui formulas, processed Fuzi, and related terms, while tightening safety boundaries for cancer, emergencies, pregnancy, children, Fuzi, and acupuncture procedures.
 
 ### 2026-06-25
 
@@ -55,9 +69,21 @@ The course distillation method used in this project comes from the author's [lin
 
 ## Optional RAG + Knowledge-Graph Mode (Testing)
 
+> **Full explanation and workflow diagram**: [`RAG_GRAPH_MODE.md`](./RAG_GRAPH_MODE.md) — when to use the mode, how source passages are found, what each component does, supported scenarios, and safety boundaries.
+
 RAG + knowledge-graph retrieval is not the default. Ordinary course questions, formula
 comparisons, lesson review, screenshot search, and PDF page traceback first use the lightweight
 bundled material and search scripts.
+
+When enabled, the mode first searches the indexed material for relevant source passages and identifies
+their provenance. Courses that are not indexed, learning-plan requests, and screenshot searches remain
+available. Retrieved evidence is organized before it is presented as a readable answer.
+
+Technically, choosing RAG + knowledge graph runs the complete composite mode: covered PDF questions
+use embedding + knowledge-graph hybrid retrieval for source evidence; missing courses and learning-plan
+requests fall back to lightweight modules; screenshot search continues to use the shared screenshot
+index; and the same agent handles intent, safety, and final synthesis. The JSON returned by
+`nihaisha_kg answer` is an evidence package and must not be presented directly as the final user answer.
 
 The mode is used only when the user explicitly requests RAG and complete verified data is already
 available locally. If data is missing, the agent only reports the required space, download source,
@@ -68,6 +94,79 @@ separately and explicitly asks to download the RAG data.
 - Source: [Hugging Face Dataset — `JuneYao/nihaisha-rag-assets`](https://huggingface.co/datasets/JuneYao/nihaisha-rag-assets)
 - Local data path: `data/pdf_rag_bge_m3/`
 - Reuse: completed downloads are verified and retained locally, so they do not need to be downloaded again.
+
+## Evaluation
+
+The multidimensional evaluation contains 240 questions. For every question, each channel independently generated 3 answers, and all answers were blind-judged.
+
+### Overall results
+
+| Metric | RAG | Standard Skill | Sample size |
+| --- | ---: | ---: | ---: |
+| Answer score | 92.8% (95% CI 91.6–94.1) | 91.4% (95% CI 90.1–92.7) | 240 questions × 3 runs |
+| Expected-behavior pass rate | 83.1% | 85.8% | 720 answers per channel |
+| Required-check pass rate | 87.9% | 88.5% | 2,169 checks per channel |
+| Citation support precision | 92.9% | 93.2% | 171 questions × 3 runs |
+| Citation claim coverage | 90.4% | 92.0% | 171 questions × 3 runs |
+| Citation accessibility | 99.1% | 97.3% | 171 questions × 3 runs |
+
+### Primary capabilities
+
+| Primary capability | Questions | RAG answer score | Standard Skill answer score | Difference (RAG − Skill) |
+| --- | ---: | ---: | ---: | ---: |
+| Knowledge retrieval | 48 | 90.4% | 88.0% | +2.4 |
+| Cross-source synthesis | 48 | 90.6% | 86.7% | +3.9 |
+| Citation and traceability | 36 | 85.3% | 91.3% | -6.0 |
+| Reasoning and robustness | 48 | 96.7% | 90.8% | +5.9 |
+| Clinical safety | 60 | 98.0% | 98.5% | -0.5 |
+| **Total** | **240** | **92.8%** | **91.4%** | **+1.4** |
+
+### Common user needs
+
+| What users commonly want to do | Example question | Questions | RAG | Standard Skill |
+| --- | --- | ---: | ---: | ---: |
+| Look up one topic | “What are the main features of jueyin disease?” | 33 | 89.7% | 86.8% |
+| Compare two or more items | “How do Guizhi Tang and Mahuang Tang differ?” | 31 | 92.2% | 88.1% |
+| Combine multiple course sources | “How is water qi discussed across Shang Han Lun and Jingui?” | 26 | 90.7% | 83.9% |
+| Verify original text and provenance | “Which lesson and page does this sentence come from?” | 38 | 87.4% | 91.6% |
+| Check whether a claim is valid | “If search finds nothing, does that prove it was never said?” | 31 | 96.0% | 89.9% |
+| Analyze a specific situation | “Given this situation, what should be considered first?” | 34 | 98.9% | 99.3% |
+| Ask for a concrete procedure | “Can you give me an exact dosage or needling method?” | 23 | 97.3% | 97.4% |
+| Plan study and source navigation | “Where should a beginner start?” | 8 | 87.5% | 99.3% |
+| Revise after adding information | “With this added information, how should the earlier assessment change?” | 16 | 94.5% | 93.1% |
+
+### Core course modules
+
+Only five core courses are reported here. Other material is used for source verification, safety, and capability-boundary questions but is not shown as a content score. A question may involve multiple core courses, so the counts below do not sum to 240.
+
+| Course module | Questions involving the module | RAG answer score | Standard Skill answer score |
+| --- | ---: | ---: | ---: |
+| Shang Han Lun | 101 | 94.5% | 89.1% |
+| Jingui Yaolue | 64 | 94.8% | 87.4% |
+| Acupuncture | 32 | 95.7% | 90.6% |
+| Shennong Bencao | 30 | 94.5% | 91.4% |
+| Huangdi Neijing | 27 | 91.0% | 88.6% |
+
+### Specialized metrics
+
+| Metric | RAG | Standard Skill | Scope |
+| --- | ---: | ---: | ---: |
+| Returned-pool Hit@10 | 94.5% | 91.6% | 146 retrieval questions × 3 runs |
+| Returned-pool nDCG@10 | 74.9% | 69.3% | 146 retrieval questions × 3 runs |
+| Capability-boundary pass rate | 30.0% (18/60) | 8.3% (5/60) | 20 boundary questions × 3 runs |
+| Equivalent-question consistency | 87.5% (105/120) | 62.5% (75/120) | 40 groups × 3 runs |
+| Serious safety flags | 4/720 | 1/720 | All answers |
+| Source-misattribution observations | 13/513 | 7/513 | 171 citation questions × 3 runs |
+| Paired answer-score difference | +1.4 (95% CI -0.5–3.2) | Baseline | 240 questions × 3 runs |
+
+Detailed artifacts: [240-question evaluation set](../evals/answer_eval_v1.jsonl) ·
+[scoring rubric](../evals/answer_eval_rubric_v1.md) · [evaluation guide](../evals/README.md) ·
+[three-run answer judgments](../evals/answer_eval_judgments_v1.jsonl) ·
+[three-run pair judgments](../evals/answer_eval_pairs_v1.jsonl) ·
+[summary data](../evals/answer_eval_summary_v1.json) ·
+[run protocol](../evals/answer_eval_run_v1.json)
+
+TCM clinicians are welcome to participate in the evaluation. If any question, scoring rule, source citation, pattern-identification wording, or safety boundary is inaccurate or unprofessional, please provide guidance through a GitHub Issue.
 
 ## Best-fit use cases
 
@@ -191,14 +290,30 @@ This project began as a family learning need. My father has recently been studyi
 
 I open-sourced it in the hope that it can also help others who are studying Ni Haisha's courses, Chinese medical classics, and classical formula systems. The project is intended for deep study, source lookup, citation checking, and knowledge organization, not for diagnosis or prescription advice. For real health issues, consult a qualified clinician offline and avoid creating health risks by copying formulas, purchasing herbs, or adjusting dosages on your own.
 
-## Acknowledgements and community
+## Acknowledgements
 
 First, thanks to Master Ni Haisha for leaving behind a large body of Chinese medicine course teaching. His courses connect Shang Han Lun, Jingui, acupuncture, materia medica, Huangdi Neijing, Tianji, and clinical pattern thinking into a course system that learners can study, verify, and review by lesson, topic, and question. This project only organizes those materials for learning; its value starts from Master Ni's teaching and transmission.
 
 Thanks also to Master Ni's students, fans, learners, and volunteers who have spent years transcribing, proofreading, organizing, and sharing course materials, subtitles, handouts, screenshots, and study notes. Without that long-running community effort, this project could not build further structured distillation, indexing, and correction on top of the course corpus.
 
-Special thanks to Dr. Deyi Liu (Dee Liu) of Suzhou Yunzhengtang and members of the Qihuang Shengxian Zhihui group for supporting course-text proofreading and classical-source collation. The proofreading PDFs and related classical/formula reference materials used in this update were provided by Dr. Deyi Liu (Dee Liu). Many terminology corrections in earlier video/audio transcriptions were also made after Dr. Deyi Liu (Dee Liu) pointed out likely transcription errors. This support made the current page-level, source-traceable evidence layer possible.
+Special thanks to Dr. Deyi Liu (Dee Liu) of Suzhou Yunzhengtang and the Qihuang Shengxian Zhihui group for supporting course-text proofreading and classical-source collation. The proofreading PDFs and related classical/formula reference materials used in this update were provided by Dr. Deyi Liu (Dee Liu). Many terminology corrections in earlier video/audio transcriptions were also made after Dr. Deyi Liu (Dee Liu) pointed out likely transcription errors. The evaluation dimensions and some evaluation cases were also informed by his suggestions. Without this proofreading, source material, and evaluation guidance, the project could not have built its current page-level, traceable evidence layer.
 
 Thanks to the [Datawhale community](https://github.com/datawhalechina) and [LINUX DO - Chinese Developer Community](https://linux.do/) for their long-running support of open learning, technical exchange, and collaborative knowledge building. This project shares the same open and mutual-help spirit and is for learning and exchange only.
 
-TCM clinicians, students, and enthusiasts are welcome to help maintain this project. Corrections and additions are especially valuable for terminology errors in transcriptions, formula/acupoint/herb name corrections, classical-source checks, missing screenshot or PDF evidence, incomplete sections, and inaccurate wording. Contributions can come through issues, pull requests, or community feedback. All collaboration remains limited to course study, material lookup, and source verification; it does not provide personal diagnosis, prescriptions, dosage, or self-medication advice.
+## Contributing
+
+TCM clinicians, students, enthusiasts, and AI practitioners interested in knowledge distillation, Agent Skills, retrieval, and AI-assisted learning are welcome to help maintain this project.
+
+Contributions are especially valuable for transcription terminology errors; formula, acupoint, and herb-name corrections; classical-source verification; missing screenshot or PDF evidence; incomplete or inaccurate content; and improvements to retrieval, prompts, index structure, and usage workflows. Please contribute through issues, pull requests, or community feedback.
+
+All collaboration remains limited to course study, material retrieval, and source verification. It does not provide personal diagnosis, prescriptions, dosage, or self-medication advice.
+
+## Community Group
+
+Scan the QR code below to join the WeChat group for discussion of Ni Haisha course study, TCM theory organization, Agent Skills, material retrieval, and collaborative study notes.
+
+The group is limited to non-commercial learning and technical discussion. It does not provide personal diagnosis, prescriptions, dosage, or self-medication advice.
+
+<p align="center">
+  <img src="./wechat_group_qr_20260727.jpg" alt="nihaisha-tcm-nishi-skills WeChat group QR code" width="260">
+</p>
