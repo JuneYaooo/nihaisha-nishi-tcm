@@ -29,7 +29,7 @@ Claude Code / Codex / OpenClaw Skill。装进 agent 后，可以用自然语言�
 
 ## 更新记录
 
-### 2026-07-26
+### 2026-08-02
 
 - 增加评测内容。
 

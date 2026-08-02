@@ -572,7 +572,7 @@
         "lightweight_oracle_targets": false,
         "rag": "frozen Hybrid Top-10, BAAI/bge-m3, no reranker"
       },
-      "run_date": "2026-08-01",
+      "run_date": "2026-08-02",
       "sample_ids": [
         "sample-01",
         "sample-02",
@@ -605,7 +605,7 @@
     },
     "schema_version": "answer-eval-v1.1",
     "status": "multidimensional_three_sample_evaluation_complete",
-    "updated_at": "2026-08-01"
+    "updated_at": "2026-08-02"
   },
   "safety": {
     "lightweight_frozen_full_references_top10": {
