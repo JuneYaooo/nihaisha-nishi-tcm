@@ -162,6 +162,8 @@ replace original evidence or enter the primary conclusion on their own.
 
 ## Style
 
-Prefer compact Chinese explanations with tables when comparing formulas or patterns. Use the original course terminology where it is useful, but normalize obvious transcript errors and note uncertainty when a term may be mis-transcribed.
+Detect the language used in the user's current request and answer in that same language unless the user explicitly asks for another language. For mixed-language requests, follow the primary natural language. Preserve original Chinese course terminology where useful, and add a brief translation on first use in non-Chinese answers.
+
+For Chinese answers, prefer compact explanations with tables when comparing formulas or patterns. Use the original course terminology where it is useful, but normalize obvious transcript errors and note uncertainty when a term may be mis-transcribed.
 
 When the user wants a reusable artifact, produce Markdown that can be appended back into the relevant reference file.
