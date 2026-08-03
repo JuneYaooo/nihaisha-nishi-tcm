@@ -315,5 +315,5 @@ Scan the QR code below to join the WeChat group for discussion of Ni Haisha cour
 The group is limited to non-commercial learning and technical discussion. It does not provide personal diagnosis, prescriptions, dosage, or self-medication advice.
 
 <p align="center">
-  <img src="./wechat_group_qr_20260727.jpg" alt="nihaisha-tcm-nishi-skills WeChat group QR code" width="260">
+  <img src="./wechat_group_qr_20260803.jpg" alt="nihaisha-tcm-nishi-skills WeChat group QR code" width="260">
 </p>

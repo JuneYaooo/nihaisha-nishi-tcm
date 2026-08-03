@@ -311,5 +311,5 @@ agent 可以 clone 仓库，再把目录安装到对应的 skills 目录。
 本群仅用于非商业的学习交流与技术讨论，不提供个人诊断、处方、剂量或自我用药建议。
 
 <p align="center">
-  <img src="./docs/wechat_group_qr_20260727.jpg" alt="nihaisha-tcm-nishi-skills 微信交流群二维码" width="260">
+  <img src="./docs/wechat_group_qr_20260803.jpg" alt="nihaisha-tcm-nishi-skills 微信交流群二维码" width="260">
 </p>
