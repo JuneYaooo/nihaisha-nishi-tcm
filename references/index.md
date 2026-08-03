@@ -111,6 +111,7 @@
 | --- | --- | --- |
 | `acupuncture.md` | 针灸课程总蒸馏与逐课摘要 | 问针灸课程、经络穴位、任督二脉、十二正经、奇经八脉、配穴法、针灸急救、导引功法时 |
 | `acupuncture-screenshot-evidence.md` | 501 张关键截图索引 | 用户要针灸板书、PPT、穴位图、经络图、真人实操或视频证据时 |
+| `acupuncture-needle-depth-safety.md` | 外部解剖/影像危险深度参考与翻译勘误 | 用户问进针深度、直刺/斜刺、针长角度、多少毫米危险、气胸、肺/胸膜、胸背颈项眼眶或危险穴位时；与倪师课程分层展示 |
 | `notes-acupuncture-dacheng.md` | 针灸大成笔记、针灸讲稿、学习笔记抽取式蒸馏 | 用户问针灸文字讲义、笔记、针灸大成补充资料时 |
 | `notes-acupuncture-dacheng-scan-essence.md` | 针灸大成扫描版 PDF 要点补充 | 用户问扫描版针灸讲义或补抽取资料中的要点内容时 |
 
@@ -147,7 +148,7 @@
 - 天纪问题：先 `tianji.md`；需要易经、八卦、阳宅、风水、紫微斗数、命宫、四化、先天卦/后天卦、天干地支或占卜术数板书证据时查 `tianji-screenshot-evidence.md`。
 - 黄帝内经问题：先 `huangdi.md`；需要板书、PPT、五行、四时、脉诊、藏象或病机图证据时查 `huangdi-screenshot-evidence.md`。
 - 神农本草问题：先 `bencao.md`；需要药性、药物分类、性味归经、剂型剂量或配伍证据时查 `bencao-screenshot-evidence.md`。
-- 针灸问题：先 `acupuncture.md`；需要穴位图、经络图、手法或实操证据时查 `acupuncture-screenshot-evidence.md`。
+- 针灸问题：先 `acupuncture.md`；需要穴位图、经络图、手法或实操证据时查 `acupuncture-screenshot-evidence.md`；涉及进针深度、危险毫米数、气胸、胸背/颈项/眼眶等深部结构时，必须同时查 `acupuncture-needle-depth-safety.md`，并把外部安全研究与课程内容分层。
 - 文字笔记问题：按课程先看对应视频课程引用，再打开 `notes-acupuncture-dacheng.md`、`notes-huangdi.md`、`notes-bencao.md`、`notes-shanghan.md` 或 `notes-jingui.md` 做补充。
 - PDF/古籍溯源问题：先打开 `ebooks.md`、`pdf-evidence/index.md`，涉及非 PDF 推荐资料时再开 `text-evidence/index.md`。默认先检索课程蒸馏、课程 PDF 与截图；正文命中同一话题且补充层有结果时，自动执行倪师推荐资料二次检索，并单独标注书名与来源层级，无需用户再次要求。`--primary-only` 可关闭二次检索，直接查推荐书时用 `--include-supplements`；不得把原书观点写成倪师原话或倪师本人资料。
 - 音频合集问题：打开 `audio-collection.md`，按目录映射回已蒸馏课程引用。

@@ -28,7 +28,7 @@ Example: `pdf-evidence:58423f817a06#p52` means page 52 of the PDF whose `doc_id`
 ## Evidence Policy
 
 - These files use stable document IDs rather than machine-specific paths.
-- `source_role: ni-recommended-supplement` means “倪师推荐补充资料”, not 倪师本人资料. Search and answers must label it separately from course-derived evidence.
+- `source_role: ni-recommended-supplement` means “倪师推荐补充资料”, not 倪师本人资料. `practitioner-recommended-safety-reference` means an independently attributed professional safety reference, and `user-provided-translation-aid` is navigation/translation aid rather than primary evidence. Search and answers must label every external role separately from course-derived evidence.
 - Every physical PDF page is represented. Text pages contain the complete extracted text layer, image-only pages use a human-reviewed override, unrelated promotional/privacy pages use an explicit exclusion marker, and blank pages are explicitly marked.
 - No character limit or representative-card limit is applied to stored page text.
 - Images and PDF layout are not embedded; consult the original PDF when typography, diagrams, seals, or page geometry matter.

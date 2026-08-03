@@ -24,7 +24,27 @@ MODULE_TITLES = {
 
 SOURCE_ROLE_LABELS = {
     "ni-recommended-supplement": "倪师推荐补充资料（非倪师本人资料）",
+    "practitioner-recommended-safety-reference": (
+        "针灸安全外部参考（叶昭呈医师推荐；非倪师本人资料）"
+    ),
+    "user-provided-translation-aid": "中文翻译辅助（须回核原始论文）",
 }
+
+SOURCE_METADATA_FIELDS = (
+    "source_role",
+    "recommended_by",
+    "provided_by",
+    "source_provenance",
+    "bibliographic_title",
+    "doi",
+    "official_url",
+    "sha256",
+    "evidence_priority",
+    "translation_of",
+    "translation_caveat",
+    "aliases",
+    "page_terms",
+)
 
 WATERMARK_RE = re.compile(
     r"学习资料成本价打印公益流通禁止加价贩卖\s*"
@@ -146,6 +166,15 @@ def clean_page_text(raw_text: str, *, normalize_cjk_spacing: bool = False) -> st
     ]
     text = "\n".join(lines).strip()
     return MULTIPLE_BLANK_LINES_RE.sub("\n\n", text)
+
+
+def source_metadata(source_document: dict[str, Any]) -> dict[str, Any]:
+    """Keep optional provenance metadata when rebuilding generated evidence files."""
+    return {
+        field: source_document[field]
+        for field in SOURCE_METADATA_FIELDS
+        if source_document.get(field) not in (None, "", [], {})
+    }
 
 
 def redact_ocr_privacy(text: str) -> str:
@@ -313,8 +342,9 @@ def main() -> int:
         source_path = resolve_source(args.source_root, source_name)
         pdf = fitz.open(source_path)
         normalize_cjk_spacing = source_document.get("normalize_cjk_spacing", False)
-        source_role = source_document.get("source_role")
-        recommended_by = source_document.get("recommended_by")
+        metadata = source_metadata(source_document)
+        card_metadata = {key: value for key, value in metadata.items() if key != "page_terms"}
+        source_role = metadata.get("source_role")
         text_extraction = source_document.get("text_extraction", "native")
         ocr_model = source_document.get("ocr_model")
         ocr_records = (
@@ -417,8 +447,7 @@ def main() -> int:
                 "page_kind": page_kind,
                 "source_name": source_name,
                 "source_type": "pdf",
-                **({"source_role": source_role} if source_role else {}),
-                **({"recommended_by": recommended_by} if recommended_by else {}),
+                **card_metadata,
                 **(
                     {"text_method": f"paddleocr-{ocr_model or 'unknown'}"}
                     if text_extraction == "paddleocr"
@@ -431,7 +460,10 @@ def main() -> int:
                     else {}
                 ),
                 "text": text,
-                "terms": existing_cards.get(card_id, {}).get("terms", []),
+                "terms": sorted(
+                    set(existing_cards.get(card_id, {}).get("terms", []))
+                    | set(source_document.get("page_terms", {}).get(str(page_number), []))
+                ),
             }
             cards.append(card)
             cards_by_doc[doc_id].append(card)
@@ -441,8 +473,7 @@ def main() -> int:
             "source_name": source_name,
             "source_type": "pdf",
             "module": source_document["module"],
-            **({"source_role": source_role} if source_role else {}),
-            **({"recommended_by": recommended_by} if recommended_by else {}),
+            **metadata,
             **(
                 {"text_extraction": text_extraction, "ocr_model": ocr_model}
                 if text_extraction == "paddleocr"

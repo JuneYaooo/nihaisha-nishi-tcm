@@ -342,5 +342,219 @@
     "first_page": 1,
     "last_page": 85,
     "characters": 58415
+  },
+  {
+    "doc_id": "607dba60f5d9",
+    "source_name": "經穴深部構造的危險深度.pdf",
+    "source_type": "pdf",
+    "module": "acupuncture",
+    "source_role": "practitioner-recommended-safety-reference",
+    "recommended_by": "叶昭呈医师",
+    "provided_by": "刘德毅医师",
+    "source_provenance": "刘德毅医师提供；叶昭呈医师推荐",
+    "bibliographic_title": "経絡・経穴の解剖学的並びに臨床的検討",
+    "doi": "10.3777/jjsam.56.27",
+    "official_url": "https://doi.org/10.3777/jjsam.56.27",
+    "sha256": "607dba60f5d9c3c4f3dc0526018010da67f2e06ecee3c09394875bc6bc5c622a",
+    "evidence_priority": "primary-original",
+    "aliases": [
+      "经络经穴的解剖学与临床研究",
+      "经穴危险进针深度",
+      "针刺安全深度",
+      "针刺危险深度"
+    ],
+    "page_terms": {
+      "1": [
+        "正式题名",
+        "作者",
+        "期刊",
+        "2006",
+        "56卷1号",
+        "27-56"
+      ],
+      "17": [
+        "危险经穴",
+        "安全深度",
+        "51具遗体",
+        "男性21",
+        "女性30"
+      ],
+      "18": [
+        "风府",
+        "哑门",
+        "风池",
+        "睛明",
+        "俞府",
+        "彧中",
+        "神藏",
+        "灵墟",
+        "神封",
+        "步廊",
+        "缺盆",
+        "气户",
+        "库房",
+        "屋翳",
+        "膺窗",
+        "膻中",
+        "乳根",
+        "天池",
+        "食窦",
+        "天溪",
+        "期门",
+        "日月",
+        "大包",
+        "渊腋",
+        "辄筋",
+        "胸乡",
+        "周荣",
+        "胸部危险深度",
+        "胸部安全深度",
+        "气胸"
+      ],
+      "19": [
+        "大杼",
+        "风门",
+        "肺俞",
+        "肺腧",
+        "厥阴俞",
+        "心俞",
+        "督俞",
+        "膈俞",
+        "胰俞",
+        "肝俞",
+        "胆俞",
+        "脾俞",
+        "胃俞",
+        "肩外俞",
+        "附分",
+        "魄户",
+        "膏肓",
+        "神堂",
+        "譩譆",
+        "膈关",
+        "魂门",
+        "阳纲",
+        "意舍",
+        "胃仓",
+        "肓门",
+        "志室",
+        "肩井",
+        "天髎",
+        "肩中俞",
+        "背部危险深度",
+        "腰背部危险深度"
+      ],
+      "20": [
+        "哑门",
+        "天柱",
+        "肩井",
+        "膏肓",
+        "膻中",
+        "CT",
+        "MRI",
+        "X光",
+        "遗体",
+        "活体"
+      ],
+      "21": [
+        "膏肓",
+        "肋骨",
+        "胸膜",
+        "肺",
+        "CT"
+      ],
+      "22": [
+        "膏肓",
+        "膻中",
+        "胸骨裂孔",
+        "胸膜",
+        "体型"
+      ],
+      "23": [
+        "哑门",
+        "天柱",
+        "肩井",
+        "膏肓",
+        "危险刺入深度",
+        "安全刺针距离",
+        "BMI",
+        "中日比较"
+      ],
+      "28": [
+        "参考文献",
+        "危险经穴",
+        "胸部安全深度",
+        "背腰部安全深度"
+      ],
+      "30": [
+        "英文摘要",
+        "acupuncture safety depth"
+      ]
+    },
+    "physical_pages": 30,
+    "pages_with_text": 30,
+    "pages_with_visual": 0,
+    "excluded_pages": 0,
+    "blank_pages": 0,
+    "first_page": 1,
+    "last_page": 30,
+    "characters": 40480
+  },
+  {
+    "doc_id": "577f082ab5e5",
+    "source_name": "全文本学术翻译报告：经穴深部构造的危险深度研究.pdf",
+    "source_type": "pdf",
+    "module": "acupuncture",
+    "source_role": "user-provided-translation-aid",
+    "recommended_by": "叶昭呈医师",
+    "provided_by": "刘德毅医师",
+    "source_provenance": "刘德毅医师提供；叶昭呈医师推荐资料所附中文辅助报告",
+    "bibliographic_title": "全文本学术翻译报告：经穴深部构造的危险深度研究",
+    "sha256": "577f082ab5e58c2e6e5bfc29541d1dfc0748f247cd20fde2058bf7fc8f3e736e",
+    "evidence_priority": "translation-aid-only",
+    "translation_of": "607dba60f5d9",
+    "translation_caveat": "机器/二次整理性质的中文辅助报告；书目信息、作者归属、表格完整性与百分比存在错漏，任何结论须回核日文原文。",
+    "aliases": [
+      "经穴深部构造的危险深度",
+      "针刺安全深度中文翻译"
+    ],
+    "page_terms": {
+      "1": [
+        "中文翻译辅助",
+        "书目信息",
+        "经穴解剖"
+      ],
+      "2": [
+        "上肢经穴",
+        "神经血管"
+      ],
+      "3": [
+        "胸部危险深度",
+        "背部危险深度",
+        "肺俞",
+        "肺腧",
+        "风府",
+        "哑门",
+        "风池",
+        "睛明"
+      ],
+      "4": [
+        "膏肓",
+        "肩井",
+        "CT",
+        "MRI",
+        "X光",
+        "75%错漏",
+        "参考文献"
+      ]
+    },
+    "physical_pages": 4,
+    "pages_with_text": 4,
+    "pages_with_visual": 0,
+    "excluded_pages": 0,
+    "blank_pages": 0,
+    "first_page": 1,
+    "last_page": 4,
+    "characters": 5494
   }
 ]

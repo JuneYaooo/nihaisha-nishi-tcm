@@ -24,3 +24,5 @@
 | `a3551879ed76` | `classics` | `ni-recommended-supplement` | `native` | `醫學衷中參西錄直書_1.0_B5.pdf` | 2150 | 2150 | 0 | 0 | 0 | 1283384 |
 | `64bc78fc08a4` | `jingui` | `ni-recommended-supplement` | `native` | `醫宗金鑑金匱要略直書B5版本.pdf` | 1831 | 1831 | 0 | 0 | 0 | 1274667 |
 | `942ab5422229` | `classics` | `ni-recommended-supplement` | `paddleocr` | `黄帝外经.pdf` | 85 | 85 | 0 | 0 | 0 | 58415 |
+| `607dba60f5d9` | `acupuncture` | `practitioner-recommended-safety-reference` | `native` | `經穴深部構造的危險深度.pdf` | 30 | 30 | 0 | 0 | 0 | 40480 |
+| `577f082ab5e5` | `acupuncture` | `user-provided-translation-aid` | `native` | `全文本学术翻译报告：经穴深部构造的危险深度研究.pdf` | 4 | 4 | 0 | 0 | 0 | 5494 |
