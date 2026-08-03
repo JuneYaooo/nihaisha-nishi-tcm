@@ -1,6 +1,8 @@
 # nihaisha 评测集 V1
 
-V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块、辅助能力、证据形式和交互方式。两种候选均独立生成 3 次，使用不同于答案模型的裁判盲评。
+V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块、辅助能力、证据形式和交互方式。两种候选均独立生成 3 次，使用不同于答案模型的裁判盲评。题目与逐题要求见[完整题集](./answer_eval_v1.jsonl)，评分定义见[答案级评测量表](./answer_eval_rubric_v1.md)，模型、盲化方式、运行环境、检索配置及产物哈希见[三轮运行协议](./answer_eval_run_v1.json)。
+
+本文所有结果数字均来自[机器可读汇总](./answer_eval_summary_v1.json)，可向下追溯到 [720 条逐题盲评结果](./answer_eval_judgments_v1.jsonl)和[三轮共 120 条配对裁判结果](./answer_eval_pairs_v1.jsonl)。汇总由 [`aggregate_v1.py`](./scripts/aggregate_v1.py) 生成，并由 [`validate_v1.py`](./scripts/validate_v1.py) 校验；下文在每组结果后标明对应的 JSON 字段。
 
 ## 三轮评测结果
 
@@ -15,6 +17,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 | 引用主张覆盖率 | 90.4% | 92.0% | 171 题 × 3 次 |
 | 引用可访问率 | 99.1% | 97.3% | 171 题 × 3 次 |
 
+来源：[汇总结果](./answer_eval_summary_v1.json)中的 `answer`、`citation` 与 `question_count`；逐题依据见[盲评结果](./answer_eval_judgments_v1.jsonl)。置信区间与分数聚合规则见[评测量表第 2、8 节](./answer_eval_rubric_v1.md#2-适用维度)及[聚合脚本](./scripts/aggregate_v1.py)。
+
 ### 主能力
 
 | 主能力 | 题数 | RAG 回答得分 | 普通 Skill 回答得分 | 差值（RAG − Skill） |
@@ -25,6 +29,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 | 推论与鲁棒性 | 48 | 96.7% | 90.8% | +5.9 |
 | 临床安全 | 60 | 98.0% | 98.5% | -0.5 |
 | **合计** | **240** | **92.8%** | **91.4%** | **+1.4** |
+
+来源：[汇总结果](./answer_eval_summary_v1.json)中的 `breakdowns.suite` 与 `answer`；主能力字段及逐题归类见[完整题集](./answer_eval_v1.jsonl)的 `suite`。
 
 ### 常见用户需求
 
@@ -40,6 +46,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 | 安排学习和资料查找 | “初学者应该从哪里开始学？” | 8 | 87.5% | 99.3% |
 | 补充信息后继续追问 | “补充这些信息后，前面的判断要怎么改？” | 16 | 94.5% | 93.1% |
 
+来源：[汇总结果](./answer_eval_summary_v1.json)中的 `breakdowns.user_need`；该字段由题集 `question_type` 按 [`aggregate_v1.py`](./scripts/aggregate_v1.py) 中的映射规则汇总，原始题型见[完整题集](./answer_eval_v1.jsonl)。
+
 ### 核心课程模块
 
 这里只统计五门核心课程；其他资料仅用于来源核验、安全和能力边界题，不单列内容成绩。一题可涉及多个核心课程，因此下表题数不会相加为 240。
@@ -51,6 +59,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 | 针灸 | 32 | 95.7% | 90.6% |
 | 神农本草 | 30 | 94.5% | 91.4% |
 | 黄帝内经 | 27 | 91.0% | 88.6% |
+
+来源：[汇总结果](./answer_eval_summary_v1.json)中的 `breakdowns.content_module`；逐题多标签见[完整题集](./answer_eval_v1.jsonl)的 `content_modules`。分组报告边界见[评测量表第 10 节](./answer_eval_rubric_v1.md#10-分组报告)。
 
 ### 交互方式
 
@@ -65,6 +75,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 | 极简提问 | 3 | 95.6% | 86.4% |
 | 矛盾前提 | 2 | 97.9% | 99.0% |
 
+来源：[汇总结果](./answer_eval_summary_v1.json)中的 `breakdowns.interaction_pattern`；逐题标签见[完整题集](./answer_eval_v1.jsonl)的 `interaction_pattern`。
+
 ### 专项指标
 
 | 专项指标 | RAG | 普通 Skill | 统计范围 |
@@ -76,6 +88,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 | 严重安全问题标记数 | 4/720 | 1/720 | 全部回答 |
 | 来源误归属观测数 | 13/513 | 7/513 | 171 道引用题 × 3 次 |
 | 回答得分配对差 | +1.4（95% CI -0.5–3.2） | 基准 | 240 题 × 3 次 |
+
+来源：[汇总结果](./answer_eval_summary_v1.json)中的 `retrieval`、`robustness`、`safety`、`citation` 与 `paired_score_difference_rag_minus_lightweight`。检索相关性和严重安全标记可逐条复核于[盲评结果](./answer_eval_judgments_v1.jsonl)，同类问题一致性可逐组复核于[配对裁判结果](./answer_eval_pairs_v1.jsonl)；口径分别见[评测量表第 4—8 节](./answer_eval_rubric_v1.md#4-安全硬门槛)。
 
 ## 题集设计
 
@@ -111,6 +125,8 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 
 240 题中包含 146 道证据检索题、20 道能力边界题和 74 道不计算检索指标的题；81 道 high/critical 题带安全检查，40 个 `pair_id` 组用于鲁棒性评测。临床安全主能力题不向任一候选提供检索证据，只评回答、澄清、拒答、转介与边界保持。
 
+来源：[完整题集](./answer_eval_v1.jsonl)的逐题字段及[汇总结果](./answer_eval_summary_v1.json)中的 `question_count`、`retrieval`、`safety` 与 `robustness`。字段定义、门槛和分组原则见[评测量表](./answer_eval_rubric_v1.md)。
+
 ## 评测口径
 
 - 回答得分只汇总题目声明的适用维度；未声明的维度不进入分母。
@@ -120,18 +136,22 @@ V1 共 240 题。每题属于一个主能力，同时可标注多个内容模块
 - A/B 顺序按题目与采样轮次稳定盲化；答案模型与裁判模型分离。
 - 每题每通道生成 3 次；回答区间使用 case bootstrap，比例区间使用 Wilson 95% CI。
 
-## 文件
+口径来源：[评测量表](./answer_eval_rubric_v1.md)；本次实际采用的模型、样本轮次、盲化、检索配置、环境版本与哈希见[运行协议](./answer_eval_run_v1.json)的 `protocol` 和 `current_run`；具体实现见[回答生成脚本](./scripts/run_answers_v1.py)、[回答盲评脚本](./scripts/run_answer_judge_v1.py)、[配对盲评脚本](./scripts/run_pair_judge_v1.py)与[聚合脚本](./scripts/aggregate_v1.py)。
+
+## 产物与引用关系
 
 | 文件 | 内容 |
 | --- | --- |
-| `answer_eval_v1.jsonl` | 240 道多维题目及逐题评分口径 |
-| `answer_eval_rubric_v1.md` | 评分、引用、安全、统计和分组规则 |
-| `answer_eval_run_v1.json` | 三轮运行协议、环境和 artifact hash |
-| `answer_eval_summary_v1.json` | 三轮总体结果与全部分组数据 |
-| `answer_eval_judgments_v1.jsonl` | 3 × 240 条独立盲评结果 |
-| `answer_eval_pairs_v1.jsonl` | 40 组 × 3 轮鲁棒性裁判结果 |
-| `scripts/` | 题集、检索、回答、盲评、合并、聚合和校验脚本 |
-| `schemas/` | 结构化输出 schema |
+| [`answer_eval_v1.jsonl`](./answer_eval_v1.jsonl) | 240 道完整题目；支持题集设计、题数、主能力、用户需求、模块、风险、检索类别和配对组等声明 |
+| [`answer_eval_rubric_v1.md`](./answer_eval_rubric_v1.md) | 评分维度、原子检查、引用、安全、检索、鲁棒性、盲评、统计和分组规则 |
+| [`answer_eval_run_v1.json`](./answer_eval_run_v1.json) | 三轮运行协议、被测代码提交、模型、环境、检索资产版本、盲化方式及 artifact SHA-256 |
+| [`answer_eval_summary_v1.json`](./answer_eval_summary_v1.json) | README 全部数字的机器可读汇总，包括总体、分组、引用、检索、安全、鲁棒性和配对差值 |
+| [`answer_eval_judgments_v1.jsonl`](./answer_eval_judgments_v1.jsonl) | 3 × 240 条独立盲评结果；支撑逐题得分、检查项、引用、检索相关性、安全门槛和失败 case 复核 |
+| [`answer_eval_pairs_v1.jsonl`](./answer_eval_pairs_v1.jsonl) | 40 组 × 3 轮配对裁判结果；支撑同类问题回答一致率 |
+| [`scripts/`](./scripts/) | 题集、检索、回答、盲评、合并、聚合和校验实现 |
+| [`schemas/`](./schemas/) | 答案、逐题裁判和配对裁判的结构化输出 schema |
+
+结果的追溯链为：README 表格 → [`answer_eval_summary_v1.json`](./answer_eval_summary_v1.json) 对应字段 → [`answer_eval_judgments_v1.jsonl`](./answer_eval_judgments_v1.jsonl) 或 [`answer_eval_pairs_v1.jsonl`](./answer_eval_pairs_v1.jsonl) 的逐题/逐组记录 → [`answer_eval_v1.jsonl`](./answer_eval_v1.jsonl) 的题目要求与 [`answer_eval_rubric_v1.md`](./answer_eval_rubric_v1.md) 的判定规则。产物完整性可用 [`answer_eval_run_v1.json`](./answer_eval_run_v1.json) 中的 `artifact_sha256` 核验。
 
 原始检索证据、回答、分批裁判文件和模型日志保存在 `.local-evals/v1/`，不提交到 Skill 安装包。
 
@@ -181,4 +201,4 @@ python3 evals/scripts/validate_v1.py
 
 若配置网关误判旧课文中的生殖、解剖或其他无关段落，可显式加入 `--provider-safe-normalization`；固定替换与占位规则及其 hash 记录在运行元数据中。
 
-完整评分口径见 [`answer_eval_rubric_v1.md`](./answer_eval_rubric_v1.md)。
+完整评分口径见[评测量表](./answer_eval_rubric_v1.md)，本次运行参数及可核验哈希见[运行协议](./answer_eval_run_v1.json)，最终结果见[机器可读汇总](./answer_eval_summary_v1.json)。
