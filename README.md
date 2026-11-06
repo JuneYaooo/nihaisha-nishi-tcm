@@ -321,5 +321,5 @@ NotebookLM 是另一种独立的学习工具，用户可以新建笔记本，按
 本群仅用于非商业的学习交流与技术讨论，不提供个人诊断、处方、剂量或自我用药建议。
 
 <p align="center">
-  <img src="./docs/wechat_group_qr_20260803.jpg" alt="nihaisha-tcm-nishi-skills 微信交流群二维码" width="260">
+  <img src="./docs/wechat_group_qr_20261105.jpg" alt="nihaisha-tcm-nishi-skills 微信交流群二维码" width="260">
 </p>
